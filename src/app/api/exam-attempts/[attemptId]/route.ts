@@ -34,7 +34,11 @@ export const GET = routeHandler(
 
     await resolveAttemptClock(attemptId, now);
 
-    const state = await loadStudentAttemptState(prisma, { attemptId, userId: user.id, serverTime: now });
+    const state = await loadStudentAttemptState(prisma, {
+      attemptId,
+      userId: user.id,
+      serverTime: now,
+    });
     if (!state) {
       return apiFailure(404, 'attempt_not_found', COPY.exam.errors.attemptNotFound);
     }

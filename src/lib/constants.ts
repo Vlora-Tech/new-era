@@ -31,8 +31,20 @@ export const ROUTES = {
   admin: '/admin',
 } as const;
 
-/** Route prefixes the proxy performs an optimistic session check on. */
-export const PROTECTED_PREFIXES = ['/dashboard', '/admin', '/learn', '/exam'] as const;
+/**
+ * Route prefixes the proxy performs an optimistic session check on.
+ *
+ * Every page under these prefixes also guards itself, because the proxy cannot
+ * see whether an account was blocked. Listing a prefix here only saves a
+ * signed-out visitor from loading a page that would immediately redirect them.
+ */
+export const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/admin',
+  '/learn',
+  '/exam',
+  '/checkout',
+] as const;
 
 export const VIDEO = {
   /** Default share of a video that must be watched before completion. */

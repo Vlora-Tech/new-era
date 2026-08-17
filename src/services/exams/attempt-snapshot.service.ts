@@ -249,8 +249,7 @@ export function toAttemptQuestionCreate(
     contentSnapshot: prepared.contentSnapshot as unknown as Prisma.InputJsonValue,
     correctOptionKey: prepared.correctOptionKey,
     explanationSnapshot: (prepared.explanationSnapshot ?? undefined) as
-      | Prisma.InputJsonValue
-      | undefined,
+      Prisma.InputJsonValue | undefined,
     hintSnapshot: (prepared.hintSnapshot ?? undefined) as Prisma.InputJsonValue | undefined,
     domain: prepared.domain,
     subskill: prepared.subskill,

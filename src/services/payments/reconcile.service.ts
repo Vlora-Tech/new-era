@@ -9,6 +9,7 @@ import { grantEntitlement, revokeEntitlement } from '@/services/access/entitleme
 import { decideAccess } from './moyasar-status';
 import { canTransitionOrder } from './order.service';
 import {
+  configuredPaymentMode,
   getPaymentProvider,
   type CanonicalPayment,
   type ReconcileSource,
@@ -203,135 +204,248 @@ export async function reconcilePayment(input: ReconcileInput): Promise<Reconcile
 
   return prisma.$transaction(
     async (tx) => {
-    // Serialises concurrent reconciles of the same order. The second caller
-    // blocks here and, once through, re-reads a status that already says PAID.
-    const locked = await tx.$queryRaw<Array<{ id: string }>>`
-      SELECT "id" FROM "orders" WHERE "id" = ${orderId}::uuid FOR UPDATE
-    `;
-    if (locked.length === 0) {
-      logger.error('reconcile: order referenced by the payment does not exist', {
-        paymentId: payment.providerPaymentId,
-        orderId,
-        source: input.source,
-      });
-      return result('UNKNOWN_ORDER', { paymentStatus: payment.status });
-    }
-
-    const order = await tx.order.findUniqueOrThrow({
-      where: { id: orderId },
-      select: {
-        id: true,
-        userId: true,
-        productId: true,
-        amountHalalas: true,
-        currency: true,
-        status: true,
-        provider: true,
-      },
-    });
-
-    const configuredMode = (
-      await tx.paymentAttempt.findFirst({
-        where: { orderId: order.id },
-        orderBy: { createdAt: 'asc' },
-        select: { configuredMode: true },
-      })
-    )?.configuredMode;
-
-    // ── Verification ────────────────────────────────────────────────────
-    const mismatches: string[] = [];
-    if (payment.amountHalalas !== order.amountHalalas) mismatches.push('amount');
-    if (payment.currency !== 'SAR' || order.currency !== 'SAR') mismatches.push('currency');
-    if (payment.provider !== order.provider) mismatches.push('provider');
-
-    // When the payment names an attempt, that attempt must belong to this order.
-    // Without this check, metadata copied from someone else's checkout would
-    // still pass the amount comparison whenever two products cost the same.
-    const claimedAttemptId = payment.metadata.payment_attempt_id;
-    if (claimedAttemptId) {
-      if (!UUID_PATTERN.test(claimedAttemptId)) {
-        mismatches.push('payment_attempt');
-      } else {
-        const owned = await tx.paymentAttempt.findFirst({
-          where: { id: claimedAttemptId, orderId: order.id },
-          select: { id: true },
-        });
-        if (!owned) mismatches.push('payment_attempt');
-      }
-    }
-
-    if (mismatches.length > 0) {
-      // Flagged and recorded, never fulfilled. The attempt row is still written
-      // so the evidence of what the gateway reported survives.
-      await upsertAttempt(tx, {
-        orderId: order.id,
-        payment,
-        configuredMode: configuredMode ?? 'TEST',
-        needsReview: true,
-      });
-      await auditPayment(tx, {
-        action: 'payment.reconcile.mismatch',
-        orderId: order.id,
-        actorUserId: input.actorUserId,
-        requestId: input.requestId,
-        metadata: {
+      // Serialises concurrent reconciles of the same order. The second caller
+      // blocks here and, once through, re-reads a status that already says PAID.
+      const locked = await tx.$queryRaw<Array<{ id: string }>>`
+        SELECT "id" FROM "orders" WHERE "id" = ${orderId}::uuid FOR UPDATE
+      `;
+      if (locked.length === 0) {
+        logger.error('reconcile: order referenced by the payment does not exist', {
+          paymentId: payment.providerPaymentId,
+          orderId,
           source: input.source,
-          providerPaymentId: payment.providerPaymentId,
-          mismatches,
-          expectedAmountHalalas: order.amountHalalas,
-          reportedAmountHalalas: payment.amountHalalas,
-          expectedCurrency: order.currency,
-          reportedCurrency: payment.currency,
-          reportedStatus: payment.rawStatus,
+        });
+        return result('UNKNOWN_ORDER', { paymentStatus: payment.status });
+      }
+
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id: orderId },
+        select: {
+          id: true,
+          userId: true,
+          productId: true,
+          amountHalalas: true,
+          currency: true,
+          status: true,
+          provider: true,
         },
       });
 
-      logger.error('reconcile: payment does not match its order', {
-        orderId: order.id,
-        paymentId: payment.providerPaymentId,
-        mismatches,
-        source: input.source,
-        requestId: input.requestId,
-      });
+      // Taken from the order's first attempt rather than from the current
+      // configuration: an order created while this deployment was in test mode
+      // must keep saying so, even if it is reconciled after a switch to live.
+      const configuredMode =
+        (
+          await tx.paymentAttempt.findFirst({
+            where: { orderId: order.id },
+            orderBy: { createdAt: 'asc' },
+            select: { configuredMode: true },
+          })
+        )?.configuredMode ?? configuredPaymentMode();
 
-      return result('MISMATCH', {
-        orderId: order.id,
-        orderStatus: order.status,
-        paymentStatus: payment.status,
-      });
-    }
+      // ── Verification ────────────────────────────────────────────────────
+      const mismatches: string[] = [];
+      if (payment.amountHalalas !== order.amountHalalas) mismatches.push('amount');
+      if (payment.currency !== 'SAR' || order.currency !== 'SAR') mismatches.push('currency');
+      if (payment.provider !== order.provider) mismatches.push('provider');
 
-    // ── Access decision ─────────────────────────────────────────────────
-    const decision = decideAccess(payment.status, payment.amountHalalas, payment.refundedHalalas);
-
-    await upsertAttempt(tx, {
-      orderId: order.id,
-      payment,
-      configuredMode: configuredMode ?? 'TEST',
-      needsReview: decision.needsReview,
-    });
-
-    if (decision.access === 'GRANT') {
-      // The guard that makes fulfilment exactly-once under concurrency.
-      if (order.status === 'PAID') {
-        return result('ALREADY_FULFILLED', {
-          orderId: order.id,
-          orderStatus: order.status,
-          paymentStatus: payment.status,
-        });
+      // When the payment names an attempt, that attempt must belong to this order.
+      // Without this check, metadata copied from someone else's checkout would
+      // still pass the amount comparison whenever two products cost the same.
+      const claimedAttemptId = payment.metadata.payment_attempt_id;
+      if (claimedAttemptId) {
+        if (!UUID_PATTERN.test(claimedAttemptId)) {
+          mismatches.push('payment_attempt');
+        } else {
+          const owned = await tx.paymentAttempt.findFirst({
+            where: { id: claimedAttemptId, orderId: order.id },
+            select: { id: true },
+          });
+          if (!owned) mismatches.push('payment_attempt');
+        }
       }
 
-      if (!canTransitionOrder(order.status, 'PAID')) {
+      if (mismatches.length > 0) {
+        // Flagged and recorded, never fulfilled. The attempt row is still written
+        // so the evidence of what the gateway reported survives.
+        await upsertAttempt(tx, {
+          orderId: order.id,
+          payment,
+          configuredMode,
+          needsReview: true,
+        });
         await auditPayment(tx, {
-          action: 'payment.reconcile.transition_refused',
+          action: 'payment.reconcile.mismatch',
           orderId: order.id,
           actorUserId: input.actorUserId,
           requestId: input.requestId,
           metadata: {
             source: input.source,
             providerPaymentId: payment.providerPaymentId,
-            from: order.status,
-            to: 'PAID',
+            mismatches,
+            expectedAmountHalalas: order.amountHalalas,
+            reportedAmountHalalas: payment.amountHalalas,
+            expectedCurrency: order.currency,
+            reportedCurrency: payment.currency,
+            reportedStatus: payment.rawStatus,
+          },
+        });
+
+        logger.error('reconcile: payment does not match its order', {
+          orderId: order.id,
+          paymentId: payment.providerPaymentId,
+          mismatches,
+          source: input.source,
+          requestId: input.requestId,
+        });
+
+        return result('MISMATCH', {
+          orderId: order.id,
+          orderStatus: order.status,
+          paymentStatus: payment.status,
+        });
+      }
+
+      // ── Access decision ─────────────────────────────────────────────────
+      const decision = decideAccess(payment.status, payment.amountHalalas, payment.refundedHalalas);
+
+      await upsertAttempt(tx, {
+        orderId: order.id,
+        payment,
+        configuredMode,
+        needsReview: decision.needsReview,
+      });
+
+      if (decision.access === 'GRANT') {
+        // The guard that makes fulfilment exactly-once under concurrency. A
+        // review flag is still reported: a payment that has been partly returned
+        // since it settled is not "nothing to do", even though nothing is granted
+        // a second time.
+        if (order.status === 'PAID') {
+          return result(decision.needsReview ? 'NEEDS_REVIEW' : 'ALREADY_FULFILLED', {
+            orderId: order.id,
+            orderStatus: order.status,
+            paymentStatus: payment.status,
+          });
+        }
+
+        if (!canTransitionOrder(order.status, 'PAID')) {
+          await auditPayment(tx, {
+            action: 'payment.reconcile.transition_refused',
+            orderId: order.id,
+            actorUserId: input.actorUserId,
+            requestId: input.requestId,
+            metadata: {
+              source: input.source,
+              providerPaymentId: payment.providerPaymentId,
+              from: order.status,
+              to: 'PAID',
+            },
+          });
+          return result('NEEDS_REVIEW', {
+            orderId: order.id,
+            orderStatus: order.status,
+            paymentStatus: payment.status,
+          });
+        }
+
+        await tx.order.update({
+          where: { id: order.id },
+          data: { status: 'PAID', paidAt: new Date() },
+        });
+        await grantEntitlement(tx, {
+          userId: order.userId,
+          productId: order.productId,
+          source: { kind: 'order', orderId: order.id },
+        });
+        await auditPayment(tx, {
+          action: 'payment.reconcile.fulfilled',
+          orderId: order.id,
+          actorUserId: input.actorUserId,
+          requestId: input.requestId,
+          metadata: {
+            source: input.source,
+            providerPaymentId: payment.providerPaymentId,
+            amountHalalas: payment.amountHalalas,
+            currency: payment.currency,
+          },
+        });
+
+        logger.info('order fulfilled', {
+          orderId: order.id,
+          userId: order.userId,
+          source: input.source,
+          requestId: input.requestId,
+        });
+
+        return result(decision.needsReview ? 'NEEDS_REVIEW' : 'FULFILLED', {
+          orderId: order.id,
+          orderStatus: 'PAID',
+          paymentStatus: payment.status,
+        });
+      }
+
+      if (decision.access === 'REVOKE') {
+        const nextStatus: OrderStatus | null =
+          order.status === 'PAID'
+            ? 'REFUNDED'
+            : canTransitionOrder(order.status, 'CANCELLED')
+              ? 'CANCELLED'
+              : null;
+
+        if (nextStatus) {
+          await tx.order.update({
+            where: { id: order.id },
+            data: {
+              status: nextStatus,
+              ...(nextStatus === 'REFUNDED'
+                ? { refundedAt: new Date() }
+                : { cancelledAt: new Date() }),
+            },
+          });
+        }
+
+        await revokeEntitlement(tx, {
+          userId: order.userId,
+          productId: order.productId,
+          orderId: order.id,
+          actorUserId: input.actorUserId,
+          reason: `payment ${payment.rawStatus} (${input.source})`,
+        });
+        await auditPayment(tx, {
+          action: 'payment.reconcile.revoked',
+          orderId: order.id,
+          actorUserId: input.actorUserId,
+          requestId: input.requestId,
+          metadata: {
+            source: input.source,
+            providerPaymentId: payment.providerPaymentId,
+            reportedStatus: payment.rawStatus,
+            refundedHalalas: payment.refundedHalalas,
+          },
+        });
+
+        return result('REVOKED', {
+          orderId: order.id,
+          orderStatus: nextStatus ?? order.status,
+          paymentStatus: payment.status,
+        });
+      }
+
+      // ── No access change ────────────────────────────────────────────────
+      if (decision.needsReview) {
+        await auditPayment(tx, {
+          action: 'payment.reconcile.needs_review',
+          orderId: order.id,
+          actorUserId: input.actorUserId,
+          requestId: input.requestId,
+          metadata: {
+            source: input.source,
+            providerPaymentId: payment.providerPaymentId,
+            reason: decision.reviewReason,
+            reportedStatus: payment.rawStatus,
+            amountHalalas: payment.amountHalalas,
+            refundedHalalas: payment.refundedHalalas,
           },
         });
         return result('NEEDS_REVIEW', {
@@ -341,143 +455,43 @@ export async function reconcilePayment(input: ReconcileInput): Promise<Reconcile
         });
       }
 
-      await tx.order.update({
-        where: { id: order.id },
-        data: { status: 'PAID', paidAt: new Date() },
-      });
-      await grantEntitlement(tx, {
-        userId: order.userId,
-        productId: order.productId,
-        source: { kind: 'order', orderId: order.id },
-      });
-      await auditPayment(tx, {
-        action: 'payment.reconcile.fulfilled',
-        orderId: order.id,
-        actorUserId: input.actorUserId,
-        requestId: input.requestId,
-        metadata: {
-          source: input.source,
-          providerPaymentId: payment.providerPaymentId,
-          amountHalalas: payment.amountHalalas,
-          currency: payment.currency,
-        },
-      });
-
-      logger.info('order fulfilled', {
-        orderId: order.id,
-        userId: order.userId,
-        source: input.source,
-        requestId: input.requestId,
-      });
-
-      return result(decision.needsReview ? 'NEEDS_REVIEW' : 'FULFILLED', {
-        orderId: order.id,
-        orderStatus: 'PAID',
-        paymentStatus: payment.status,
-      });
-    }
-
-    if (decision.access === 'REVOKE') {
-      const nextStatus: OrderStatus | null =
-        order.status === 'PAID'
-          ? 'REFUNDED'
-          : canTransitionOrder(order.status, 'CANCELLED')
-            ? 'CANCELLED'
-            : null;
-
-      if (nextStatus) {
-        await tx.order.update({
-          where: { id: order.id },
-          data: {
-            status: nextStatus,
-            ...(nextStatus === 'REFUNDED'
-              ? { refundedAt: new Date() }
-              : { cancelledAt: new Date() }),
-          },
-        });
-      }
-
-      await revokeEntitlement(tx, {
-        userId: order.userId,
-        productId: order.productId,
-        orderId: order.id,
-        actorUserId: input.actorUserId,
-        reason: `payment ${payment.rawStatus} (${input.source})`,
-      });
-      await auditPayment(tx, {
-        action: 'payment.reconcile.revoked',
-        orderId: order.id,
-        actorUserId: input.actorUserId,
-        requestId: input.requestId,
-        metadata: {
-          source: input.source,
-          providerPaymentId: payment.providerPaymentId,
-          reportedStatus: payment.rawStatus,
-          refundedHalalas: payment.refundedHalalas,
-        },
-      });
-
-      return result('REVOKED', {
-        orderId: order.id,
-        orderStatus: nextStatus ?? order.status,
-        paymentStatus: payment.status,
-      });
-    }
-
-    // ── No access change ────────────────────────────────────────────────
-    if (decision.needsReview) {
-      await auditPayment(tx, {
-        action: 'payment.reconcile.needs_review',
-        orderId: order.id,
-        actorUserId: input.actorUserId,
-        requestId: input.requestId,
-        metadata: {
-          source: input.source,
-          providerPaymentId: payment.providerPaymentId,
-          reason: decision.reviewReason,
-          reportedStatus: payment.rawStatus,
-          amountHalalas: payment.amountHalalas,
-          refundedHalalas: payment.refundedHalalas,
-        },
-      });
-      return result('NEEDS_REVIEW', {
-        orderId: order.id,
-        orderStatus: order.status,
-        paymentStatus: payment.status,
-      });
-    }
-
-    if (payment.status === 'FAILED') {
-      // Only a still-open order is closed by a failure. An order that is already
-      // paid keeps its status: a failed first attempt followed by a successful
-      // second one is the ordinary shape of a retried checkout, and its late
-      // notice must not undo the payment that worked.
-      if (canTransitionOrder(order.status, 'FAILED')) {
-        await tx.order.update({
-          where: { id: order.id },
-          data: { status: 'FAILED', failedAt: new Date() },
-        });
+      if (payment.status === 'FAILED') {
+        // Only a still-open order is closed by a failure. An order that is already
+        // paid keeps its status: a failed first attempt followed by a successful
+        // second one is the ordinary shape of a retried checkout, and its late
+        // notice must not undo the payment that worked.
+        if (canTransitionOrder(order.status, 'FAILED')) {
+          await tx.order.update({
+            where: { id: order.id },
+            data: { status: 'FAILED', failedAt: new Date() },
+          });
+          return result('FAILED', {
+            orderId: order.id,
+            orderStatus: 'FAILED',
+            paymentStatus: payment.status,
+          });
+        }
         return result('FAILED', {
           orderId: order.id,
-          orderStatus: 'FAILED',
+          orderStatus: order.status,
           paymentStatus: payment.status,
         });
       }
-      return result('FAILED', {
+
+      // Initiated, authorised, verified or captured: money has not settled, so
+      // nothing opens.
+      return result('PENDING', {
         orderId: order.id,
         orderStatus: order.status,
         paymentStatus: payment.status,
       });
-    }
-
-    // Initiated, authorised, verified or captured: money has not settled, so
-    // nothing opens.
-    return result('PENDING', {
-      orderId: order.id,
-      orderStatus: order.status,
-      paymentStatus: payment.status,
-    });
-  });
+    },
+    // Simultaneous notifications for one order queue on the row lock above, so
+    // the last one through may have waited for several predecessors. The
+    // defaults (2s to acquire, 5s to run) would abandon that queue rather than
+    // let it drain, and an abandoned reconcile is an unfulfilled paid order.
+    { maxWait: 15_000, timeout: 20_000 },
+  );
 }
 
 /**

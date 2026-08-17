@@ -18,9 +18,7 @@
  * must degrade to less content, never to a crash in the middle of a timed exam.
  */
 export type Inline =
-  | { type: 'text'; text: string }
-  | { type: 'math'; tex: string }
-  | { type: 'ltr'; text: string };
+  { type: 'text'; text: string } | { type: 'math'; tex: string } | { type: 'ltr'; text: string };
 
 export type RichTextBlock = { type: 'paragraph'; children: Inline[] };
 

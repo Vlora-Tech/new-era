@@ -25,7 +25,11 @@ import { cn } from '@/lib/utils';
  * See docs/brand-assets-needed.md.
  */
 
+/** The guidelines' legibility floor: below this the two wordmarks stop reading. */
 const LOGO_MIN_WIDTH_PX = 220;
+
+/** height ÷ width of the supplied artwork (1397 × 1126). */
+const LOGO_ASPECT_RATIO = 1126 / 1397;
 
 export function BrandLogo({
   className,
@@ -36,18 +40,23 @@ export function BrandLogo({
   width?: number;
   priority?: boolean;
 }) {
-  // The artwork's own proportions; height follows so it is never stretched.
-  const height = Math.round((width * 1120) / 1400);
+  // The legibility floor is enforced here rather than trusted to each caller:
+  // rendering this lockup smaller is a brand violation, not a layout preference.
+  const renderedWidth = Math.max(width, LOGO_MIN_WIDTH_PX);
+  // Derived from the file's own pixel dimensions so the mark is never stretched.
+  const height = Math.round(renderedWidth * LOGO_ASPECT_RATIO);
 
   return (
     <Image
       src="/brand/new-era-logo.png"
       alt={`${BRAND.name} — ${BRAND.fullName}`}
-      width={width}
+      width={renderedWidth}
       height={height}
       priority={priority}
-      className={cn('h-auto', className)}
-      style={{ minWidth: LOGO_MIN_WIDTH_PX }}
+      className={className}
+      // Both dimensions are set together: constraining only one would leave the
+      // rendered aspect ratio at the browser's discretion.
+      style={{ width: renderedWidth, height: 'auto' }}
     />
   );
 }

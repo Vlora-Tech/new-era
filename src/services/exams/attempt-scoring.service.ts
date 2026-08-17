@@ -218,7 +218,10 @@ export async function scoreAttempt(
   // Two statements rather than one per answer: an attempt holds a hundred-odd
   // answers, and a round trip each would dominate the submission transaction.
   if (correctIds.length > 0) {
-    await tx.attemptAnswer.updateMany({ where: { id: { in: correctIds } }, data: { isCorrect: true } });
+    await tx.attemptAnswer.updateMany({
+      where: { id: { in: correctIds } },
+      data: { isCorrect: true },
+    });
   }
   if (incorrectIds.length > 0) {
     await tx.attemptAnswer.updateMany({

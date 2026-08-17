@@ -1,6 +1,4 @@
 import { BrandWordmarkLink } from '@/components/layout/brand';
-import { requireUserPage } from '@/lib/auth/guards';
-import { ROUTES } from '@/lib/constants';
 
 /**
  * Checkout chrome.
@@ -10,14 +8,16 @@ import { ROUTES } from '@/lib/constants';
  * possible, and every link that is not part of paying is a way to lose an order
  * halfway through.
  *
- * `proxy.ts` does not guard `/checkout`, so this is the first authentication
- * check on the path and it must never be cached.
+ * There is no session check here, and that is on purpose. Each page below
+ * performs its own, because each one has a different place to send a visitor
+ * back to after signing in — the product they were buying, or the order they
+ * were paying for. A guard in this layout would race the page's own guard and
+ * could win with the wrong return path, dropping the purchase the visitor was
+ * halfway through. Every page under `/checkout` calls `requireUserPage`.
  */
 export const dynamic = 'force-dynamic';
 
-export default async function CheckoutLayout({ children }: { children: React.ReactNode }) {
-  await requireUserPage(ROUTES.dashboardOrders);
-
+export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-line-200 bg-surface border-b">

@@ -64,5 +64,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/learn/:path*', '/exam/:path*'],
+  // Must stay in step with PROTECTED_PREFIXES. The matcher decides which
+  // requests reach this file at all, so a prefix missing here is simply not
+  // checked, however the list above reads.
+  matcher: [
+    '/dashboard/:path*',
+    '/admin/:path*',
+    '/learn/:path*',
+    '/exam/:path*',
+    '/checkout/:path*',
+  ],
 };

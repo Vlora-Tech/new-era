@@ -34,8 +34,7 @@ export type AnswerState = {
 };
 
 export type SaveAnswerResult =
-  | { outcome: 'saved'; state: AnswerState }
-  | { outcome: 'conflict'; state: AnswerState };
+  { outcome: 'saved'; state: AnswerState } | { outcome: 'conflict'; state: AnswerState };
 
 export type SaveAnswerInput = {
   attemptId: string;
