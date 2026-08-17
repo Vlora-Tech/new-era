@@ -1,0 +1,165 @@
+@import 'tailwindcss';
+
+/*
+ * نيو إيرا design tokens.
+ *
+ * The `--neb-*` custom properties are the brand's source of truth, copied
+ * verbatim from the supplied token sheet. The `@theme inline` block below maps
+ * them onto Tailwind's token names so utilities such as `bg-brand-700` and
+ * `text-ink-700` resolve to brand values.
+ *
+ * Light only. There is deliberately no dark palette, no `prefers-color-scheme`
+ * block, and no theme switch: the product ships one theme, and adding a second
+ * set of tokens is what makes a "light-only" product slowly become dual-theme.
+ */
+:root {
+  color-scheme: light;
+
+  --neb-brand-700: #1066a4;
+  --neb-brand-500: #2686c8;
+  --neb-brand-hover: #0c568c;
+  --neb-brand-active: #08436f;
+  --neb-brand-100: #eaf4fa;
+  --neb-brand-200: #d5eaf6;
+
+  --neb-text-primary: #16232d;
+  --neb-text-secondary: #52616b;
+  --neb-text-muted: #64727c;
+  --neb-border: #d7e0e5;
+  --neb-border-strong: #8798a3;
+  --neb-canvas: #f5f6f4;
+  --neb-surface-muted: #eef2f3;
+  --neb-surface: #ffffff;
+
+  --neb-success: #247a4a;
+  --neb-warning: #8a5a0a;
+  --neb-error: #b33a3a;
+
+  /* Very pale semantic grounds. Kept secondary to the brand blue. */
+  --neb-success-soft: #e9f3ed;
+  --neb-warning-soft: #f6f0e3;
+  --neb-error-soft: #f8eded;
+
+  --neb-radius-control: 8px;
+  --neb-radius-panel: 10px;
+  --neb-focus: 0 0 0 3px rgb(38 134 200 / 0.28);
+  --neb-shadow-overlay: 0 12px 32px rgb(22 35 45 / 0.12);
+}
+
+@theme inline {
+  /*
+   * Brand blues. `brand-700` is the only blue with enough contrast for white
+   * text at normal sizes (about 6.1:1); `brand-500` is about 3.9:1 and is
+   * therefore reserved for icons, charts and large accents.
+   */
+  --color-brand-700: var(--neb-brand-700);
+  --color-brand-500: var(--neb-brand-500);
+  --color-brand-hover: var(--neb-brand-hover);
+  --color-brand-active: var(--neb-brand-active);
+  --color-brand-100: var(--neb-brand-100);
+  --color-brand-200: var(--neb-brand-200);
+
+  --color-ink-900: var(--neb-text-primary);
+  --color-ink-700: var(--neb-text-secondary);
+  --color-ink-600: var(--neb-text-muted);
+
+  --color-line-200: var(--neb-border);
+  --color-line-500: var(--neb-border-strong);
+
+  --color-canvas: var(--neb-canvas);
+  --color-surface: var(--neb-surface);
+  --color-surface-muted: var(--neb-surface-muted);
+
+  --color-success: var(--neb-success);
+  --color-warning: var(--neb-warning);
+  --color-error: var(--neb-error);
+  --color-success-soft: var(--neb-success-soft);
+  --color-warning-soft: var(--neb-warning-soft);
+  --color-error-soft: var(--neb-error-soft);
+
+  --radius-control: var(--neb-radius-control);
+  --radius-panel: var(--neb-radius-panel);
+
+  --shadow-overlay: var(--neb-shadow-overlay);
+
+  --font-sans:
+    var(--font-plex-arabic), 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line-200);
+  }
+
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    /* Arabic needs a little more line height than a Latin default. */
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.35;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  /*
+   * Arabic must never be letter-spaced: the script is cursive, and tracking
+   * breaks the joins between letters.
+   */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--neb-brand-500);
+    outline-offset: 2px;
+  }
+
+  /* Latin numerals and identifiers embedded in Arabic text keep their own run. */
+  [dir='ltr'] {
+    text-align: left;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Brand focus ring for controls that draw their own outline. */
+@utility focus-ring {
+  outline: none;
+  box-shadow: var(--neb-focus);
+}
+
+/*
+ * Clear space around the supplied logo, as the brand guidelines require: at
+ * least 12% of the logo width on every side, and only ever on a white ground.
+ */
+@utility logo-clear-space {
+  padding: 12%;
+  background-color: var(--color-surface);
+}

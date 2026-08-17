@@ -1,0 +1,1036 @@
+// نيو إيرا — relational data model.
+//
+// Conventions applied throughout:
+//   * UUIDv7 primary keys: time-ordered, so b-tree inserts stay local, and
+//     generated client-side so ids exist inside interactive transactions.
+//   * Every timestamp is `timestamptz`; the application always writes UTC and
+//     formats to Asia/Riyadh only at the presentation layer.
+//   * Money is an integer count of halalas. There is no floating point anywhere.
+//   * Delete behaviour: `Cascade` appears only inside draft content trees and
+//     inside an attempt's own snapshot subtree. Every edge that touches money,
+//     entitlement history, audit history, or a submitted attempt is `Restrict`
+//     or `SetNull`, so financial and audit evidence can never be deleted by
+//     removing a parent row.
+//
+// Constraints that Prisma cannot express (partial/functional indexes and CHECKs)
+// are appended by hand to the initial migration; see prisma/migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Enums ───────────────────────────────
+
+enum UserRole {
+  STUDENT
+  ADMIN
+}
+
+enum ProductType {
+  COURSE
+  EXAM_SIMULATOR
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentProvider {
+  MOCK
+  MOYASAR
+}
+
+enum PaymentMode {
+  TEST
+  LIVE
+}
+
+enum PaymentStatus {
+  CREATED
+  INITIATED
+  PAID
+  FAILED
+  AUTHORIZED
+  CAPTURED
+  VERIFIED
+  REFUNDED
+  VOIDED
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum EntitlementEventType {
+  GRANTED
+  REVOKED
+  REACTIVATED
+}
+
+enum VideoProvider {
+  BUNNY
+}
+
+enum VideoProcessingStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum StorageProviderKind {
+  LOCAL
+  S3
+}
+
+enum AssetVisibility {
+  PUBLIC
+  PROTECTED
+}
+
+enum QuestionTrack {
+  SCIENTIFIC
+  THEORETICAL
+  BOTH
+  CUSTOM
+}
+
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionWorkflow {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  RETIRED
+}
+
+/// Publicly described skill areas of اختبار القدرات العامة. Stored as an enum so
+/// blueprint rules, analytics, and validation share one vocabulary.
+enum QuestionDomain {
+  VERBAL_ANALOGY // التناظر اللفظي
+  SENTENCE_COMPLETION // إكمال الجمل
+  CONTEXTUAL_ERROR // الخطأ السياقي
+  READING_COMPREHENSION // استيعاب المقروء
+  ARITHMETIC // الحساب
+  GEOMETRY // الهندسة
+  ALGEBRA // الجبر
+  DATA_ANALYSIS // تفسير البيانات
+}
+
+enum RightsDeclaration {
+  ORIGINAL
+  LICENSED
+}
+
+enum StimulusType {
+  PASSAGE
+  IMAGE
+  TABLE
+  CHART
+  MATH
+}
+
+enum ExamVersionStatus {
+  DRAFT
+  PUBLISHED
+  RETIRED
+}
+
+enum SelectionMode {
+  FIXED
+  BLUEPRINT
+}
+
+enum FeedbackMode {
+  IMMEDIATE
+  AFTER_SUBMISSION
+}
+
+enum AttemptMode {
+  FULL_SIMULATION
+  TRAINING
+}
+
+enum AttemptStatus {
+  CREATED
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  ABANDONED
+}
+
+enum AttemptSectionStatus {
+  PENDING
+  IN_PROGRESS
+  LOCKED
+}
+
+/// Why a section stopped accepting answers. Distinguishes a deliberate advance
+/// from a timeout, which the results view reports differently.
+enum AttemptSectionLockReason {
+  ADVANCED
+  EXPIRED
+  FINALIZED
+}
+
+enum WebhookStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+// ──────────────────── Identity and platform ────────────────────
+
+model User {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  /// Normalised to trimmed lowercase by the service layer. A functional unique
+  /// index on lower(email) is added in the migration as a second line of defence.
+  email        String   @unique
+  name         String
+  phone        String?
+  passwordHash String
+  role         UserRole @default(STUDENT)
+
+  isBlocked     Boolean   @default(false)
+  blockedReason String?
+  blockedAt     DateTime? @db.Timestamptz(6)
+
+  /// Bumped to invalidate every existing session for this user (blocking, forced
+  /// sign-out, password reset). Logging in does NOT bump it, so multiple devices
+  /// remain valid: this is an invalidation lever, not single-session enforcement.
+  sessionVersion Int @default(1)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  consents           ConsentRecord[]
+  auditLogs          AuditLog[]          @relation("AuditActor")
+  orders             Order[]
+  entitlements       Entitlement[]
+  entitlementActions EntitlementEvent[]  @relation("EntitlementActor")
+  lessonProgress     LessonProgress[]
+  lessonQuizAttempts LessonQuizAttempt[]
+  examAttempts       ExamAttempt[]
+  playbackSessions   PlaybackSession[]
+  createdQuestions   Question[]          @relation("QuestionCreator")
+  reviewedQuestions  Question[]          @relation("QuestionReviewer")
+  questionVersions   QuestionVersion[]   @relation("QuestionVersionCreator")
+  mediaAssets        MediaAsset[]        @relation("MediaCreator")
+  siteSettingUpdates SiteSetting[]       @relation("SettingUpdater")
+
+  @@index([role])
+  @@index([isBlocked])
+  @@map("users")
+}
+
+/// Evidence that a specific user accepted specific document versions at a
+/// specific time. Append-only: a new acceptance creates a new row. This records
+/// what happened; it does not by itself establish a lawful basis for processing.
+model ConsentRecord {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  userId         String   @db.Uuid
+  termsVersion   String
+  privacyVersion String
+  acceptedAt     DateTime @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("consent_records")
+}
+
+/// Small validated key/value store for legal versions, contact details and
+/// product defaults. Never holds secrets.
+model SiteSetting {
+  key         String   @id
+  value       Json
+  updatedById String?  @db.Uuid
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+  updatedBy User? @relation("SettingUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("site_settings")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  actorId    String?  @db.Uuid
+  /// Snapshot so the trail stays readable even if the actor row is later removed.
+  actorEmail String?
+  action     String
+  targetType String
+  targetId   String?
+  /// Safe before/after metadata only. Never secrets, tokens or card data.
+  metadata   Json?
+  requestId  String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+/// Fixed-window rate limiting, kept in PostgreSQL so budgets survive restarts
+/// and stay correct across multiple application instances.
+model RateLimitBucket {
+  key            String   @id
+  windowStartsAt DateTime @db.Timestamptz(6)
+  count          Int      @default(0)
+
+  @@index([windowStartsAt])
+  @@map("rate_limit_buckets")
+}
+
+// ───────────────────── Catalog and access ─────────────────────
+
+model Product {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  type             ProductType
+  slug             String        @unique
+  title            String
+  shortDescription String
+  longDescription  String?
+  coverAssetId     String?       @db.Uuid
+  status           ProductStatus @default(DRAFT)
+  /// Current catalogue price. Admins may change it; every order keeps its own
+  /// immutable snapshot, so historical orders never move.
+  priceHalalas     Int
+  currency         String        @default("SAR")
+  featured         Boolean       @default(false)
+  publishedAt      DateTime?     @db.Timestamptz(6)
+  createdAt        DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @db.Timestamptz(6)
+
+  coverAsset    MediaAsset?    @relation("ProductCover", fields: [coverAssetId], references: [id], onDelete: Restrict)
+  course        Course?
+  examSimulator ExamSimulator?
+  orders        Order[]
+  entitlements  Entitlement[]
+
+  @@index([type, status])
+  @@index([featured, status])
+  @@map("products")
+}
+
+model Course {
+  id                         String  @id @default(uuid(7)) @db.Uuid
+  productId                  String  @unique @db.Uuid
+  category                   String?
+  level                      String?
+  /// Default share of a lesson's video that must be watched for completion.
+  completionThresholdPercent Int     @default(90)
+
+  product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  modules CourseModule[]
+
+  @@map("courses")
+}
+
+model ExamSimulator {
+  id                    String        @id @default(uuid(7)) @db.Uuid
+  productId             String        @unique @db.Uuid
+  track                 QuestionTrack
+  activeExamVersionId   String?       @db.Uuid
+  introVideoAssetId     String?       @db.Uuid
+  trainingModeEnabled   Boolean       @default(false)
+  fullSimulationEnabled Boolean       @default(true)
+
+  product           Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  activeExamVersion ExamVersion?  @relation("ActiveVersion", fields: [activeExamVersionId], references: [id], onDelete: SetNull)
+  introVideoAsset   VideoAsset?   @relation("SimulatorIntro", fields: [introVideoAssetId], references: [id], onDelete: Restrict)
+  versions          ExamVersion[] @relation("SimulatorVersions")
+  attempts          ExamAttempt[]
+
+  @@map("exam_simulators")
+}
+
+/// Current access projection for one user and one product. The authoritative
+/// history lives in EntitlementEvent; this row is the fast lookup.
+model Entitlement {
+  id            String            @id @default(uuid(7)) @db.Uuid
+  userId        String            @db.Uuid
+  productId     String            @db.Uuid
+  status        EntitlementStatus @default(ACTIVE)
+  grantedAt     DateTime          @db.Timestamptz(6)
+  revokedAt     DateTime?         @db.Timestamptz(6)
+  /// Order that most recently produced access, when there was one.
+  sourceOrderId String?           @db.Uuid
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime          @updatedAt @db.Timestamptz(6)
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  sourceOrder Order?             @relation("EntitlementSourceOrder", fields: [sourceOrderId], references: [id], onDelete: Restrict)
+  events      EntitlementEvent[]
+
+  /// One effective entitlement per user and product. This unique constraint is
+  /// also the backstop that makes concurrent payment fulfilment grant exactly once.
+  @@unique([userId, productId])
+  @@index([productId, status])
+  @@map("entitlements")
+}
+
+/// Append-only history of access transitions. Refund, repurchase, manual grant,
+/// revoke and reactivation each add a row; nothing overwrites earlier evidence.
+model EntitlementEvent {
+  id            String               @id @default(uuid(7)) @db.Uuid
+  entitlementId String               @db.Uuid
+  type          EntitlementEventType
+  /// Required by the service layer for manual administrator actions.
+  reason        String?
+  orderId       String?              @db.Uuid
+  /// Null when the transition was made by the system rather than an administrator.
+  actorUserId   String?              @db.Uuid
+  createdAt     DateTime             @default(now()) @db.Timestamptz(6)
+
+  entitlement Entitlement @relation(fields: [entitlementId], references: [id], onDelete: Restrict)
+  order       Order?      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  actor       User?       @relation("EntitlementActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([entitlementId, createdAt])
+  @@map("entitlement_events")
+}
+
+// ───────────────────── Course learning ─────────────────────
+
+model CourseModule {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  courseId  String        @db.Uuid
+  title     String
+  /// Stable integer position. Deliberately not unique: reordering swaps values
+  /// inside a transaction, which a unique constraint would deadlock against.
+  position  Int
+  status    ContentStatus @default(DRAFT)
+  createdAt DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime      @updatedAt @db.Timestamptz(6)
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@index([courseId, position])
+  @@map("course_modules")
+}
+
+model Lesson {
+  id                         String        @id @default(uuid(7)) @db.Uuid
+  moduleId                   String        @db.Uuid
+  title                      String
+  /// Sanitised supporting copy shown beneath the player.
+  content                    String?
+  position                   Int
+  videoAssetId               String?       @db.Uuid
+  durationSec                Int?
+  isPreview                  Boolean       @default(false)
+  status                     ContentStatus @default(DRAFT)
+  /// Overrides the course default when set.
+  completionThresholdPercent Int?
+  createdAt                  DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt                  DateTime      @updatedAt @db.Timestamptz(6)
+
+  module           CourseModule      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  videoAsset       VideoAsset?       @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
+  quiz             LessonQuiz?
+  progress         LessonProgress[]
+  playbackSessions PlaybackSession[]
+
+  @@index([moduleId, position])
+  @@map("lessons")
+}
+
+model LessonProgress {
+  id                  String    @id @default(uuid(7)) @db.Uuid
+  userId              String    @db.Uuid
+  lessonId            String    @db.Uuid
+  /// Where the student was when they stopped; used to resume.
+  lastPositionSec     Int       @default(0)
+  /// Monotonic high-water mark; never decreases.
+  furthestPositionSec Int       @default(0)
+  /// Bounded by elapsed server time, so a client cannot claim a whole video at once.
+  watchedSec          Int       @default(0)
+  completed           Boolean   @default(false)
+  completedAt         DateTime? @db.Timestamptz(6)
+  version             Int       @default(0)
+  createdAt           DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime  @updatedAt @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, lessonId])
+  @@index([userId, completed])
+  @@map("lesson_progress")
+}
+
+model LessonQuiz {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  lessonId     String       @unique @db.Uuid
+  feedbackMode FeedbackMode @default(AFTER_SUBMISSION)
+  /// Null means unlimited retries.
+  maxAttempts  Int?
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
+
+  lesson    Lesson               @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions LessonQuizQuestion[]
+  attempts  LessonQuizAttempt[]
+
+  @@map("lesson_quizzes")
+}
+
+model LessonQuizQuestion {
+  id         String @id @default(uuid(7)) @db.Uuid
+  quizId     String @db.Uuid
+  questionId String @db.Uuid
+  position   Int
+  points     Int    @default(1)
+
+  quiz     LessonQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question Question   @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([quizId, questionId])
+  @@index([quizId, position])
+  @@map("lesson_quiz_questions")
+}
+
+model LessonQuizAttempt {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  quizId        String    @db.Uuid
+  userId        String    @db.Uuid
+  attemptNumber Int
+  totalCount    Int
+  correctCount  Int?
+  scorePercent  Int?
+  startedAt     DateTime  @default(now()) @db.Timestamptz(6)
+  submittedAt   DateTime? @db.Timestamptz(6)
+
+  quiz    LessonQuiz         @relation(fields: [quizId], references: [id], onDelete: Restrict)
+  user    User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  answers LessonQuizAnswer[]
+
+  @@unique([quizId, userId, attemptNumber])
+  @@index([userId, submittedAt])
+  @@map("lesson_quiz_attempts")
+}
+
+model LessonQuizAnswer {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  attemptId         String   @db.Uuid
+  questionId        String   @db.Uuid
+  /// Pins the content the student actually saw, via QuestionVersion.
+  questionVersion   Int
+  /// Snapshot of the chosen option id. Deliberately not a foreign key: the
+  /// answer must stay readable even if options are later edited.
+  selectedOptionKey String?
+  isCorrect         Boolean?
+  createdAt         DateTime @default(now()) @db.Timestamptz(6)
+
+  attempt  LessonQuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question          @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([attemptId, questionId])
+  @@map("lesson_quiz_answers")
+}
+
+// ───────────────────── Question bank ─────────────────────
+
+/// Reusable passage, image, table, chart or mathematical stimulus shared by
+/// several questions. Content is structured JSON, never raw HTML.
+model QuestionStimulus {
+  id                String             @id @default(uuid(7)) @db.Uuid
+  type              StimulusType
+  title             String?
+  content           Json
+  mediaAssetId      String?            @db.Uuid
+  authorOrLicensor  String?
+  provenanceNote    String?
+  rightsDeclaration RightsDeclaration?
+  version           Int                @default(1)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+
+  mediaAsset MediaAsset? @relation(fields: [mediaAssetId], references: [id], onDelete: Restrict)
+  questions  Question[]
+
+  @@map("question_stimuli")
+}
+
+/// Editable head row for one logical question. Publishing copies the content
+/// into an immutable QuestionVersion; `currentVersion` points at what is served.
+model Question {
+  id               String             @id @default(uuid(7)) @db.Uuid
+  stimulusId       String?            @db.Uuid
+  stem             Json
+  track            QuestionTrack
+  domain           QuestionDomain
+  subskill         String?
+  difficulty       QuestionDifficulty
+  estimatedSeconds Int?
+  explanation      Json?
+  hint             Json?
+  tags             String[]           @default([])
+  workflow         QuestionWorkflow   @default(DRAFT)
+  /// 0 means never published. The eligible pool is `currentVersion > 0` and not RETIRED.
+  currentVersion   Int                @default(0)
+  /// False for options whose order carries meaning (ascending values, "all of the above").
+  shuffleOptions   Boolean            @default(true)
+
+  authorOrLicensor  String
+  provenanceNote    String?
+  rightsDeclaration RightsDeclaration?
+
+  createdById  String?   @db.Uuid
+  reviewedById String?   @db.Uuid
+  reviewedAt   DateTime? @db.Timestamptz(6)
+  reviewNote   String?
+  publishedAt  DateTime? @db.Timestamptz(6)
+  retiredAt    DateTime? @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6)
+
+  stimulus          QuestionStimulus?     @relation(fields: [stimulusId], references: [id], onDelete: Restrict)
+  createdBy         User?                 @relation("QuestionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reviewedBy        User?                 @relation("QuestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  options           QuestionOption[]
+  versions          QuestionVersion[]
+  lessonQuizUses    LessonQuizQuestion[]
+  lessonQuizAnswers LessonQuizAnswer[]
+  examSectionUses   ExamSectionQuestion[]
+  attemptQuestions  AttemptQuestion[]
+
+  @@index([workflow])
+  @@index([domain, difficulty, track, workflow])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String  @id @default(uuid(7)) @db.Uuid
+  questionId String  @db.Uuid
+  content    Json
+  position   Int
+  /// Correctness lives server-side only and is never serialised to a student
+  /// before submission. A partial unique index enforces exactly one per question.
+  isCorrect  Boolean @default(false)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, position])
+  @@map("question_options")
+}
+
+/// Immutable snapshot created on publish. Holds stem, ordered options with the
+/// correct key, explanation, hint, classification and the embedded stimulus.
+model QuestionVersion {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  questionId  String   @db.Uuid
+  version     Int
+  snapshot    Json
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  question  Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  createdBy User?    @relation("QuestionVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([questionId, version])
+  @@map("question_versions")
+}
+
+model MediaAsset {
+  id             String              @id @default(uuid(7)) @db.Uuid
+  provider       StorageProviderKind
+  /// Opaque generated key. A user-supplied filename never reaches the object store.
+  objectKey      String              @unique
+  visibility     AssetVisibility
+  mimeType       String
+  sizeBytes      Int
+  width          Int?
+  height         Int?
+  checksumSha256 String?
+  createdById    String?             @db.Uuid
+  createdAt      DateTime            @default(now()) @db.Timestamptz(6)
+  deletedAt      DateTime?           @db.Timestamptz(6)
+
+  createdBy     User?              @relation("MediaCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  productCovers Product[]          @relation("ProductCover")
+  stimuli       QuestionStimulus[]
+
+  @@index([visibility])
+  @@map("media_assets")
+}
+
+/// Identifiers and metadata for a Bunny Stream video. A permanent public
+/// playback URL is never stored; playback URLs are signed per request.
+model VideoAsset {
+  id               String                @id @default(uuid(7)) @db.Uuid
+  provider         VideoProvider         @default(BUNNY)
+  libraryId        String
+  videoGuid        String
+  title            String?
+  durationSec      Int?
+  processingStatus VideoProcessingStatus @default(READY)
+  createdAt        DateTime              @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime              @updatedAt @db.Timestamptz(6)
+
+  lessons          Lesson[]
+  simulatorIntros  ExamSimulator[]   @relation("SimulatorIntro")
+  playbackSessions PlaybackSession[]
+
+  @@unique([libraryId, videoGuid])
+  @@map("video_assets")
+}
+
+/// Short-lived, entitlement-checked playback grant. Progress heartbeats must
+/// reference a live session, which is what bounds how fast progress can grow.
+model PlaybackSession {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @db.Uuid
+  videoAssetId    String    @db.Uuid
+  lessonId        String?   @db.Uuid
+  expiresAt       DateTime  @db.Timestamptz(6)
+  lastHeartbeatAt DateTime? @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoAsset VideoAsset @relation(fields: [videoAssetId], references: [id], onDelete: Restrict)
+  lesson     Lesson?    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lessonId])
+  @@index([expiresAt])
+  @@map("playback_sessions")
+}
+
+// ─────────────── Exam definitions and attempts ───────────────
+
+/// A frozen-on-publish configuration of a simulator. Editing a published
+/// version creates a new draft version; attempts already started keep pointing
+/// at the version they were generated from.
+model ExamVersion {
+  id            String            @id @default(uuid(7)) @db.Uuid
+  simulatorId   String            @db.Uuid
+  versionNumber Int
+  status        ExamVersionStatus @default(DRAFT)
+  selectionMode SelectionMode     @default(BLUEPRINT)
+
+  /// Provenance of the structure this version reproduces.
+  sourceLabel       String?
+  sourceUrl         String?
+  /// The date New Era reviewed the source — not the source's own publication date.
+  sourceRetrievedAt DateTime? @db.Timestamptz(6)
+  sourceNote        String?
+
+  totalQuestions   Int
+  totalDurationSec Int
+  /// Shown before an attempt and on results. Publication is blocked without it.
+  resultDisclaimer String
+  changeSummary    String?
+  publishedAt      DateTime? @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6)
+
+  simulator ExamSimulator   @relation("SimulatorVersions", fields: [simulatorId], references: [id], onDelete: Restrict)
+  activeFor ExamSimulator[] @relation("ActiveVersion")
+  sections  ExamSection[]
+  attempts  ExamAttempt[]
+
+  @@unique([simulatorId, versionNumber])
+  @@map("exam_versions")
+}
+
+model ExamSection {
+  id                       String  @id @default(uuid(7)) @db.Uuid
+  examVersionId            String  @db.Uuid
+  title                    String
+  position                 Int
+  durationSec              Int
+  questionCount            Int
+  calculatorEnabled        Boolean @default(false)
+  scratchpadEnabled        Boolean @default(true)
+  allowReviewWithinSection Boolean @default(true)
+  lockOnAdvance            Boolean @default(true)
+  pauseEnabled             Boolean @default(false)
+
+  examVersion     ExamVersion           @relation(fields: [examVersionId], references: [id], onDelete: Cascade)
+  fixedQuestions  ExamSectionQuestion[]
+  blueprintRules  ExamBlueprintRule[]
+  attemptSections AttemptSection[]
+
+  @@unique([examVersionId, position])
+  @@map("exam_sections")
+}
+
+model ExamSectionQuestion {
+  id              String @id @default(uuid(7)) @db.Uuid
+  examSectionId   String @db.Uuid
+  questionId      String @db.Uuid
+  questionVersion Int
+  position        Int
+
+  examSection ExamSection @relation(fields: [examSectionId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([examSectionId, questionId])
+  @@unique([examSectionId, position])
+  @@map("exam_section_questions")
+}
+
+/// One selection rule inside a section. `percentage` feeds the largest-remainder
+/// allocation; `questionCount` is an explicit administrator override.
+model ExamBlueprintRule {
+  id            String              @id @default(uuid(7)) @db.Uuid
+  examSectionId String              @db.Uuid
+  position      Int
+  track         QuestionTrack?
+  domain        QuestionDomain
+  subskill      String?
+  difficulty    QuestionDifficulty?
+  percentage    Int?
+  questionCount Int?
+
+  examSection ExamSection @relation(fields: [examSectionId], references: [id], onDelete: Cascade)
+
+  @@unique([examSectionId, position])
+  @@map("exam_blueprint_rules")
+}
+
+model ExamAttempt {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  userId        String        @db.Uuid
+  simulatorId   String        @db.Uuid
+  examVersionId String        @db.Uuid
+  mode          AttemptMode
+  status        AttemptStatus @default(CREATED)
+
+  /// Rules, timing and policies frozen at creation.
+  settingsSnapshot Json
+  /// Training-mode selection input, null for a full simulation.
+  trainingConfig   Json?
+  /// Seed for the deterministic shuffle, kept so a selection can be reproduced.
+  seed             Int
+  /// Administrator rehearsal against a draft version; excluded from student analytics.
+  isDryRun         Boolean @default(false)
+
+  startedAt   DateTime? @db.Timestamptz(6)
+  /// Latest instant the whole attempt can still be open. Lets list queries show
+  /// an accurate status without touching every stale attempt.
+  maxEndAt    DateTime? @db.Timestamptz(6)
+  submittedAt DateTime? @db.Timestamptz(6)
+
+  totalQuestions  Int
+  correctCount    Int?
+  incorrectCount  Int?
+  unansweredCount Int?
+  /// Per-domain and per-subskill accuracy, section times and question times.
+  /// Training analytics only: never an official or predicted score.
+  resultSummary   Json?
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  simulator   ExamSimulator    @relation(fields: [simulatorId], references: [id], onDelete: Restrict)
+  examVersion ExamVersion      @relation(fields: [examVersionId], references: [id], onDelete: Restrict)
+  sections    AttemptSection[]
+
+  @@index([userId, createdAt])
+  @@index([simulatorId, status])
+  @@map("exam_attempts")
+}
+
+model AttemptSection {
+  id                  String                    @id @default(uuid(7)) @db.Uuid
+  examAttemptId       String                    @db.Uuid
+  examSectionId       String                    @db.Uuid
+  position            Int
+  titleSnapshot       String
+  durationSecSnapshot Int?
+  policySnapshot      Json
+  status              AttemptSectionStatus      @default(PENDING)
+  startedAt           DateTime?                 @db.Timestamptz(6)
+  /// Server-authoritative. Client clocks are presentational only.
+  deadlineAt          DateTime?                 @db.Timestamptz(6)
+  lockedAt            DateTime?                 @db.Timestamptz(6)
+  lockedReason        AttemptSectionLockReason?
+
+  attempt     ExamAttempt       @relation(fields: [examAttemptId], references: [id], onDelete: Cascade)
+  examSection ExamSection       @relation(fields: [examSectionId], references: [id], onDelete: Restrict)
+  questions   AttemptQuestion[]
+
+  @@unique([examAttemptId, position])
+  @@map("attempt_sections")
+}
+
+/// Immutable snapshot of one question as this attempt received it.
+/// `contentSnapshot` is the student-safe payload; correctness and explanation
+/// are separate columns so the student projection can never leak them.
+model AttemptQuestion {
+  id                  String             @id @default(uuid(7)) @db.Uuid
+  attemptSectionId    String             @db.Uuid
+  questionId          String             @db.Uuid
+  questionVersion     Int
+  position            Int
+  contentSnapshot     Json
+  correctOptionKey    String
+  explanationSnapshot Json?
+  hintSnapshot        Json?
+  /// Denormalised classification so results aggregate without extra joins.
+  domain              QuestionDomain
+  subskill            String?
+  difficulty          QuestionDifficulty
+
+  attemptSection AttemptSection @relation(fields: [attemptSectionId], references: [id], onDelete: Cascade)
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  answer         AttemptAnswer?
+
+  @@unique([attemptSectionId, position])
+  @@map("attempt_questions")
+}
+
+model AttemptAnswer {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  attemptQuestionId String    @unique @db.Uuid
+  selectedOptionKey String?
+  flagged           Boolean   @default(false)
+  /// Optimistic concurrency for autosave: a stale tab is rejected, not merged.
+  saveVersion       Int       @default(0)
+  savedAt           DateTime? @db.Timestamptz(6)
+  /// Set when a training answer is revealed; further edits are then refused.
+  revealedAt        DateTime? @db.Timestamptz(6)
+  /// Client-reported, server-clamped. Indicative only.
+  timeSpentSeconds  Int       @default(0)
+  /// Written at submission time, never before.
+  isCorrect         Boolean?
+  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
+
+  attemptQuestion AttemptQuestion @relation(fields: [attemptQuestionId], references: [id], onDelete: Cascade)
+
+  @@map("attempt_answers")
+}
+
+// ─────────────── Commerce and integrations ───────────────
+
+model Order {
+  id                 String          @id @default(uuid(7)) @db.Uuid
+  userId             String          @db.Uuid
+  productId          String          @db.Uuid
+  /// Snapshots taken when the order was created.
+  productType        ProductType
+  productTitle       String
+  /// Immutable. Copied from the product by the server; never accepted from a client.
+  amountHalalas      Int
+  currency           String          @default("SAR")
+  status             OrderStatus     @default(PENDING_PAYMENT)
+  provider           PaymentProvider
+  /// Client-generated idempotency key, unique per user. Repeating a request with
+  /// the same key returns the same order instead of creating another one.
+  checkoutRequestKey String          @db.Uuid
+
+  paidAt      DateTime? @db.Timestamptz(6)
+  failedAt    DateTime? @db.Timestamptz(6)
+  cancelledAt DateTime? @db.Timestamptz(6)
+  refundedAt  DateTime? @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6)
+
+  user                User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  product             Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  paymentAttempts     PaymentAttempt[]
+  entitlementEvents   EntitlementEvent[]
+  sourcedEntitlements Entitlement[]      @relation("EntitlementSourceOrder")
+
+  @@unique([userId, checkoutRequestKey])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model PaymentAttempt {
+  id                String          @id @default(uuid(7)) @db.Uuid
+  orderId           String          @db.Uuid
+  provider          PaymentProvider
+  /// The mode this application was configured for when the attempt was created.
+  /// Moyasar's fetch-payment response has no `live` field, so mode is verified
+  /// against this record and against the webhook envelope, never against the payment.
+  configuredMode    PaymentMode
+  providerPaymentId String?
+  status            PaymentStatus   @default(CREATED)
+  amountHalalas     Int
+  currency          String          @default("SAR")
+  /// Opaque local references only. Never card data or a full provider payload.
+  safeMetadata      Json?
+  failureCode       String?
+  failureMessage    String?
+  refundedHalalas   Int             @default(0)
+  refundedAt        DateTime?       @db.Timestamptz(6)
+  /// Set when something needs a human decision, such as a partial refund.
+  needsReview       Boolean         @default(false)
+  reconcileCount    Int             @default(0)
+  lastReconciledAt  DateTime?       @db.Timestamptz(6)
+  createdAt         DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime        @updatedAt @db.Timestamptz(6)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@unique([provider, providerPaymentId])
+  @@index([orderId])
+  @@index([status, createdAt])
+  @@map("payment_attempts")
+}
+
+/// Durable inbox. A webhook is acknowledged only once its row is committed;
+/// processing then happens against this row, so nothing depends on work
+/// continuing after the HTTP response.
+model WebhookEvent {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  provider        PaymentProvider
+  /// Provider event id, or a deterministic digest when the provider omits one.
+  providerEventId String
+  eventType       String
+  /// Live/test flag from the webhook envelope.
+  liveMode        Boolean?
+  /// Minimised payload with the shared secret removed before storage.
+  payload         Json
+  status          WebhookStatus   @default(PENDING)
+  attemptCount    Int             @default(0)
+  nextAttemptAt   DateTime?       @db.Timestamptz(6)
+  claimedAt       DateTime?       @db.Timestamptz(6)
+  processedAt     DateTime?       @db.Timestamptz(6)
+  lastError       String?
+  receivedAt      DateTime        @default(now()) @db.Timestamptz(6)
+
+  @@unique([provider, providerEventId])
+  @@index([status, nextAttemptAt])
+  @@map("webhook_events")
+}
