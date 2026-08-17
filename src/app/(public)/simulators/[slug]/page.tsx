@@ -81,12 +81,10 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
           {version ? (
             <section className="flex flex-col gap-4">
               <h2 className="text-ink-900 text-xl font-semibold">تكوين الاختبار</h2>
-              <dl className="border-line-200 divide-line-200 grid divide-y rounded-panel border sm:grid-cols-2 sm:divide-y-0">
+              <dl className="border-line-200 divide-line-200 rounded-panel grid divide-y border sm:grid-cols-2 sm:divide-y-0">
                 <div className="flex items-center justify-between gap-3 p-4">
                   <dt className="text-ink-700 text-sm">عدد الأقسام</dt>
-                  <dd className="text-ink-900 font-medium">
-                    {formatNumber(version.sectionCount)}
-                  </dd>
+                  <dd className="text-ink-900 font-medium">{formatNumber(version.sectionCount)}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-3 p-4">
                   <dt className="text-ink-700 text-sm">إجمالي الأسئلة</dt>
@@ -116,7 +114,9 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
 
               {/* Modes are named distinctly so the two experiences are not confused. */}
               <div className="flex flex-wrap gap-2">
-                {simulator.fullSimulationEnabled ? <Badge variant="brand">محاكاة كاملة</Badge> : null}
+                {simulator.fullSimulationEnabled ? (
+                  <Badge variant="brand">محاكاة كاملة</Badge>
+                ) : null}
                 {simulator.trainingModeEnabled ? <Badge>تدريب</Badge> : null}
               </div>
             </section>

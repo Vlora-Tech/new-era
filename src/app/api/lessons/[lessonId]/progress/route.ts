@@ -17,27 +17,30 @@ const bodySchema = z.object({
   deltaSec: z.number().nonnegative().max(86_400),
 });
 
-export const PUT = routeHandler('PUT /api/lessons/[lessonId]/progress', async (request, context: Context) => {
-  assertSameOrigin(request);
+export const PUT = routeHandler(
+  'PUT /api/lessons/[lessonId]/progress',
+  async (request, context: Context) => {
+    assertSameOrigin(request);
 
-  const user = await requireAuth();
-  const { lessonId } = await context.params;
+    const user = await requireAuth();
+    const { lessonId } = await context.params;
 
-  const body = bodySchema.parse(await request.json());
+    const body = bodySchema.parse(await request.json());
 
-  // Keyed by session rather than by user: the budget should bound one player,
-  // not punish a student who legitimately has two lessons open.
-  await enforceRateLimit('progressHeartbeat', body.sessionId);
+    // Keyed by session rather than by user: the budget should bound one player,
+    // not punish a student who legitimately has two lessons open.
+    await enforceRateLimit('progressHeartbeat', body.sessionId);
 
-  const progress = await recordProgress({
-    sessionId: body.sessionId,
-    userId: user.id,
-    lessonId,
-    positionSec: body.positionSec,
-    deltaSec: body.deltaSec,
-  });
+    const progress = await recordProgress({
+      sessionId: body.sessionId,
+      userId: user.id,
+      lessonId,
+      positionSec: body.positionSec,
+      deltaSec: body.deltaSec,
+    });
 
-  const response = apiSuccess(progress);
-  response.headers.set('Cache-Control', 'no-store');
-  return response;
-});
+    const response = apiSuccess(progress);
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  },
+);

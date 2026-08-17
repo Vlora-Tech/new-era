@@ -19,22 +19,22 @@ provider replaceable without touching a screen.
 
 ## Directory map
 
-| Path | Holds |
-|---|---|
-| `src/app/(public)/` | Marketing, catalogue, legal, sign-in and registration |
-| `src/app/dashboard/` | Student area. A gate layout, then a `(with-shell)` group that adds chrome |
-| `src/app/admin/` | Administrator area, same two-tier shape |
-| `src/app/exam/[attemptId]/` | Full-screen attempt workspace, no site navigation |
-| `src/app/api/` | Route handlers |
-| `src/components/ui/` | Design-system primitives |
-| `src/components/layout/` | Shells, header, footer, brand marks |
-| `src/lib/` | Cross-cutting: env, db, auth, security, formatting, copy |
-| `src/repositories/` | Query helpers over Prisma |
-| `src/services/` | Business logic, grouped by domain |
-| `src/validators/` | Zod schemas shared by client forms and server handlers |
-| `prisma/` | Schema, migrations, seed |
-| `docs/` | This documentation |
-| `tests/` | Vitest unit and integration suites, Playwright end-to-end |
+| Path                        | Holds                                                                     |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `src/app/(public)/`         | Marketing, catalogue, legal, sign-in and registration                     |
+| `src/app/dashboard/`        | Student area. A gate layout, then a `(with-shell)` group that adds chrome |
+| `src/app/admin/`            | Administrator area, same two-tier shape                                   |
+| `src/app/exam/[attemptId]/` | Full-screen attempt workspace, no site navigation                         |
+| `src/app/api/`              | Route handlers                                                            |
+| `src/components/ui/`        | Design-system primitives                                                  |
+| `src/components/layout/`    | Shells, header, footer, brand marks                                       |
+| `src/lib/`                  | Cross-cutting: env, db, auth, security, formatting, copy                  |
+| `src/repositories/`         | Query helpers over Prisma                                                 |
+| `src/services/`             | Business logic, grouped by domain                                         |
+| `src/validators/`           | Zod schemas shared by client forms and server handlers                    |
+| `prisma/`                   | Schema, migrations, seed                                                  |
+| `docs/`                     | This documentation                                                        |
+| `tests/`                    | Vitest unit and integration suites, Playwright end-to-end                 |
 
 ## Server and client boundary
 
@@ -81,11 +81,11 @@ device — the counter is a revocation lever, not single-session enforcement.
 Each external dependency sits behind a narrow interface with a development
 implementation, so the whole product runs locally with no third-party account:
 
-| Boundary | Development | Production |
-|---|---|---|
-| `PaymentProvider` | Mock, refused in production by three independent gates | Moyasar, test or live by configuration |
-| `VideoProvider` | Unconfigured; the player reports it honestly | Bunny Stream |
-| `StorageProvider` | Local disk under `.storage/` | Deferred, pending owner approval of a provider |
+| Boundary          | Development                                            | Production                                     |
+| ----------------- | ------------------------------------------------------ | ---------------------------------------------- |
+| `PaymentProvider` | Mock, refused in production by three independent gates | Moyasar, test or live by configuration         |
+| `VideoProvider`   | Unconfigured; the player reports it honestly           | Bunny Stream                                   |
+| `StorageProvider` | Local disk under `.storage/`                           | Deferred, pending owner approval of a provider |
 
 ## Errors
 

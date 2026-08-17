@@ -1,12 +1,6 @@
 import type { Prisma, PrismaClient, QuestionDomain } from '@prisma/client';
 
-import {
-  READING_PASSAGE,
-  SAMPLE_CONTENT_LABEL,
-  buildReadingQuestions,
-  buildStandaloneQuestions,
-  type SeedQuestion,
-} from './question-factory';
+import { SAMPLE_CONTENT_LABEL, buildQuestionBank, type SeedQuestion } from './question-factory';
 
 /**
  * Exam simulator seed data.
@@ -135,35 +129,40 @@ async function seedQuestionBank(
   prisma: PrismaClient,
   options: { authorId: string | null },
 ): Promise<number> {
-  for (const question of buildStandaloneQuestions()) {
+  const bank = buildQuestionBank();
+
+  for (const question of bank.standalone) {
     await ensureQuestion(prisma, question, options);
   }
 
-  // The reading questions share one passage, which is what makes a stimulus
-  // reusable rather than duplicated onto every question.
-  let stimulus = await prisma.questionStimulus.findFirst({
-    where: { title: READING_PASSAGE.title },
-    select: { id: true },
-  });
-
-  if (!stimulus) {
-    stimulus = await prisma.questionStimulus.create({
-      data: {
-        type: 'PASSAGE',
-        title: READING_PASSAGE.title,
-        content: {
-          blocks: [{ type: 'paragraph', children: [{ type: 'text', text: READING_PASSAGE.body }] }],
-        } as unknown as Prisma.InputJsonValue,
-        authorOrLicensor: 'نيو إيرا',
-        provenanceNote: SAMPLE_CONTENT_LABEL,
-        rightsDeclaration: 'ORIGINAL',
-      },
+  // Each reading set shares one passage, which is what makes a stimulus
+  // reusable rather than duplicated onto every question. The passage is keyed
+  // on its title so a re-run attaches to the row it created last time.
+  for (const passage of bank.passages) {
+    let stimulus = await prisma.questionStimulus.findFirst({
+      where: { title: passage.title },
       select: { id: true },
     });
-  }
 
-  for (const question of buildReadingQuestions()) {
-    await ensureQuestion(prisma, question, { ...options, stimulusId: stimulus.id });
+    if (!stimulus) {
+      stimulus = await prisma.questionStimulus.create({
+        data: {
+          type: 'PASSAGE',
+          title: passage.title,
+          content: {
+            blocks: [{ type: 'paragraph', children: [{ type: 'text', text: passage.body }] }],
+          } as unknown as Prisma.InputJsonValue,
+          authorOrLicensor: 'نيو إيرا',
+          provenanceNote: `${SAMPLE_CONTENT_LABEL} — مرجع داخلي: ${passage.externalKey}`,
+          rightsDeclaration: 'ORIGINAL',
+        },
+        select: { id: true },
+      });
+    }
+
+    for (const question of passage.questions) {
+      await ensureQuestion(prisma, question, { ...options, stimulusId: stimulus.id });
+    }
   }
 
   return prisma.question.count();

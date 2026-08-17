@@ -66,7 +66,7 @@ export default async function LessonPage({ params }: PageProps) {
           </div>
 
           {!openToThisStudent ? (
-            <div className="border-line-200 bg-surface flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-panel border">
+            <div className="border-line-200 bg-surface rounded-panel flex aspect-video w-full flex-col items-center justify-center gap-3 border">
               <Lock className="text-ink-600 size-7" aria-hidden="true" />
               <p className="text-ink-900 font-medium">هذا الدرس متاح بعد شراء الدورة.</p>
               <Button asChild size="sm">
@@ -77,7 +77,7 @@ export default async function LessonPage({ params }: PageProps) {
             <ProtectedPlayer lessonId={view.lesson.id} title={view.lesson.title} />
           ) : (
             // Honest about the real state rather than showing a broken player.
-            <div className="border-line-200 bg-surface-muted flex aspect-video w-full items-center justify-center rounded-panel border">
+            <div className="border-line-200 bg-surface-muted rounded-panel flex aspect-video w-full items-center justify-center border">
               <p className="text-ink-700 text-sm">لم يُربط مقطع بهذا الدرس بعد.</p>
             </div>
           )}
@@ -115,7 +115,7 @@ export default async function LessonPage({ params }: PageProps) {
         </article>
 
         {/* Curriculum is secondary: present, scannable, easy to ignore. */}
-        <aside className="border-line-200 bg-surface h-fit rounded-panel border p-4 lg:sticky lg:top-6">
+        <aside className="border-line-200 bg-surface rounded-panel h-fit border p-4 lg:sticky lg:top-6">
           <h2 className="text-ink-900 mb-3 text-sm font-semibold">محتوى الدورة</h2>
 
           <ol className="flex flex-col gap-4">
@@ -133,8 +133,8 @@ export default async function LessonPage({ params }: PageProps) {
                         aria-current={lesson.isCurrent ? 'page' : undefined}
                         className={
                           lesson.isCurrent
-                            ? 'bg-brand-100 text-brand-700 flex items-start gap-2 rounded-control px-2 py-2 text-sm font-medium'
-                            : 'text-ink-700 hover:bg-surface-muted flex items-start gap-2 rounded-control px-2 py-2 text-sm'
+                            ? 'bg-brand-100 text-brand-700 rounded-control flex items-start gap-2 px-2 py-2 text-sm font-medium'
+                            : 'text-ink-700 hover:bg-surface-muted rounded-control flex items-start gap-2 px-2 py-2 text-sm'
                         }
                       >
                         {/* Completion is shown by icon and by label, never by colour alone. */}
@@ -144,7 +144,10 @@ export default async function LessonPage({ params }: PageProps) {
                             aria-label="مكتمل"
                           />
                         ) : (
-                          <Circle className="text-ink-600 mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                          <Circle
+                            className="text-ink-600 mt-0.5 size-4 shrink-0"
+                            aria-hidden="true"
+                          />
                         )}
                         <span>{lesson.title}</span>
                       </Link>

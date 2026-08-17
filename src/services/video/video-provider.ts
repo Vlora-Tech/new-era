@@ -37,8 +37,7 @@ export interface VideoProviderAdapter {
 }
 
 /** Bunny video identifiers are UUIDs; anything else is a typo, not a video. */
-export const BUNNY_GUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const BUNNY_GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const MIN_TTL_SECONDS = 300;
 const MAX_TTL_SECONDS = 4 * 60 * 60;
@@ -74,9 +73,7 @@ const bunnyProvider: VideoProviderAdapter = {
     }
 
     const expires = Math.floor(Date.now() / 1000) + ttlSeconds;
-    const token = createHash('sha256')
-      .update(`${securityKey}${videoGuid}${expires}`)
-      .digest('hex');
+    const token = createHash('sha256').update(`${securityKey}${videoGuid}${expires}`).digest('hex');
 
     const embedUrl =
       `https://iframe.mediadelivery.net/embed/${libraryId}/${videoGuid}` +

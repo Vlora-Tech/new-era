@@ -22,19 +22,24 @@ export async function seedCommerceFixtures(
 
   const studentId = options.studentId;
 
+  // Targeted by slug rather than by "whichever published product sorts first".
+  // A database that also holds rows from an integration run would otherwise hand
+  // the development student an entitlement on a stray test product.
+  const PAID_SLUG = 'qudurat-simulator-scientific';
+  const PENDING_SLUG = 'qudurat-verbal-foundations';
+
   const products = await prisma.product.findMany({
-    where: { status: 'PUBLISHED' },
-    orderBy: { slug: 'asc' },
+    where: { status: 'PUBLISHED', slug: { in: [PAID_SLUG, PENDING_SLUG] } },
     select: { id: true, slug: true, title: true, type: true, priceHalalas: true },
   });
 
-  if (products.length === 0) {
-    console.log('  orders: skipped (no published products)');
+  const paidProduct = products.find((product) => product.slug === PAID_SLUG);
+  const pendingProduct = products.find((product) => product.slug === PENDING_SLUG) ?? paidProduct;
+
+  if (!paidProduct || !pendingProduct) {
+    console.log('  orders: skipped (the seeded products are not published)');
     return;
   }
-
-  const paidProduct = products[0]!;
-  const pendingProduct = products[1] ?? products[0]!;
 
   // Deterministic keys so re-running converges instead of adding another order.
   const fixtures = [
@@ -44,7 +49,11 @@ export async function seedCommerceFixtures(
       product: pendingProduct,
       status: 'PENDING_PAYMENT' as const,
     },
-    { key: '00000000-0000-4000-8000-000000000003', product: paidProduct, status: 'FAILED' as const },
+    {
+      key: '00000000-0000-4000-8000-000000000003',
+      product: paidProduct,
+      status: 'FAILED' as const,
+    },
   ];
 
   for (const fixture of fixtures) {

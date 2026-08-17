@@ -7,10 +7,10 @@ import { prisma } from '@/lib/db';
 /**
  * Fixtures for the exam engine suite.
  *
- * Built rather than seeded. The shipped seed contains one 120-question
- * simulator and a 30-question bank, so every attempt against it would fail with
- * a shortage; and a suite that depends on seed data starts failing the moment
- * someone edits the seed for an unrelated reason.
+ * Built rather than seeded. A suite that depends on seed data starts failing
+ * the moment someone edits the seed for an unrelated reason, and these tests
+ * need pools sized to the case under test — including pools deliberately too
+ * small, which the shipped bank is not.
  *
  * Everything is torn down by id. Vitest runs files in parallel workers against
  * one database, so truncating a shared table would delete another file's

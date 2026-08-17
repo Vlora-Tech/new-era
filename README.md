@@ -37,32 +37,52 @@ random string). The application refuses to start without them.
 
 Seeded development accounts:
 
-| Role | Address | Password |
-|---|---|---|
+| Role          | Address                   | Password                     |
+| ------------- | ------------------------- | ---------------------------- |
 | Administrator | `ADMIN_EMAIL` from `.env` | `ADMIN_PASSWORD` from `.env` |
-| Student | `student@example.com` | `NewEraLocal!2026` |
+| Student       | `student@example.com`     | `NewEraLocal!2026`           |
 
 The seed never runs against production, and it never overwrites the password of
 an account that already exists.
 
 ## Commands
 
-| Command | Does |
-|---|---|
-| `npm run dev` | Development server |
-| `npm run build` / `npm start` | Production build and serve |
-| `npm run typecheck` | TypeScript, no emit |
-| `npm run lint` | ESLint |
-| `npm run format` / `format:check` | Prettier |
-| `npm test` / `test:watch` | Vitest unit and integration suites |
-| `npm run test:e2e` | Playwright |
-| `npm run db:up` / `db:down` | Start and stop PostgreSQL |
-| `npm run db:migrate` | Create and apply a migration in development |
-| `npm run db:deploy` | Apply existing migrations (release step) |
-| `npm run db:seed` | Idempotent development seed |
-| `npm run db:reset-test` | Reset **only** `new_era_test`; refuses any other target |
-| `npm run db:studio` | Prisma Studio |
-| `npm run admin:bootstrap` | Create the first administrator |
+| Command                           | Does                                                               |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`                     | Development server                                                 |
+| `npm run build` / `npm start`     | Production build and serve                                         |
+| `npm run typecheck`               | TypeScript, no emit                                                |
+| `npm run lint`                    | ESLint                                                             |
+| `npm run format` / `format:check` | Prettier                                                           |
+| `npm test` / `test:watch`         | Vitest unit and integration suites                                 |
+| `npm run test:e2e`                | Playwright                                                         |
+| `npm run db:up` / `db:down`       | Start and stop PostgreSQL                                          |
+| `npm run db:migrate`              | Create and apply a migration in development                        |
+| `npm run db:deploy`               | Apply existing migrations (release step)                           |
+| `npm run db:seed`                 | Idempotent development seed                                        |
+| `npm run db:reset-test`           | Reset **only** `new_era_test`; refuses any other target (see note) |
+| `npm run db:studio`               | Prisma Studio                                                      |
+| `npm run admin:bootstrap`         | Create the first administrator                                     |
+
+### A note on `db:reset-test`
+
+The script checks that `TEST_DATABASE_URL` names `new_era_test` and refuses to
+run otherwise, because `prisma migrate reset` drops every table in whatever it is
+pointed at.
+
+Prisma adds a second gate of its own: when it detects that it is being driven by
+an automated agent rather than a person, it refuses a destructive reset until a
+human has explicitly consented. Run the command yourself in a terminal and it
+behaves normally.
+
+If the reset ever fails, the script says so and exits non-zero. It will not
+report success without having reset anything — which is the failure mode that
+matters, since a test suite would then run against stale data and quietly prove
+nothing.
+
+Integration tests create their own uniquely-named fixtures and do not clean up
+after themselves, so `new_era_test` accumulates rows over time. That is harmless
+for correctness; reset it when it gets large.
 
 ## The first administrator
 
@@ -109,12 +129,12 @@ release step.
 
 Everything external has a boundary with a local implementation:
 
-| Variable | Development | Notes |
-|---|---|---|
-| `PAYMENT_PROVIDER` | `mock` | Rejected at startup when `NODE_ENV=production` |
-| `MOYASAR_MODE` | `test` | Key prefixes are cross-checked against the mode |
-| `BUNNY_STREAM_*` | unset | Playback reports itself unavailable rather than pretending |
-| `STORAGE_PROVIDER` | `local` | Rejected in production; uploads disable themselves |
+| Variable           | Development | Notes                                                      |
+| ------------------ | ----------- | ---------------------------------------------------------- |
+| `PAYMENT_PROVIDER` | `mock`      | Rejected at startup when `NODE_ENV=production`             |
+| `MOYASAR_MODE`     | `test`      | Key prefixes are cross-checked against the mode            |
+| `BUNNY_STREAM_*`   | unset       | Playback reports itself unavailable rather than pretending |
+| `STORAGE_PROVIDER` | `local`     | Rejected in production; uploads disable themselves         |
 
 Card details go from the browser to the payment provider directly. They never
 reach this application's servers and are never logged.
@@ -131,12 +151,12 @@ that truncates tables cannot touch development data.
 
 ## Documentation
 
-| Document | Covers |
-|---|---|
-| [architecture.md](docs/architecture.md) | Layers, the server/client boundary, authentication, provider boundaries |
-| [haitham-reference-audit.md](docs/haitham-reference-audit.md) | What was reused, rewritten and excluded from the reference project |
-| [content-and-legal-checklist.md](docs/content-and-legal-checklist.md) | Intellectual-property rules and the outstanding legal blockers |
-| [brand-assets-needed.md](docs/brand-assets-needed.md) | Why the header uses set type, and which assets to commission |
+| Document                                                              | Covers                                                                  |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [architecture.md](docs/architecture.md)                               | Layers, the server/client boundary, authentication, provider boundaries |
+| [haitham-reference-audit.md](docs/haitham-reference-audit.md)         | What was reused, rewritten and excluded from the reference project      |
+| [content-and-legal-checklist.md](docs/content-and-legal-checklist.md) | Intellectual-property rules and the outstanding legal blockers          |
+| [brand-assets-needed.md](docs/brand-assets-needed.md)                 | Why the header uses set type, and which assets to commission            |
 
 ## Known state
 

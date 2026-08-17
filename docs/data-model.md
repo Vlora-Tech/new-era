@@ -89,7 +89,7 @@ never against the payment body, which does not report it.
 digest as the identifier when a provider omits one. Delivery is retried by
 design, so duplicates are expected rather than exceptional.
 
-The row is committed *before* processing begins. The HTTP 200 acknowledges
+The row is committed _before_ processing begins. The HTTP 200 acknowledges
 durable receipt, not successful handling, so a processing failure leaves a
 `PENDING` row for the retry sweep instead of dropping the event.
 

@@ -38,13 +38,7 @@ export const ROUTES = {
  * see whether an account was blocked. Listing a prefix here only saves a
  * signed-out visitor from loading a page that would immediately redirect them.
  */
-export const PROTECTED_PREFIXES = [
-  '/dashboard',
-  '/admin',
-  '/learn',
-  '/exam',
-  '/checkout',
-] as const;
+export const PROTECTED_PREFIXES = ['/dashboard', '/admin', '/learn', '/exam', '/checkout'] as const;
 
 export const VIDEO = {
   /** Default share of a video that must be watched before completion. */

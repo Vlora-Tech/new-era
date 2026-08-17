@@ -8,14 +8,14 @@ what was deliberately left behind.
 
 Two copies of the reference exist on this machine:
 
-| Path | Contents | Used |
-|---|---|---|
-| `D:\A-Projects\haitham` | The canonical project, including `.env.local` and `credentials.txt` | **No.** Never opened. |
-| `d:\A-Projects\Vlora\LMS\haitham` | A sanitised copy: same source, no secret-bearing files, `.env.example` present | Yes, read-only |
+| Path                              | Contents                                                                       | Used                  |
+| --------------------------------- | ------------------------------------------------------------------------------ | --------------------- |
+| `D:\A-Projects\haitham`           | The canonical project, including `.env.local` and `credentials.txt`            | **No.** Never opened. |
+| `d:\A-Projects\Vlora\LMS\haitham` | A sanitised copy: same source, no secret-bearing files, `.env.example` present | Yes, read-only        |
 
 All inspection used the sanitised copy. No secret-bearing file was read, and
 nothing in either directory was modified, formatted, or committed. Only variable
-*names* were taken from `.env.example`; no value was copied.
+_names_ were taken from `.env.example`; no value was copied.
 
 The reference runs Next.js 16.2.5, React 19.2.4, Tailwind 4, Mongoose 9, `jose`,
 `bcryptjs`, Zod 4, React Hook Form, Sonner, Lucide, Cloudinary and Resend.
@@ -56,7 +56,7 @@ None of the reference's code was copied. These patterns were adopted:
 - **`sessionVersion` as an invalidation lever.** The reference re-checks a
   version counter on each protected request so a blocked account stops working
   immediately instead of at token expiry. Adopted, with one change: the
-  reference bumps the counter on *every login*, which silently enforces
+  reference bumps the counter on _every login_, which silently enforces
   single-device sessions. The brief says not to, so login here leaves it alone
   and only blocking or a forced sign-out increments it.
 - **Two-tier dashboard gating.** A gate layout with no chrome, wrapped by a
@@ -74,18 +74,18 @@ None of the reference's code was copied. These patterns were adopted:
 
 ## Rewritten
 
-| Reference | This build | Why |
-|---|---|---|
-| MongoDB + Mongoose | PostgreSQL 17 + Prisma with versioned migrations | The brief requires it; the domain is relational, and money and entitlements need real constraints |
-| Flat lessons | `course → modules → lessons → optional quiz` | Required curriculum shape |
-| Application + approval registration | Immediate active registration | Required; no OTP, no review queue |
-| Manual receipts, PayPal, crypto, geographic pricing | One-time SAR orders through Moyasar | Required |
-| Fake progress (a heartbeat that posted `progressSeconds: 0`, consumed by nothing) | Real progress, bounded by elapsed server time, with resume and a completion threshold | The reference's progress feature did not work |
-| No question bank | Central bank with versions, provenance, stimuli, workflow, blueprints and immutable attempt snapshots | The simulator is the product |
-| No environment validation | One Zod-validated module that fails fast and refuses unsafe production combinations | The reference read `process.env` ad hoc |
-| No rate limiting, CSRF, CSP or security headers | All present | The reference had none of these |
-| Cloudinary | `StorageProvider` boundary, local in development, production adapter deferred pending owner approval | Cloudinary is out of scope |
-| Dark green theme with glow, glass and animated blobs | Light-only New Era palette, flat surfaces, hairline borders | Required identity |
+| Reference                                                                         | This build                                                                                            | Why                                                                                               |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| MongoDB + Mongoose                                                                | PostgreSQL 17 + Prisma with versioned migrations                                                      | The brief requires it; the domain is relational, and money and entitlements need real constraints |
+| Flat lessons                                                                      | `course → modules → lessons → optional quiz`                                                          | Required curriculum shape                                                                         |
+| Application + approval registration                                               | Immediate active registration                                                                         | Required; no OTP, no review queue                                                                 |
+| Manual receipts, PayPal, crypto, geographic pricing                               | One-time SAR orders through Moyasar                                                                   | Required                                                                                          |
+| Fake progress (a heartbeat that posted `progressSeconds: 0`, consumed by nothing) | Real progress, bounded by elapsed server time, with resume and a completion threshold                 | The reference's progress feature did not work                                                     |
+| No question bank                                                                  | Central bank with versions, provenance, stimuli, workflow, blueprints and immutable attempt snapshots | The simulator is the product                                                                      |
+| No environment validation                                                         | One Zod-validated module that fails fast and refuses unsafe production combinations                   | The reference read `process.env` ad hoc                                                           |
+| No rate limiting, CSRF, CSP or security headers                                   | All present                                                                                           | The reference had none of these                                                                   |
+| Cloudinary                                                                        | `StorageProvider` boundary, local in development, production adapter deferred pending owner approval  | Cloudinary is out of scope                                                                        |
+| Dark green theme with glow, glass and animated blobs                              | Light-only New Era palette, flat surfaces, hairline borders                                           | Required identity                                                                                 |
 
 ## Deliberately excluded
 

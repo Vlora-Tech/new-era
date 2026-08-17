@@ -8,13 +8,13 @@ environment; that is listed at the end.
 
 ## Configuration
 
-| Variable | Notes |
-|---|---|
-| `PAYMENT_PROVIDER` | `mock` or `moyasar`. `mock` is refused when `NODE_ENV=production`. |
-| `MOYASAR_MODE` | `test` or `live`. Cross-checked against the key prefixes at startup. |
-| `NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY` | The only payment value exposed to a browser. |
-| `MOYASAR_SECRET_KEY` | Server-only. Never logged, never sent to a client. |
-| `MOYASAR_WEBHOOK_SECRET_TOKEN` | Shared secret on the webhook envelope. |
+| Variable                              | Notes                                                                |
+| ------------------------------------- | -------------------------------------------------------------------- |
+| `PAYMENT_PROVIDER`                    | `mock` or `moyasar`. `mock` is refused when `NODE_ENV=production`.   |
+| `MOYASAR_MODE`                        | `test` or `live`. Cross-checked against the key prefixes at startup. |
+| `NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY` | The only payment value exposed to a browser.                         |
+| `MOYASAR_SECRET_KEY`                  | Server-only. Never logged, never sent to a client.                   |
+| `MOYASAR_WEBHOOK_SECRET_TOKEN`        | Shared secret on the webhook envelope.                               |
 
 Mixing a live key into test mode is rejected before the application starts, so
 real cards cannot be charged against test bookkeeping.
@@ -96,17 +96,17 @@ path is what stops one of them drifting into a weaker check.
 
 Status handling:
 
-| Canonical status | Effect |
-|---|---|
-| `paid` | Grant access, exactly once |
-| `initiated` | Awaiting 3-D Secure. No access |
-| `authorized` | No access — this MVP captures immediately |
-| `captured` | No access unless manual capture is deliberately added later |
-| `failed`, `verified` | No access |
-| `refunded` (full) | Revoke, with an appended event |
-| `refunded` (partial) | Record the amount, flag for review, **do not guess** |
-| `voided` | Cancel and revoke |
-| anything unrecognised | Refuse, log safely, flag for review |
+| Canonical status      | Effect                                                      |
+| --------------------- | ----------------------------------------------------------- |
+| `paid`                | Grant access, exactly once                                  |
+| `initiated`           | Awaiting 3-D Secure. No access                              |
+| `authorized`          | No access — this MVP captures immediately                   |
+| `captured`            | No access unless manual capture is deliberately added later |
+| `failed`, `verified`  | No access                                                   |
+| `refunded` (full)     | Revoke, with an appended event                              |
+| `refunded` (partial)  | Record the amount, flag for review, **do not guess**        |
+| `voided`              | Cancel and revoke                                           |
+| anything unrecognised | Refuse, log safely, flag for review                         |
 
 Exactly-once granting rests on three things together: the row lock, a status
 guard that returns early if the order is already paid, and the unique

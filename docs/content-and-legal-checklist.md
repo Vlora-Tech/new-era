@@ -130,14 +130,14 @@ commissioned for compact placements and the favicon. See
 
 ## Summary
 
-| Item | Owner | State |
-|---|---|---|
-| Original or licensed question content | Client | **BLOCKER** |
-| PDPL review, including minors | Client's counsel | **BLOCKER** |
-| VAT and e-invoicing decision | Client + accountant | **BLOCKER** |
-| Final legal page text and entity details | Client | **BLOCKER** |
-| Refund window and conditions | Client | **BLOCKER** |
-| Compact brand lockup and favicon | Client's designer | Required |
-| Re-check the guide's source date | New Era | Recurring |
-| Independence statement | New Era | Implemented |
-| No official score or prediction | New Era | Implemented, enforced by the schema |
+| Item                                     | Owner               | State                               |
+| ---------------------------------------- | ------------------- | ----------------------------------- |
+| Original or licensed question content    | Client              | **BLOCKER**                         |
+| PDPL review, including minors            | Client's counsel    | **BLOCKER**                         |
+| VAT and e-invoicing decision             | Client + accountant | **BLOCKER**                         |
+| Final legal page text and entity details | Client              | **BLOCKER**                         |
+| Refund window and conditions             | Client              | **BLOCKER**                         |
+| Compact brand lockup and favicon         | Client's designer   | Required                            |
+| Re-check the guide's source date         | New Era             | Recurring                           |
+| Independence statement                   | New Era             | Implemented                         |
+| No official score or prediction          | New Era             | Implemented, enforced by the schema |

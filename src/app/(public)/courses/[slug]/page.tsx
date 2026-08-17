@@ -111,7 +111,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
                       الوحدة {formatNumber(moduleIndex + 1)}: {module.title}
                     </h3>
 
-                    <ul className="border-line-200 divide-line-200 divide-y rounded-panel border">
+                    <ul className="border-line-200 divide-line-200 rounded-panel divide-y border">
                       {module.lessons.map((lesson) => {
                         const openToAll = lesson.isPreview || course.hasAccess;
                         return (

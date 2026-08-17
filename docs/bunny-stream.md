@@ -4,12 +4,12 @@
 
 Three distinct keys, none interchangeable, all server-only:
 
-| Variable | Purpose |
-|---|---|
-| `BUNNY_STREAM_LIBRARY_ID` | Identifies the library. Not secret, but configuration. |
-| `BUNNY_STREAM_TOKEN_SECURITY_KEY` | Signs embed URLs. Leaking it makes every video publicly playable. |
-| `BUNNY_STREAM_API_KEY` | Management API: look up a video's title, duration and processing state. Optional. |
-| `BUNNY_STREAM_READONLY_API_KEY` | Verifies upload webhooks. Not used until the upload path is built. |
+| Variable                          | Purpose                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| `BUNNY_STREAM_LIBRARY_ID`         | Identifies the library. Not secret, but configuration.                            |
+| `BUNNY_STREAM_TOKEN_SECURITY_KEY` | Signs embed URLs. Leaking it makes every video publicly playable.                 |
+| `BUNNY_STREAM_API_KEY`            | Management API: look up a video's title, duration and processing state. Optional. |
+| `BUNNY_STREAM_READONLY_API_KEY`   | Verifies upload webhooks. Not used until the upload path is built.                |
 
 None is exposed to the browser, and a permanent playback URL is never stored. The
 only thing that ever reaches a client is a signed URL that expires.

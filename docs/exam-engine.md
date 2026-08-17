@@ -3,7 +3,7 @@
 ## What the product claims, and what it does not
 
 The simulator is an independent training product. It reproduces the publicly
-described *structure* of the official test — how many sections, how long, how
+described _structure_ of the official test — how many sections, how long, how
 navigation behaves — so that the format is familiar on the day.
 
 It does not claim to be official, approved, equivalent, or predictive. Results
@@ -37,16 +37,16 @@ guide changes, an administrator publishes a new version.
 
 Domain shares come from the published percentages, per track:
 
-| Domain | Scientific | Theoretical |
-|---|---:|---:|
-| التناظر اللفظي | 17% | 21% |
-| إكمال الجمل | 7% | 13% |
-| الخطأ السياقي | 10% | 16% |
-| استيعاب المقروء | 21% | 25% |
-| الحساب | 23% | 13% |
-| الهندسة | 10% | 8% |
-| الجبر | 4% | 0% |
-| تفسير البيانات | 8% | 4% |
+| Domain          | Scientific | Theoretical |
+| --------------- | ---------: | ----------: |
+| التناظر اللفظي  |        17% |         21% |
+| إكمال الجمل     |         7% |         13% |
+| الخطأ السياقي   |        10% |         16% |
+| استيعاب المقروء |        21% |         25% |
+| الحساب          |        23% |         13% |
+| الهندسة         |        10% |          8% |
+| الجبر           |         4% |          0% |
+| تفسير البيانات  |         8% |          4% |
 
 Percentages of 24 rarely land on integers. Rounding each share independently
 gives sections of 23 or 25 questions, so allocation uses the largest-remainder

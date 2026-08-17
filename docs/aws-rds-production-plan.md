@@ -12,16 +12,16 @@
 None of these can be assumed on the owner's behalf; each changes the cost or the
 security posture of the result.
 
-| # | Decision | Why it matters |
-|---|---|---|
-| 1 | AWS region | Latency to Saudi users, and where personal data physically resides — which the privacy review depends on |
-| 2 | Application hosting platform | Decides whether the database can be reached privately at all |
-| 3 | Existing VPC and subnet layout, or a new VPC | Determines the network design |
-| 4 | Expected concurrent users and connection pattern | Instance size, and whether a proxy is warranted |
-| 5 | Budget ceiling and availability target | Multi-AZ roughly doubles instance cost |
-| 6 | Whether staging is separate from production | Two instances, or one with separate databases |
-| 7 | Backup retention and recovery objectives | Proposed 14 days; confirm against the retention policy |
-| 8 | Credential strategy | Secrets Manager rotation, or IAM database authentication |
+| #   | Decision                                         | Why it matters                                                                                           |
+| --- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| 1   | AWS region                                       | Latency to Saudi users, and where personal data physically resides — which the privacy review depends on |
+| 2   | Application hosting platform                     | Decides whether the database can be reached privately at all                                             |
+| 3   | Existing VPC and subnet layout, or a new VPC     | Determines the network design                                                                            |
+| 4   | Expected concurrent users and connection pattern | Instance size, and whether a proxy is warranted                                                          |
+| 5   | Budget ceiling and availability target           | Multi-AZ roughly doubles instance cost                                                                   |
+| 6   | Whether staging is separate from production      | Two instances, or one with separate databases                                                            |
+| 7   | Backup retention and recovery objectives         | Proposed 14 days; confirm against the retention policy                                                   |
+| 8   | Credential strategy                              | Secrets Manager rotation, or IAM database authentication                                                 |
 
 Question 2 is the one that most often goes wrong. If the frontend is hosted
 outside AWS, the answer is **not** to make the database publicly accessible. It
@@ -82,9 +82,9 @@ Subject to the decisions above.
     tables and no DDL rights;
   - a **migration** role with DDL rights, used only by the controlled release
     job.
-  The runtime credential lives in its own secret. **The application must never
-  fall back to the master secret** — a runtime compromise should not be able to
-  drop a table.
+    The runtime credential lives in its own secret. **The application must never
+    fall back to the master secret** — a runtime compromise should not be able to
+    drop a table.
 
 ### Connections
 

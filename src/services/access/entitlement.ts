@@ -18,8 +18,7 @@ import { logger } from '@/lib/logger';
  * parameter — is permitted to stand in for them.
  */
 export type GrantSource =
-  | { kind: 'order'; orderId: string }
-  | { kind: 'admin'; actorUserId: string; reason: string };
+  { kind: 'order'; orderId: string } | { kind: 'admin'; actorUserId: string; reason: string };
 
 /** True when the user currently holds active access to the product. */
 export async function hasActiveEntitlement(
