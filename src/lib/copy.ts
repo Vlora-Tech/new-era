@@ -1,3 +1,8 @@
+import { ADMIN_COMMON_COPY } from './copy/admin-common';
+import { ADMIN_MEDIA_COPY } from './copy/admin-media';
+import { ADMIN_PRODUCTS_COPY } from './copy/admin-products';
+import { ADMIN_QUESTIONS_COPY } from './copy/admin-questions';
+
 /**
  * Central Arabic copy bank.
  *
@@ -7,6 +12,29 @@
  * component.
  *
  * Source code identifiers, route segments and database names stay English.
+ *
+ * ── Why part of this file lives in `./copy/` ──────────────────────────────
+ *
+ * The administration CRUD screens are built by several people at once, and a
+ * single object literal is the worst possible shape for that: two edits to the
+ * same region are a merge conflict at best and a silently dropped block at
+ * worst. `COPY.adminCommon`, `.adminProducts`, `.adminQuestions` and
+ * `.adminMedia` are therefore authored in four sibling modules and composed in
+ * below, so each screen's strings have exactly one owner and one file.
+ *
+ * The access pattern is unchanged — `COPY.adminProducts.fields.slug.label` reads
+ * the same whether the object was written here or imported — and because each
+ * module is itself `as const`, the composed type is still fully literal, so a
+ * misspelled key is still a compile error.
+ *
+ * Nothing that already lived here was moved. The existing keys are the ones the
+ * public site, the dashboard and the exam workspace already import, and moving
+ * them would have been a large diff with no benefit and a real chance of a
+ * dropped string.
+ *
+ * There is deliberately no `src/lib/copy/index.ts`: a file *and* a directory
+ * both named `copy` are unambiguous only while the directory has no index for a
+ * resolver to prefer.
  */
 export const BRAND = {
   name: 'نيو إيرا',
@@ -47,6 +75,7 @@ export const COPY = {
     optional: 'اختياري',
     retry: 'إعادة المحاولة',
     notAvailable: 'غير متاح',
+    details: 'التفاصيل',
     riyal: 'ر.س.',
     // Distinct from an empty state: an outage must never read as "no data".
     loadFailedTitle: 'تعذّر تحميل البيانات',
@@ -69,6 +98,10 @@ export const COPY = {
     openMenu: 'فتح القائمة',
     closeMenu: 'إغلاق القائمة',
     mainNavigation: 'التنقل الرئيسي',
+    // Footer column headings and the label for its second navigation landmark.
+    productsGroup: 'المنتجات',
+    informationGroup: 'معلومات',
+    legalNavigation: 'روابط قانونية',
   },
 
   home: {
@@ -103,7 +136,57 @@ export const COPY = {
       { title: 'ابدأ فورًا', body: 'يُفتح المحتوى مباشرة بعد تأكيد عملية الدفع.' },
     ],
     whyTitle: 'لماذا هذه الطريقة مفيدة؟',
+    /**
+     * Described as method, never as outcome: nothing here promises a score, a
+     * band or an improvement, because the platform cannot know one.
+     */
+    whyReasons: [
+      {
+        title: 'تدريب على النمط لا على السؤال',
+        body: 'الأسئلة مصنّفة حسب المهارة والمهارة الفرعية، فتتدرّب على طريقة التفكير التي يتكرر استخدامها بدل حفظ إجابات بعينها.',
+      },
+      {
+        title: 'ظروف قريبة من يوم الاختبار',
+        body: 'أقسام موقوتة، وانتقال لا رجعة فيه بين الأقسام، وحفظ تلقائي للإجابات — حتى تكون التجربة مألوفة قبل أن تخوضها فعليًا.',
+      },
+      {
+        title: 'مراجعة تدلّك على ما يحتاج إلى تقوية',
+        body: 'بعد كل محاولة ترى دقتك في كل مهارة والزمن الذي استغرقته، فتعرف أين تضع جهدك في المرة القادمة.',
+      },
+    ],
     faqTitle: 'أسئلة شائعة',
+    faq: [
+      {
+        question: 'هل الشراء لمرة واحدة أم اشتراك متكرر؟',
+        answer:
+          'الشراء لمرة واحدة لكل دورة أو محاكٍ. لا توجد اشتراكات شهرية ولا تجديد تلقائي، ويبقى ما اشتريته متاحًا في حسابك.',
+      },
+      {
+        question: 'متى يُفتح المحتوى بعد الدفع؟',
+        answer:
+          'يُفتح مباشرة بعد تأكيد عملية الدفع لدى مزوّد الدفع، ويظهر المنتج في لوحتك دون خطوات إضافية.',
+      },
+      {
+        question: 'كيف تعمل مقاطع الدروس؟',
+        answer:
+          'المقاطع محمية ومرتبطة بحسابك، ويحفظ الموضع الذي توقفت عنده تلقائيًا لتكمل من حيث انتهيت.',
+      },
+      {
+        question: 'ما الفرق بين المحاكاة الكاملة والتدريب؟',
+        answer:
+          'المحاكاة الكاملة تلتزم بأقسام وتوقيت وقواعد انتقال ثابتة. أما التدريب فيتيح اختيار المهارة ومستوى الصعوبة وعرض الشرح فور الإجابة.',
+      },
+      {
+        question: 'هل نتائج المحاكي درجة رسمية؟',
+        answer:
+          'لا. النتائج مؤشرات أداء تدريبية تساعدك على معرفة ما يحتاج إلى تقوية، ولا تمثل درجة رسمية ولا تنبؤًا بها.',
+      },
+      {
+        question: 'هل الأسئلة منقولة من اختبارات سابقة؟',
+        answer:
+          'لا. جميع الأسئلة من إعداد المنصة، وتحاكي المهارات والأنماط المعلنة رسميًا دون نقل أي محتوى محمي.',
+      },
+    ],
   },
 
   auth: {
@@ -304,6 +387,17 @@ export const COPY = {
       'ستُضاف هنا لاحقًا أدوات المتابعة التفصيلية. لن تُعرض قبل ذلك أي رسوم أو أرقام تقديرية.',
   },
 
+  /**
+   * The administration CRUD screens, composed from `./copy/`.
+   *
+   * See the note at the top of this file for why these four are separate
+   * modules rather than four more blocks in this literal.
+   */
+  adminCommon: ADMIN_COMMON_COPY,
+  adminProducts: ADMIN_PRODUCTS_COPY,
+  adminQuestions: ADMIN_QUESTIONS_COPY,
+  adminMedia: ADMIN_MEDIA_COPY,
+
   errors: {
     unauthorized: 'يجب تسجيل الدخول للمتابعة.',
     forbidden: 'ليس لديك صلاحية للوصول إلى هذه الصفحة.',
@@ -321,6 +415,7 @@ export const COPY = {
     trainingResultLabel: 'نتيجة تدريبية',
     trainingIndicatorLabel: 'مؤشر أداء تدريبي',
     sampleContentLabel: 'محتوى تدريبي تجريبي من إعداد المنصة',
+    rightsReserved: 'جميع الحقوق محفوظة.',
   },
 
   /**

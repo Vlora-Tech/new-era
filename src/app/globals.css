@@ -43,6 +43,14 @@
   --neb-radius-control: 8px;
   --neb-radius-panel: 10px;
   --neb-focus: 0 0 0 3px rgb(38 134 200 / 0.28);
+
+  /*
+   * The one shadow on the site, and it is not decoration: it separates a
+   * genuinely overlaid surface — a modal, a mobile rail — from the page beneath
+   * it. There is deliberately no elevation *scale*. Rank on this site is carried
+   * by rule, fill and position; a card that floats is an effect, and an effect
+   * is what the brief rules out.
+   */
   --neb-shadow-overlay: 0 12px 32px rgb(22 35 45 / 0.12);
 }
 
@@ -132,6 +140,20 @@
     outline-offset: 2px;
   }
 
+  /*
+   * Arabic orphans are conspicuous at the measures this product sets. This is a
+   * progressive enhancement with no fallback needed: where it is unsupported the
+   * paragraph simply breaks the way it does today.
+   */
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-100);
+    color: var(--color-ink-900);
+  }
+
   /* Latin numerals and identifiers embedded in Arabic text keep their own run. */
   [dir='ltr'] {
     text-align: left;
@@ -149,6 +171,25 @@
   }
 }
 
+/*
+ * The mobile navigation panel's entrance, and the only keyframe on the site.
+ *
+ * The reduced-motion block above forces `animation-duration: 0.01ms` rather than
+ * `animation: none`, which is the correct degradation here: the end state still
+ * applies, instantly, instead of the panel being left at the `from` opacity.
+ */
+@keyframes neb-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Brand focus ring for controls that draw their own outline. */
 @utility focus-ring {
   outline: none;
@@ -156,10 +197,53 @@
 }
 
 /*
- * Clear space around the supplied logo, as the brand guidelines require: at
- * least 12% of the logo width on every side, and only ever on a white ground.
+ * The only type step above 34px on the site, and it belongs to the homepage
+ * <h1> alone. Roughly 40px at 375, 49 at 768, 55 at 1024, 62 at 1280, 68 at
+ * 1536 and above.
+ *
+ * The 68px ceiling is fold arithmetic, not taste: above it the hero's primary
+ * action leaves the viewport on a 1280 × 720 laptop.
+ */
+@utility text-display {
+  font-size: clamp(2.5rem, 1.9rem + 2.45vw, 4.25rem);
+  line-height: 1.14;
+  font-weight: 600;
+  /* Arabic is cursive; tracking breaks the joins between letters. */
+  letter-spacing: 0;
+  /* Clearance for the ا/ل ascenders under whatever rule sits above them. */
+  padding-block-start: 0.04em;
+}
+
+/*
+ * Arabic measure. Line length was ad hoc across the marketing pages — `max-w-xl`
+ * in one place, `max-w-prose` in another — which is why paragraphs of the same
+ * rank read at different widths. These three are the only sanctioned measures.
+ */
+@utility measure-ar {
+  max-inline-size: 33rem;
+}
+
+@utility measure-ar-sm {
+  max-inline-size: 26rem;
+}
+
+@utility measure-ar-lg {
+  max-inline-size: 46rem;
+}
+
+@utility panel-in {
+  animation: neb-panel-in 160ms ease-out;
+}
+
+/*
+ * The white ground the supplied logo requires.
+ *
+ * Clear space is 12% of the LOGO's width, not the containing block's, so it
+ * cannot be expressed as a percentage `padding` here — that resolves against the
+ * parent's inline size and is therefore arbitrary in a flex column or a
+ * `max-w-md` stack. `BrandLogoBlock` computes the value in px from the rendered
+ * width and applies it inline.
  */
 @utility logo-clear-space {
-  padding: 12%;
   background-color: var(--color-surface);
 }

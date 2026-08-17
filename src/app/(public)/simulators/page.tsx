@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { ProductGrid, type CatalogProduct } from '@/components/marketing/product-grid';
-import { Container, SectionHeading } from '@/components/ui/surface';
+import { Container, PageHead } from '@/components/ui/surface';
 import { COPY, INDEPENDENCE_DISCLAIMER } from '@/lib/copy';
 import { prisma } from '@/lib/db';
 
@@ -33,21 +33,27 @@ export default async function SimulatorsPage() {
   }
 
   return (
-    <Container className="py-12 lg:py-16">
-      <SectionHeading title={COPY.nav.simulators} description={COPY.home.simulatorsBody} />
-      <div className="mt-8">
+    <Container className="py-10 lg:py-16">
+      <PageHead title={COPY.nav.simulators} description={COPY.home.simulatorsBody} />
+
+      <div className="mt-12">
         <ProductGrid
           products={products}
           basePath="/simulators"
-          typeLabel="محاكي اختبار"
+          typeLabel={COPY.statusLabels.productType.EXAM_SIMULATOR}
           emptyTitle="لا توجد محاكيات منشورة بعد."
           emptyDescription="سيظهر هنا كل ما يُنشر من محاكيات."
           failed={failed}
         />
       </div>
 
-      {/* The independence statement appears wherever simulators are presented. */}
-      <p className="text-ink-700 mt-10 max-w-3xl text-sm leading-relaxed">
+      {/*
+       * The independence statement appears wherever simulators are presented,
+       * set as a colophon under its own rule — the same figure the homepage
+       * closes on. It is a standing disclosure, not a layout element that can be
+       * trimmed.
+       */}
+      <p className="border-line-200 text-ink-700 measure-ar-lg mt-16 border-t pt-8 text-sm leading-[1.9]">
         {INDEPENDENCE_DISCLAIMER}
       </p>
     </Container>

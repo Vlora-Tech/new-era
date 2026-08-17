@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { ProductGrid, type CatalogProduct } from '@/components/marketing/product-grid';
-import { Container, SectionHeading } from '@/components/ui/surface';
+import { Container, PageHead } from '@/components/ui/surface';
 import { COPY } from '@/lib/copy';
 import { prisma } from '@/lib/db';
 
@@ -33,13 +33,15 @@ export default async function CoursesPage() {
   }
 
   return (
-    <Container className="py-12 lg:py-16">
-      <SectionHeading title={COPY.nav.courses} description={COPY.home.coursesBody} />
-      <div className="mt-8">
+    <Container className="py-10 lg:py-16">
+      {/* The same ruled head the homepage opens each of its sections with. */}
+      <PageHead title={COPY.nav.courses} description={COPY.home.coursesBody} />
+
+      <div className="mt-12">
         <ProductGrid
           products={products}
           basePath="/courses"
-          typeLabel="دورة"
+          typeLabel={COPY.statusLabels.productType.COURSE}
           emptyTitle="لا توجد دورات منشورة بعد."
           emptyDescription="سيظهر هنا كل ما يُنشر من دورات."
           failed={failed}

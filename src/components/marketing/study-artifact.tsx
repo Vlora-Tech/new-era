@@ -1,19 +1,22 @@
-import { Check } from 'lucide-react';
+import { ArrowLeft, Check, Flag } from 'lucide-react';
 
+import { COPY } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/lib/format';
 
 /**
- * The homepage hero visual.
+ * The homepage hero's facing plate: a faithful, deliberately composed drawing of
+ * the product's own practice-question interface — question header, section
+ * ruler, options with a selected state, and the workspace's action row.
  *
- * This is an editorial illustration built from the product's own interface
- * primitives: a practice question the way it actually appears, on a paper-like
- * surface. Deliberately not a floating analytics dashboard, not a device mockup,
- * and not a screenshot of any official test interface.
+ * It is drawn flat. No shadow, no lift, no floating satellites orbiting it: the
+ * plate is a specimen page held beside the argument, not a screenshot pretending
+ * to hover in space. Depth here comes from the rules and the fills.
  *
- * The question shown is an original sample authored for the platform. The
- * progress strip is a static, unlabelled rhythm indicator — it reports no
- * statistic, because inventing one would be fabricating evidence of use.
+ * The question is an original sample authored for the platform, and the whole
+ * plate is `aria-hidden` — the surrounding copy states the same facts, and a
+ * screen reader gains nothing from walking a sample question. No statistic,
+ * score, percentage or count about the business is claimed anywhere in it.
  */
 const OPTIONS = [
   { label: 'مقص : قص', selected: true },
@@ -28,64 +31,84 @@ const CURRENT_QUESTION = 7;
 export function StudyArtifact({ className }: { className?: string }) {
   return (
     <div
-      className={cn('rounded-panel border-line-200 bg-surface border p-5 sm:p-7', className)}
-      // Decorative: the same content is stated in the surrounding copy, and a
-      // screen reader gains nothing from walking a sample question here.
+      className={cn('border-line-200 bg-surface border p-5 sm:p-6', className)}
       aria-hidden="true"
     >
-      <div className="border-line-200 flex items-center justify-between gap-4 border-b pb-4">
-        <p className="text-ink-700 text-sm font-medium">التناظر اللفظي</p>
-        <p className="text-ink-600 text-sm">
+      {/* Workspace header: skill label and position, exactly as the product names them. */}
+      <div className="border-line-200 flex items-baseline justify-between gap-4 border-b pb-3">
+        <span className="text-brand-700 text-[13px] font-semibold">التناظر اللفظي</span>
+        <p className="text-ink-600 text-[13px] tabular-nums">
           السؤال {formatNumber(CURRENT_QUESTION)} من {formatNumber(TOTAL_QUESTIONS)}
         </p>
       </div>
 
-      {/* A quiet rhythm strip, not a metric: no number is claimed. */}
-      <div className="mt-4 flex gap-1" aria-hidden="true">
+      {/*
+       * A ruler, not a metric. Twenty-four ticks because the sample section has
+       * twenty-four questions; the filled ones simply mark where the specimen
+       * page sits in its own section.
+       */}
+      <div className="mt-4 flex gap-[3px]">
         {Array.from({ length: TOTAL_QUESTIONS }, (_, index) => (
           <span
             key={index}
             className={cn(
-              'h-1 flex-1 rounded-full',
-              index < CURRENT_QUESTION ? 'bg-brand-500' : 'bg-surface-muted',
+              'h-1.5 flex-1',
+              index < CURRENT_QUESTION ? 'bg-brand-500' : 'bg-line-200',
             )}
           />
         ))}
       </div>
 
-      <p className="text-ink-900 mt-7 text-lg leading-relaxed font-medium">
+      <p className="text-ink-900 mt-6 text-[17px] leading-relaxed font-semibold sm:text-lg">
         قلم : كتابة
-        <span className="text-ink-600 mx-2">←</span>
+        <span className="text-ink-600 mx-2 font-normal">←</span>
         الأقرب في العلاقة:
       </p>
 
-      <ul className="mt-5 flex flex-col gap-2.5">
+      <ul className="border-line-200 divide-line-200 mt-5 divide-y border-y">
         {OPTIONS.map((option) => (
           <li
             key={option.label}
             className={cn(
-              'rounded-control flex items-center justify-between gap-3 border px-4 py-3',
-              option.selected ? 'border-brand-700 bg-brand-100' : 'border-line-200 bg-surface',
+              'flex items-center gap-3 py-3',
+              // The selected row is marked by a rule on its reading edge as well
+              // as by fill and weight, so the state never rests on colour alone.
+              option.selected && 'border-brand-700 bg-brand-100/60 border-s-2 ps-3',
             )}
           >
             <span
               className={cn(
-                'text-base',
-                option.selected ? 'text-brand-700 font-medium' : 'text-ink-700',
+                'flex size-5 shrink-0 items-center justify-center border',
+                option.selected ? 'border-brand-700 bg-brand-700' : 'border-line-500',
+              )}
+            >
+              {option.selected ? <Check className="size-3 text-white" strokeWidth={3} /> : null}
+            </span>
+            <span
+              className={cn(
+                'text-[15px] sm:text-base',
+                option.selected ? 'text-brand-700 font-semibold' : 'text-ink-700',
               )}
             >
               {option.label}
             </span>
-            {option.selected ? (
-              <Check className="text-brand-700 size-4 shrink-0" aria-hidden="true" />
-            ) : null}
           </li>
         ))}
       </ul>
 
-      <p className="border-line-200 text-ink-700 mt-6 border-t pt-4 text-sm leading-relaxed">
-        العلاقة بين الكلمتين هي أداة ووظيفتها؛ ابحث عن الزوج الذي تربطه العلاقة نفسها بالترتيب ذاته.
-      </p>
+      {/* The workspace's own action row, rendered inert. */}
+      <div className="mt-6 flex items-center justify-end gap-2.5">
+        <span
+          className="border-line-200 text-ink-600 rounded-control inline-flex size-9 items-center justify-center border"
+          title={COPY.exam.flagAction}
+        >
+          <Flag className="size-4" />
+        </span>
+        <span className="bg-brand-700 rounded-control inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-white">
+          {COPY.common.next}
+          <ArrowLeft className="size-3.5" />
+        </span>
+      </div>
     </div>
   );
 }

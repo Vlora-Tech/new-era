@@ -9,18 +9,26 @@ import { cn } from '@/lib/utils';
  *
  * The supplied logo is a raster file with a white background and a stacked
  * Arabic/Latin lockup. The brand guidelines forbid cropping it, extracting the
- * symbol from it, or placing it on a tinted surface, and they ask for a compact
- * lockup to be commissioned rather than improvised.
+ * symbol from it, recolouring it, or placing it on a tinted surface, and they
+ * ask for a compact horizontal lockup to be commissioned rather than improvised
+ * from this file.
  *
  * So there are two marks here, and the split is deliberate:
  *
  *  - `BrandLogo` renders the supplied artwork unmodified, at no less than the
  *    220px the guidelines require for legibility, on white, with clear space.
- *    It is for places with room: the sign-in card, the footer, print-like pages.
- *  - `BrandWordmark` is set type, not a derived logo. The slim header has
- *    nowhere near 220px of vertical room, and shrinking or cropping the PNG to
- *    fit would breach the guidelines. Typography is the honest alternative
- *    until a proper horizontal lockup exists.
+ *    It is for places with room, and it is used in all of them: the homepage
+ *    masthead, the footer, and the sign-in and registration pages.
+ *  - `BrandWordmark` is set type, not a derived logo. It backs the narrow
+ *    chrome — the public bar, the dashboard and admin rails, the checkout bar —
+ *    where a 64px band cannot give the stacked lockup the width its two
+ *    wordmarks need.
+ *
+ * Putting the artwork in a 64px bar was tried and reverted: at 56px tall both
+ * wordmarks collapse into a smudge, and a `mix-blend-multiply` to drop its white
+ * ground into the bar is a modification of the artwork. Type is the honest
+ * placeholder until the horizontal lockup exists; one constant below switches
+ * every bar on the site the day it is delivered.
  *
  * See docs/brand-assets-needed.md.
  */
@@ -28,8 +36,53 @@ import { cn } from '@/lib/utils';
 /** The guidelines' legibility floor: below this the two wordmarks stop reading. */
 const LOGO_MIN_WIDTH_PX = 220;
 
+/**
+ * The bar mark's rendered width, and the reason the public bar is tall.
+ *
+ * The owner asked for the supplied artwork in the navigation bar rather than set
+ * type. The earlier objection to that was sound but assumed a 64px bar, where
+ * the lockup renders about 56px tall and both wordmarks collapse into a smudge.
+ * The answer is to size the bar to the mark instead of shrinking the mark to the
+ * bar: at 112px wide the Arabic wordmark lands near 13px, which reads.
+ *
+ * This is still below the guidelines' 220px floor, and it is a deliberate,
+ * owner-directed deviation recorded in docs/brand-assets-needed.md. The
+ * commissioned horizontal lockup removes the compromise entirely — set
+ * HORIZONTAL_LOCKUP_SRC below and every bar on the site switches at once.
+ *
+ * Nothing is cropped, recoloured or stretched, and the artwork's own white
+ * ground sits on the bar's white surface, so no blend mode is involved.
+ */
+const BAR_LOGO_WIDTH_PX = 112;
+const BAR_LOGO_WIDTH_PX_SM = 88;
+
 /** height ÷ width of the supplied artwork (1397 × 1126). */
 const LOGO_ASPECT_RATIO = 1126 / 1397;
+
+/** The guidelines' clear space: 12% of the logo's own width, on every side. */
+const CLEAR_SPACE_RATIO = 0.12;
+
+/** Rounded UP to the 4px grid so the clear space is never short. 220 → 28. */
+const clearSpaceFor = (width: number) => Math.ceil((width * CLEAR_SPACE_RATIO) / 4) * 4;
+
+/**
+ * Set to the commissioned horizontal lockup's path when that asset exists, and
+ * set the two intrinsic dimensions below from the delivered file at the same
+ * time. Until then every header is set as type, which derives nothing from the
+ * stacked raster. One value changes the whole site on delivery day.
+ */
+const HORIZONTAL_LOCKUP_SRC: string | null = null;
+
+/**
+ * Placeholders — replace with the delivered file's true pixel dimensions.
+ * next/image needs both, and deriving one from the other is how a lockup gets
+ * stretched.
+ */
+const HORIZONTAL_LOCKUP_INTRINSIC_WIDTH = 640;
+const HORIZONTAL_LOCKUP_INTRINSIC_HEIGHT = 128;
+
+/** Rendered height of the commissioned lockup inside a 64px bar. */
+const HORIZONTAL_LOCKUP_HEIGHT_PX = 32;
 
 export function BrandLogo({
   className,
@@ -61,32 +114,150 @@ export function BrandLogo({
   );
 }
 
-/** The logo on the white ground and clear space the guidelines require. */
-export function BrandLogoBlock({ className, width }: { className?: string; width?: number }) {
+/**
+ * The logo on the white ground and clear space the guidelines require.
+ *
+ * `flush` pulls the plate by exactly its own clear space on the inline-start
+ * axis, so the ARTWORK's edge lands on the layout grid rather than its padding
+ * box. That is legal only where the pulled-into margin is genuinely empty — the
+ * first element of an otherwise empty cell — which today means the homepage
+ * masthead row and the footer's first column, and nowhere else. It never pulls
+ * on the block axis: a negative top margin would slide the artwork under the
+ * sticky header on scroll-to-top and eat the clear space the guidelines require.
+ */
+export function BrandLogoBlock({
+  className,
+  width = LOGO_MIN_WIDTH_PX,
+  priority = false,
+  flush = false,
+}: {
+  className?: string;
+  width?: number;
+  priority?: boolean;
+  flush?: boolean;
+}) {
+  const renderedWidth = Math.max(width, LOGO_MIN_WIDTH_PX);
+  const pad = clearSpaceFor(renderedWidth);
+
   return (
-    <div className={cn('logo-clear-space rounded-panel inline-block', className)}>
-      <BrandLogo width={width} />
+    <div
+      className={cn('logo-clear-space inline-block', className)}
+      // In px, from the logo's own width. A percentage would resolve against
+      // whatever the parent happens to be. No radius: a 10px corner on a white
+      // box sitting on a white ground does nothing, and would be wrong anywhere
+      // else the guidelines allow this plate to appear.
+      style={flush ? { padding: pad, marginInlineStart: -pad } : { padding: pad }}
+    >
+      <BrandLogo width={renderedWidth} priority={priority} />
     </div>
   );
 }
 
-/** Typographic mark for compact placements. Not derived from the artwork. */
-export function BrandWordmark({ className }: { className?: string }) {
+/**
+ * The running head: both wordmarks as set type, horizontal.
+ *
+ * Horizontal is the point: in a rail or a bar this reads as a different
+ * structural layer from the stacked artwork rather than as a shrunken, competing
+ * copy of it.
+ *
+ * `compact` drops the second half for narrow chrome — the dashboard and admin
+ * rails, where a 264px column already carries a section title beside the mark.
+ */
+export function BrandWordmark({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   return (
-    <span className={cn('text-brand-700 text-lg font-semibold tracking-normal', className)}>
-      {BRAND.name}
+    <span className={cn('inline-flex items-center whitespace-nowrap', className)}>
+      <span className="text-brand-700 text-[18px] leading-none font-semibold">{BRAND.name}</span>
+      {compact ? null : (
+        <>
+          <span className="bg-line-200 mx-3 hidden h-4 w-px sm:block" aria-hidden="true" />
+          <span className="text-ink-600 hidden text-[13px] leading-none font-normal sm:inline">
+            {BRAND.fullName}
+          </span>
+        </>
+      )}
     </span>
   );
 }
 
-export function BrandWordmarkLink({ className }: { className?: string }) {
+/**
+ * The supplied lockup, sized for a navigation bar.
+ *
+ * Deliberately not clamped to LOGO_MIN_WIDTH_PX — see BAR_LOGO_WIDTH_PX above
+ * for why that floor is waived here and where the waiver is recorded. When the
+ * commissioned horizontal lockup arrives, this renders that instead and the
+ * bar can lose its extra height.
+ */
+export function BrandBarLogo({ className }: { className?: string }) {
+  if (HORIZONTAL_LOCKUP_SRC) {
+    return (
+      <Image
+        src={HORIZONTAL_LOCKUP_SRC}
+        alt={`${BRAND.name} — ${BRAND.fullName}`}
+        width={HORIZONTAL_LOCKUP_INTRINSIC_WIDTH}
+        height={HORIZONTAL_LOCKUP_INTRINSIC_HEIGHT}
+        priority
+        className={className}
+        style={{ height: HORIZONTAL_LOCKUP_HEIGHT_PX, width: 'auto' }}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src="/brand/new-era-logo.png"
+      alt={`${BRAND.name} — ${BRAND.fullName}`}
+      width={BAR_LOGO_WIDTH_PX}
+      height={Math.round(BAR_LOGO_WIDTH_PX * LOGO_ASPECT_RATIO)}
+      priority
+      sizes={`(max-width: 640px) ${BAR_LOGO_WIDTH_PX_SM}px, ${BAR_LOGO_WIDTH_PX}px`}
+      className={cn('h-auto w-[88px] sm:w-[112px]', className)}
+    />
+  );
+}
+
+/** The bar mark, wrapped as the home link. */
+export function BrandBarLink({ className }: { className?: string }) {
   return (
     <Link
       href="/"
       className={cn('rounded-control inline-flex items-center focus-visible:outline-2', className)}
-      aria-label={`${BRAND.name} — ${BRAND.tagline}`}
+      aria-label={`${BRAND.name} — ${BRAND.fullName}`}
     >
-      <BrandWordmark />
+      <BrandBarLogo />
+    </Link>
+  );
+}
+
+export function BrandWordmarkLink({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
+  return (
+    <Link
+      href="/"
+      className={cn('rounded-control inline-flex items-center focus-visible:outline-2', className)}
+      aria-label={`${BRAND.name} — ${BRAND.fullName}`}
+    >
+      {HORIZONTAL_LOCKUP_SRC ? (
+        <Image
+          src={HORIZONTAL_LOCKUP_SRC}
+          alt={`${BRAND.name} — ${BRAND.fullName}`}
+          width={HORIZONTAL_LOCKUP_INTRINSIC_WIDTH}
+          height={HORIZONTAL_LOCKUP_INTRINSIC_HEIGHT}
+          style={{ height: HORIZONTAL_LOCKUP_HEIGHT_PX, width: 'auto' }}
+        />
+      ) : (
+        <BrandWordmark compact={compact} />
+      )}
     </Link>
   );
 }

@@ -8,7 +8,9 @@ import { BRAND, COPY, INDEPENDENCE_DISCLAIMER } from '@/lib/copy';
  * Public footer.
  *
  * One of the few placements with enough room for the supplied logo at its
- * required size, on white, with clear space.
+ * required 220px, on white, with the clear space the guidelines ask for — and
+ * with the plate pulled flush on the inline-start axis so the artwork's edge,
+ * not its padding box, sits on the container's grid.
  *
  * The independence disclaimer sits here on every public page. It is a standing
  * statement that this is an independent training product, not an official or
@@ -26,53 +28,61 @@ const PRODUCT_LINKS = [
   { href: '/simulators', label: COPY.nav.simulators },
 ] as const;
 
+const LINK_CLASS =
+  'text-ink-700 hover:text-brand-700 text-sm transition-colors duration-150 ease-out';
+
 export function PublicFooter() {
   const year = new Date().getFullYear();
 
   return (
     <footer className="border-line-200 bg-surface mt-auto border-t">
       <Container className="py-12">
-        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-          <div className="flex flex-col gap-4">
-            <BrandLogoBlock width={220} />
-            <p className="text-ink-700 max-w-sm text-sm">{BRAND.tagline}</p>
+        <div className="grid gap-y-10 lg:grid-cols-[minmax(0,2fr)_1fr_1fr] lg:gap-x-16">
+          <div>
+            {/*
+             * `flex` removes the inline strut under the plate; `overflow-x-clip`
+             * absorbs the flush pull, whose 28px is wider than the 16/24px
+             * gutters below `lg`. Only white padding on a white ground is
+             * clipped, so the artwork itself is untouched and still starts on
+             * the container's content edge.
+             */}
+            <div className="flex overflow-x-clip">
+              <BrandLogoBlock width={220} flush />
+            </div>
+            <p className="text-ink-700 measure-ar-sm mt-4 text-sm">{BRAND.tagline}</p>
           </div>
 
-          <div className="flex flex-col gap-8 sm:flex-row sm:gap-16">
-            <nav aria-label={COPY.nav.courses} className="flex flex-col gap-3">
-              <h2 className="text-ink-900 text-sm font-semibold">المنتجات</h2>
-              {PRODUCT_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-ink-700 hover:text-brand-700 text-sm"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+          <nav
+            aria-label={COPY.nav.productsGroup}
+            className="border-line-200 flex flex-col gap-3 lg:border-s lg:ps-16"
+          >
+            <h2 className="text-ink-900 text-sm font-semibold">{COPY.nav.productsGroup}</h2>
+            {PRODUCT_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className={LINK_CLASS}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-            <nav aria-label="روابط قانونية" className="flex flex-col gap-3">
-              <h2 className="text-ink-900 text-sm font-semibold">معلومات</h2>
-              {LEGAL_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-ink-700 hover:text-brand-700 text-sm"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
+          <nav
+            aria-label={COPY.nav.legalNavigation}
+            className="border-line-200 flex flex-col gap-3 lg:border-s lg:ps-16"
+          >
+            <h2 className="text-ink-900 text-sm font-semibold">{COPY.nav.informationGroup}</h2>
+            {LEGAL_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} className={LINK_CLASS}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         </div>
 
         <div className="border-line-200 mt-10 flex flex-col gap-4 border-t pt-6">
-          <p className="text-ink-700 max-w-3xl text-sm leading-relaxed">
+          <p className="text-ink-700 measure-ar-lg text-sm leading-relaxed">
             {INDEPENDENCE_DISCLAIMER}
           </p>
           <p className="text-ink-600 text-sm">
-            © <bdi dir="ltr">{year}</bdi> {BRAND.name}. جميع الحقوق محفوظة.
+            © <bdi dir="ltr">{year}</bdi> {BRAND.name}. {COPY.legal.rightsReserved}
           </p>
         </div>
       </Container>

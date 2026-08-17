@@ -3,7 +3,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Badge, Card, Container, ErrorState } from '@/components/ui/surface';
+import {
+  Badge,
+  Card,
+  Container,
+  ErrorState,
+  Notice,
+  RuledHead,
+  Subhead,
+} from '@/components/ui/surface';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { COPY } from '@/lib/copy';
 import { formatDate, formatDurationWords, formatHalalas, formatNumber } from '@/lib/format';
@@ -61,81 +69,96 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
 
   const version = simulator.activeVersion;
 
+  // Read straight from the published version. Without one, no figure is shown —
+  // an unpublished configuration must never render as a set of zeroes.
+  const configuration = version
+    ? [
+        { label: 'عدد الأقسام', value: formatNumber(version.sectionCount) },
+        { label: 'إجمالي الأسئلة', value: formatNumber(version.totalQuestions) },
+        { label: 'المدة الإجمالية', value: formatDurationWords(version.totalDurationSec) },
+        { label: 'الآلة الحاسبة', value: version.calculatorEnabled ? 'متاحة' : 'غير متاحة' },
+      ]
+    : [];
+
   return (
-    <Container className="py-12 lg:py-16">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-14">
-        <div className="flex flex-col gap-10">
-          <header className="flex flex-col gap-4">
+    <Container className="py-10 lg:py-16">
+      <div className="grid gap-y-14 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-16">
+        <div>
+          <RuledHead>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="brand">محاكي اختبار</Badge>
-              <Badge>{TRACK_LABELS[simulator.track] ?? simulator.track}</Badge>
+              <Badge variant="outline" shape="square">
+                {COPY.statusLabels.productType.EXAM_SIMULATOR}
+              </Badge>
+              <Badge variant="outline" shape="square">
+                {TRACK_LABELS[simulator.track] ?? simulator.track}
+              </Badge>
             </div>
 
-            <h1 className="text-ink-900 text-3xl font-semibold sm:text-4xl">{simulator.title}</h1>
-            <p className="text-ink-700 max-w-2xl text-lg leading-relaxed">
+            <h1 className="text-ink-900 mt-5 text-[30px] leading-[1.28] font-semibold lg:text-[38px] lg:leading-[1.22]">
+              {simulator.title}
+            </h1>
+
+            <p className="text-ink-700 measure-ar-lg mt-5 text-[17px] leading-[1.85] lg:text-[18px]">
               {simulator.shortDescription}
             </p>
-          </header>
+          </RuledHead>
 
-          {/* Figures come from the published version; without one, none are shown. */}
-          {version ? (
-            <section className="flex flex-col gap-4">
-              <h2 className="text-ink-900 text-xl font-semibold">تكوين الاختبار</h2>
-              <dl className="border-line-200 divide-line-200 rounded-panel grid divide-y border sm:grid-cols-2 sm:divide-y-0">
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <dt className="text-ink-700 text-sm">عدد الأقسام</dt>
-                  <dd className="text-ink-900 font-medium">{formatNumber(version.sectionCount)}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <dt className="text-ink-700 text-sm">إجمالي الأسئلة</dt>
-                  <dd className="text-ink-900 font-medium">
-                    {formatNumber(version.totalQuestions)}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <dt className="text-ink-700 text-sm">المدة الإجمالية</dt>
-                  <dd className="text-ink-900 font-medium">
-                    {formatDurationWords(version.totalDurationSec)}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between gap-3 p-4">
-                  <dt className="text-ink-700 text-sm">الآلة الحاسبة</dt>
-                  <dd className="text-ink-900 font-medium">
-                    {version.calculatorEnabled ? 'متاحة' : 'غير متاحة'}
-                  </dd>
-                </div>
-              </dl>
+          <section className="mt-14">
+            <Subhead title="تكوين الاختبار" />
 
-              <ul className="text-ink-700 flex flex-col gap-2 text-sm">
-                <li>المراجعة متاحة داخل القسم الحالي فقط.</li>
-                <li>بعد الانتقال إلى القسم التالي لا يمكن العودة إلى القسم السابق.</li>
-                {version.scratchpadEnabled ? <li>تتوفر مسودة إلكترونية أثناء المحاولة.</li> : null}
-              </ul>
+            {version ? (
+              <>
+                {/*
+                 * Bounded to the reading measure. At full column width the
+                 * `justify-between` row put ~780px of white between a label and
+                 * its own value, which reads as two unrelated columns rather
+                 * than as one specification.
+                 */}
+                <dl className="border-line-200 divide-line-200 measure-ar-lg mt-6 divide-y border-y">
+                  {configuration.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-baseline justify-between gap-4 py-3.5"
+                    >
+                      <dt className="text-ink-700 text-sm">{row.label}</dt>
+                      <dd className="text-ink-900 font-medium">{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
 
-              {/* Modes are named distinctly so the two experiences are not confused. */}
-              <div className="flex flex-wrap gap-2">
-                {simulator.fullSimulationEnabled ? (
-                  <Badge variant="brand">محاكاة كاملة</Badge>
-                ) : null}
-                {simulator.trainingModeEnabled ? <Badge>تدريب</Badge> : null}
-              </div>
-            </section>
-          ) : (
-            <p className="text-ink-700">لم تُنشر نسخة من هذا المحاكي بعد.</p>
-          )}
+                <ul className="text-ink-700 measure-ar-lg mt-6 flex flex-col gap-2 text-sm leading-[1.8]">
+                  <li>المراجعة متاحة داخل القسم الحالي فقط.</li>
+                  <li>بعد الانتقال إلى القسم التالي لا يمكن العودة إلى القسم السابق.</li>
+                  {version.scratchpadEnabled ? (
+                    <li>تتوفر مسودة إلكترونية أثناء المحاولة.</li>
+                  ) : null}
+                </ul>
+
+                {/* Modes are named distinctly so the two experiences are not confused. */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {simulator.fullSimulationEnabled ? (
+                    <Badge variant="brand">محاكاة كاملة</Badge>
+                  ) : null}
+                  {simulator.trainingModeEnabled ? <Badge>تدريب</Badge> : null}
+                </div>
+              </>
+            ) : (
+              <p className="text-ink-700 mt-5">لم تُنشر نسخة من هذا المحاكي بعد.</p>
+            )}
+          </section>
 
           {/* Provenance, stated as a review date rather than a publication date. */}
           {version?.sourceLabel ? (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-ink-900 text-xl font-semibold">مرجع التكوين</h2>
-              <p className="text-ink-700 text-sm leading-relaxed">
+            <section className="mt-14">
+              <Subhead title="مرجع التكوين" />
+              <p className="text-ink-700 measure-ar-lg mt-5 text-sm leading-[1.9]">
                 {version.sourceLabel}
                 {version.sourceRetrievedAt ? (
                   <> — تاريخ مراجعة المصدر: {formatDate(version.sourceRetrievedAt)}</>
                 ) : null}
               </p>
               {version.sourceNote ? (
-                <p className="text-ink-700 max-w-2xl text-sm leading-relaxed">
+                <p className="text-ink-700 measure-ar-lg mt-3 text-sm leading-[1.9]">
                   {version.sourceNote}
                 </p>
               ) : null}
@@ -144,7 +167,7 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
                   href={version.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-700 text-sm hover:underline"
+                  className="text-brand-700 mt-4 inline-flex text-sm font-medium hover:underline"
                 >
                   الاطلاع على المصدر الرسمي
                 </a>
@@ -152,34 +175,35 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
             </section>
           ) : null}
 
-          <section
-            className="border-line-200 bg-surface-muted rounded-panel border p-5"
-            aria-label="إفادة الاستقلالية"
-          >
-            <p className="text-ink-900 text-sm leading-relaxed">
-              {version?.resultDisclaimer ?? COPY.legal.independenceDisclaimer}
-            </p>
-          </section>
+          {/*
+           * The independence statement. A standing fact, so `role="note"` rather
+           * than an alert — nothing here has gone wrong.
+           */}
+          <Notice tone="neutral" role="note" label="إفادة الاستقلالية" className="mt-14">
+            {version?.resultDisclaimer ?? COPY.legal.independenceDisclaimer}
+          </Notice>
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <Card className="flex flex-col gap-4 p-6">
-            <p className="text-ink-900 text-2xl font-semibold">
+          <Card className="p-6">
+            <p className="text-ink-900 text-[28px] leading-none font-semibold">
               {formatHalalas(simulator.priceHalalas)}
             </p>
-            <p className="text-ink-700 text-sm">شراء لمرة واحدة. لا اشتراك ولا تجديد تلقائي.</p>
+            <p className="text-ink-700 mt-3 text-sm leading-[1.8]">
+              شراء لمرة واحدة. لا اشتراك ولا تجديد تلقائي.
+            </p>
 
             {simulator.hasAccess ? (
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="mt-6 w-full">
                 <Link href="/dashboard/simulators">ابدأ المحاكاة</Link>
               </Button>
             ) : (
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="mt-6 w-full">
                 <Link href={`/checkout/start?product=${simulator.slug}`}>احصل على المحاكي</Link>
               </Button>
             )}
 
-            <p className="text-ink-700 border-line-200 border-t pt-4 text-sm leading-relaxed">
+            <p className="text-ink-700 border-line-200 mt-6 border-t pt-5 text-sm leading-[1.85]">
               النتائج مؤشرات أداء تدريبية تساعدك على تحديد ما يحتاج إلى تقوية، ولا تمثل درجة رسمية.
             </p>
           </Card>

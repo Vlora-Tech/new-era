@@ -24,7 +24,9 @@ export const Label = React.forwardRef<HTMLLabelElement, React.ComponentPropsWith
 
 const controlClasses = cn(
   'block w-full rounded-control border border-line-500 bg-surface px-3 text-ink-900',
-  'placeholder:text-ink-600 transition-colors duration-150',
+  // 150ms ease-out is the site's only transition curve; controls use it too so a
+  // field and a button do not settle at visibly different speeds.
+  'placeholder:text-ink-600 transition-colors duration-150 ease-out',
   'focus:border-brand-500 focus:outline-2 focus:outline-offset-0 focus:outline-brand-500',
   'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-600',
   'aria-[invalid=true]:border-error aria-[invalid=true]:outline-error',
@@ -62,8 +64,9 @@ export const Checkbox = React.forwardRef<HTMLInputElement, React.ComponentPropsW
         ref={ref}
         type="checkbox"
         className={cn(
-          'border-line-500 text-brand-700 size-5 shrink-0 rounded-[4px]',
+          'border-line-500 text-brand-700 size-5 shrink-0 cursor-pointer rounded-[4px]',
           'focus-visible:outline-brand-500 accent-[var(--neb-brand-700)] focus-visible:outline-2',
+          'disabled:cursor-not-allowed disabled:opacity-55',
           className,
         )}
         {...props}
@@ -76,12 +79,19 @@ export const Checkbox = React.forwardRef<HTMLInputElement, React.ComponentPropsW
  * Validation message.
  *
  * `role="alert"` so a screen reader announces the problem when it appears, and
- * the message carries its own icon-free text: colour alone never conveys state.
+ * the message carries its own text: colour alone never conveys state. The 2px
+ * inline-start rule adds a third, non-colour signal and matches the ruled heads
+ * used everywhere else on the site, so an error reads as part of the same
+ * drawing rather than as a stray red line.
  */
 export function FieldError({ message, id }: { message?: string; id?: string }) {
   if (!message) return null;
   return (
-    <p id={id} role="alert" className="text-error mt-1.5 text-sm font-medium">
+    <p
+      id={id}
+      role="alert"
+      className="border-s-error text-error mt-1.5 border-s-2 ps-2.5 text-sm font-medium"
+    >
       {message}
     </p>
   );
