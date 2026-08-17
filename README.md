@@ -156,6 +156,7 @@ that truncates tables cannot touch development data.
 | [architecture.md](docs/architecture.md)                               | Layers, the server/client boundary, authentication, provider boundaries |
 | [haitham-reference-audit.md](docs/haitham-reference-audit.md)         | What was reused, rewritten and excluded from the reference project      |
 | [content-and-legal-checklist.md](docs/content-and-legal-checklist.md) | Intellectual-property rules and the outstanding legal blockers          |
+| [client-inputs-required.md](docs/client-inputs-required.md)           | Everything still needed from you, ordered by what it unblocks           |
 | [brand-assets-needed.md](docs/brand-assets-needed.md)                 | Why the header uses set type, and which assets to commission            |
 
 ## Known state
