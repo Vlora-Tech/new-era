@@ -358,3 +358,133 @@ export function toStudentQuestionView(
     },
   };
 }
+
+// ─────────────────────── The delivered attempt state ───────────────────────
+
+export type AttemptStateView = {
+  attempt: {
+    id: string;
+    status: $Enums.AttemptStatus;
+    mode: $Enums.AttemptMode;
+    simulatorTitle: string;
+    totalQuestions: number;
+    startedAt: string | null;
+    maxEndAt: string | null;
+    submittedAt: string | null;
+    resultDisclaimer: string;
+  };
+  /** The clock the client renders against. A browser's own clock is never used. */
+  serverTime: string;
+  sections: Array<{
+    id: string;
+    position: number;
+    title: string;
+    status: $Enums.AttemptSectionStatus;
+    questionCount: number;
+  }>;
+  currentSection: {
+    id: string;
+    position: number;
+    title: string;
+    startedAt: string | null;
+    /** Server-authoritative end of the section. */
+    deadlineAt: string | null;
+    durationSec: number | null;
+    isLastSection: boolean;
+  } | null;
+  /** The current section only. A locked or pending section is never serialised. */
+  questions: StudentQuestionView[];
+};
+
+/**
+ * Build everything a running attempt's screen needs.
+ *
+ * Only the active section's questions are loaded. A student who has advanced
+ * cannot re-read the section they left, and a student in section 1 has no way
+ * to pull section 4 into their browser and start working on it early — the
+ * boundary is a query filter, not a rendering decision.
+ */
+export async function loadStudentAttemptState(
+  client: PrismaTransaction,
+  input: { attemptId: string; userId: string; serverTime: Date },
+): Promise<AttemptStateView | null> {
+  const attempt = await client.examAttempt.findUnique({
+    where: { id: input.attemptId },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      mode: true,
+      totalQuestions: true,
+      startedAt: true,
+      maxEndAt: true,
+      submittedAt: true,
+      settingsSnapshot: true,
+      sections: {
+        orderBy: { position: 'asc' },
+        select: {
+          id: true,
+          position: true,
+          titleSnapshot: true,
+          status: true,
+          startedAt: true,
+          deadlineAt: true,
+          durationSecSnapshot: true,
+          _count: { select: { questions: true } },
+        },
+      },
+    },
+  });
+
+  if (!attempt || attempt.userId !== input.userId) return null;
+
+  const settings = isRecord(attempt.settingsSnapshot) ? attempt.settingsSnapshot : {};
+  const policy = isRecord(settings.policy) ? settings.policy : {};
+  const includeHint = attempt.mode === 'TRAINING' && policy.hintsEnabled === true;
+
+  const active = attempt.sections.find((section) => section.status === 'IN_PROGRESS') ?? null;
+  const lastPosition = attempt.sections.at(-1)?.position ?? 0;
+
+  const questions = active
+    ? await client.attemptQuestion.findMany({
+        where: { attemptSectionId: active.id },
+        orderBy: { position: 'asc' },
+        select: STUDENT_QUESTION_SELECT,
+      })
+    : [];
+
+  return {
+    attempt: {
+      id: attempt.id,
+      status: attempt.status,
+      mode: attempt.mode,
+      simulatorTitle: typeof settings.simulatorTitle === 'string' ? settings.simulatorTitle : '',
+      totalQuestions: attempt.totalQuestions,
+      startedAt: attempt.startedAt?.toISOString() ?? null,
+      maxEndAt: attempt.maxEndAt?.toISOString() ?? null,
+      submittedAt: attempt.submittedAt?.toISOString() ?? null,
+      resultDisclaimer:
+        typeof settings.resultDisclaimer === 'string' ? settings.resultDisclaimer : '',
+    },
+    serverTime: input.serverTime.toISOString(),
+    sections: attempt.sections.map((section) => ({
+      id: section.id,
+      position: section.position,
+      title: section.titleSnapshot,
+      status: section.status,
+      questionCount: section._count.questions,
+    })),
+    currentSection: active
+      ? {
+          id: active.id,
+          position: active.position,
+          title: active.titleSnapshot,
+          startedAt: active.startedAt?.toISOString() ?? null,
+          deadlineAt: active.deadlineAt?.toISOString() ?? null,
+          durationSec: active.durationSecSnapshot,
+          isLastSection: active.position === lastPosition,
+        }
+      : null,
+    questions: questions.map((question) => toStudentQuestionView(question, { includeHint })),
+  };
+}

@@ -407,6 +407,143 @@ export const COPY = {
     commerceDisabled: 'الشراء غير متاح حاليًا. حاول لاحقًا.',
     checkoutFailed: 'تعذّر بدء عملية الشراء. حاول مرة أخرى.',
   },
+
+  /**
+   * The exam simulator: instructions, the timed workspace, and the review.
+   *
+   * Every irreversible action is described in words before it happens, because
+   * the cost of a mistaken tap here is a locked section the student cannot get
+   * back. The result wording never claims a score, a level or a prediction — it
+   * reports what the attempt contained and nothing beyond it.
+   *
+   * `{...}` placeholders are substituted at the call site; the surrounding
+   * Arabic stays here so the sentence is written once, whole.
+   */
+  exam: {
+    // ── Instructions, shown while the attempt exists but has no clock ──
+    instructionsTitle: 'قبل أن تبدأ',
+    instructionsIntro:
+      'هذه محاولة موقوتة. اقرأ التعليمات كاملة، ثم ابدأ عندما تكون مستعدًا — يبدأ العدّ فور الضغط على الزر.',
+    startAction: 'ابدأ المحاولة',
+    starting: 'جارٍ بدء المحاولة…',
+    startFailed: 'تعذّر بدء المحاولة، حاول مرة أخرى.',
+    structureTitle: 'بنية الاختبار',
+    sectionsCount: 'عدد الأقسام',
+    questionsCount: 'عدد الأسئلة',
+    totalDuration: 'المدة الإجمالية',
+    sectionDuration: 'مدة القسم',
+    rulesTitle: 'قواعد المحاولة',
+    rules: [
+      'يبدأ وقت القسم فور بدء المحاولة، ويستمر حتى لو أغلقت الصفحة أو انقطع الاتصال.',
+      'المراجعة والتعديل متاحان داخل القسم الحالي فقط.',
+      'الانتقال إلى القسم التالي نهائي: لا يمكن العودة إلى قسم أُغلق ولا تعديل إجاباته.',
+      'تُحفظ إجاباتك تلقائيًا على الخادم أولًا بأول، وتظهر حالة الحفظ أعلى الشاشة.',
+      'عند انتهاء وقت القسم يُغلق تلقائيًا وينتقل الاختبار إلى القسم الذي يليه.',
+      'لا تُعرض الإجابات الصحيحة ولا الشروح قبل تسليم المحاولة.',
+    ],
+    disclaimerTitle: 'قبل التعليمات: عن هذه المنصة',
+
+    // ── The timed workspace ──
+    workspaceLabel: 'شاشة المحاولة',
+    sectionOfTotal: 'القسم {current} من {total}',
+    questionOfTotal: 'السؤال {current} من {total}',
+    timeRemaining: 'الوقت المتبقي',
+    timeAlmostOver: 'اقترب انتهاء وقت القسم.',
+    timeOver: 'انتهى وقت هذا القسم.',
+    optionsLabel: 'الخيارات',
+    passageLabel: 'النص',
+    hintLabel: 'تلميح',
+    flagAction: 'علّم للمراجعة',
+    flagged: 'معلّم للمراجعة',
+    unflagAction: 'إزالة العلامة',
+    navigatorLabel: 'أسئلة القسم الحالي',
+    navigatorHint: 'التنقل متاح داخل هذا القسم فقط.',
+    navigatorAnswered: 'مُجاب',
+    navigatorUnanswered: 'بلا إجابة',
+    navigatorFlagged: 'معلّم',
+    goToQuestion: 'الانتقال إلى السؤال {number}',
+    previousQuestion: 'السؤال السابق',
+    nextQuestion: 'السؤال التالي',
+
+    // ── Save status, always visible ──
+    saving: 'يحفظ…',
+    saved: 'تم الحفظ',
+    saveFailed: 'تعذّر الحفظ',
+    saveFailedBody:
+      'لم تصل آخر إجابة إلى الخادم. تحقّق من الاتصال، فالإجابة غير المحفوظة لا تُحتسب.',
+    saveConflict: 'حُدِّثت هذه الإجابة من نافذة أخرى، وأُعيد تحميل الحالة من الخادم.',
+    saveRetry: 'إعادة محاولة الحفظ',
+
+    // ── Advancing, irreversibly ──
+    advanceAction: 'إنهاء القسم والانتقال',
+    submitAction: 'تسليم المحاولة',
+    advanceTitle: 'إنهاء القسم الحالي',
+    advanceWarning:
+      'الانتقال نهائي. سيُغلق هذا القسم فورًا، ولن تتمكن من العودة إليه أو تعديل أي إجابة فيه.',
+    submitTitle: 'تسليم المحاولة',
+    submitWarning: 'التسليم نهائي. بعده تُحتسب النتيجة التدريبية ولا يمكن تعديل أي إجابة.',
+    unansweredNotice: 'أسئلة بلا إجابة: {count}',
+    flaggedNotice: 'أسئلة معلّمة للمراجعة: {count}',
+    allAnswered: 'أجبت عن كل أسئلة هذا القسم.',
+    confirmAdvance: 'نعم، أنهِ القسم',
+    confirmSubmit: 'نعم، سلّم المحاولة',
+    stayHere: 'العودة إلى القسم',
+    advanceFailed: 'تعذّر إنهاء القسم، حاول مرة أخرى.',
+    submitFailed: 'تعذّر تسليم المحاولة، حاول مرة أخرى.',
+
+    // ── Leaving ──
+    exitGuard: 'المحاولة ما زالت جارية والوقت مستمر. هل تريد مغادرة الصفحة؟',
+    exitAction: 'الخروج من المحاولة',
+    exitTitle: 'الخروج من المحاولة',
+    exitWarning:
+      'الوقت لا يتوقف عند الخروج. ستستمر أقسام الاختبار في العد، ويمكنك العودة عبر لوحتك ما دام الوقت باقيًا.',
+    confirmExit: 'نعم، غادر الآن',
+
+    // ── Results ──
+    resultsTitle: 'مراجعة المحاولة',
+    resultsSubtitle: 'هذه مراجعة تدريبية لأدائك في هذه المحاولة، وليست درجة ولا تقديرًا رسميًا.',
+    resultsPendingTitle: 'لم تُسلَّم هذه المحاولة بعد',
+    resultsPendingBody: 'تظهر المراجعة بعد تسليم المحاولة أو انتهاء وقتها.',
+    correctCount: 'إجابات صحيحة',
+    incorrectCount: 'إجابات خاطئة',
+    unansweredCount: 'أسئلة بلا إجابة',
+    totalCount: 'مجموع الأسئلة',
+    accuracyLabel: 'نسبة الإجابات الصحيحة',
+    finalisedBySubmitted: 'سُلِّمت بواسطتك',
+    finalisedByExpired: 'أُنهيت بانتهاء الوقت',
+    domainsTitle: 'الأداء حسب المهارة',
+    subskillsTitle: 'الأداء حسب المهارة الفرعية',
+    sectionsTitle: 'أوقات الأقسام',
+    sectionAllowed: 'الوقت المتاح',
+    sectionElapsed: 'الوقت المستغرق',
+    reviewTitle: 'مراجعة الأسئلة',
+    yourAnswer: 'إجابتك',
+    correctAnswer: 'الإجابة الصحيحة',
+    noAnswer: 'لم تُجب',
+    explanationLabel: 'الشرح',
+    backToAttempts: 'العودة إلى محاولاتي',
+    // Repeated on the results screen so the numbers are never read alone.
+    notAnOfficialScore:
+      'هذه الأرقام وصف لما حدث في هذه المحاولة فقط. المنصة لا تحسب درجة رسمية ولا نسبة مئوية معيارية ولا توقّعًا لنتيجة الاختبار.',
+
+    // ── Errors, all safe to display ──
+    errors: {
+      attemptNotFound: 'هذه المحاولة غير موجودة أو لم تعد متاحة.',
+      simulatorNotFound: 'محاكي الاختبار غير موجود.',
+      noAccess: 'لا يتوفّر لك وصول إلى هذا المحاكي.',
+      versionNotPublished: 'هذا المحاكي غير جاهز للمحاولات حاليًا.',
+      modeUnavailable: 'هذا النوع من المحاولات غير متاح لهذا المحاكي.',
+      notStarted: 'لم تبدأ هذه المحاولة بعد.',
+      alreadyFinished: 'انتهت هذه المحاولة، ولا يمكن تعديلها.',
+      sectionLocked: 'أُغلق هذا القسم، ولا يمكن تعديل إجاباته.',
+      sectionNotActive: 'هذا القسم ليس القسم الجاري.',
+      invalidOption: 'الخيار المحدد لا ينتمي إلى هذا السؤال.',
+      resultsNotReady: 'تظهر المراجعة بعد تسليم المحاولة أو انتهاء وقتها.',
+      questionShortage:
+        'لا توجد أسئلة منشورة كافية لتوليد هذه المحاولة، فلم يبدأ الاختبار. تواصل معنا وسنعالج الأمر.',
+      generationFailed: 'تعذّر تجهيز هذه المحاولة. لم يبدأ أي وقت ولم تُحتسب أي محاولة.',
+    },
+  },
 } as const;
 
 export type Copy = typeof COPY;

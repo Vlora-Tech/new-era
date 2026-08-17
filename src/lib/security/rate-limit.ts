@@ -39,6 +39,13 @@ export const RATE_LIMITS = {
   webhook: { limit: 120, windowSeconds: 60, store: 'memory' },
   progressHeartbeat: { limit: 12, windowSeconds: 60, store: 'memory' },
   answerAutosave: { limit: 40, windowSeconds: 10, store: 'memory' },
+  // Generating an attempt writes a hundred-odd snapshot rows, so it is budgeted
+  // durably: a retry storm here is expensive in a way an autosave is not.
+  examAttemptCreate: { limit: 12, windowSeconds: 3_600, store: 'durable' },
+  // Start, advance and submit. Frequent enough during a real attempt that a
+  // durable counter would cost more than the abuse it prevents.
+  examAttemptAction: { limit: 60, windowSeconds: 600, store: 'memory' },
+  examAttemptRead: { limit: 240, windowSeconds: 60, store: 'memory' },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

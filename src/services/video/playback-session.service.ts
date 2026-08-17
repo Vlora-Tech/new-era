@@ -58,17 +58,21 @@ export async function createPlaybackSession(input: {
     throw new HttpError(404, 'الدرس غير متاح.', 'lesson_unavailable');
   }
 
-  if (!lesson.videoAsset) {
-    throw new HttpError(404, 'لا يوجد مقطع مرتبط بهذا الدرس.', 'lesson_has_no_video');
-  }
-
-  // A preview lesson is open by design. Everything else needs a live entitlement,
-  // checked now rather than inferred from how the student arrived here.
+  // Authorization is resolved before anything else about the lesson is reported.
+  // Checking for a video first would answer "does this lesson have a video?" for
+  // someone with no right to the lesson at all.
+  //
+  // A preview lesson is open by design; everything else needs a live
+  // entitlement, checked now rather than inferred from how the student arrived.
   if (!lesson.isPreview) {
     const entitled = await hasActiveEntitlement(input.userId, lesson.module.course.productId);
     if (!entitled) {
       throw new HttpError(403, 'لا تملك صلاحية مشاهدة هذا الدرس.', 'not_entitled');
     }
+  }
+
+  if (!lesson.videoAsset) {
+    throw new HttpError(404, 'لا يوجد مقطع مرتبط بهذا الدرس.', 'lesson_has_no_video');
   }
 
   const durationSec = lesson.videoAsset.durationSec ?? lesson.durationSec;

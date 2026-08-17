@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 
 import { seedExamContent } from './seed-data/exam-content';
 import { seedCourseContent } from './seed-data/course-content';
+import { seedCommerceFixtures } from './seed-data/commerce-fixtures';
 
 config({ quiet: true });
 
@@ -120,6 +121,7 @@ async function main() {
 
   await seedCourseContent(prisma, { authorId: admin?.id ?? null });
   await seedExamContent(prisma, { authorId: admin?.id ?? null, studentId: student?.id ?? null });
+  await seedCommerceFixtures(prisma, { studentId: student?.id ?? null });
 
   console.log('Seed complete.');
 }
