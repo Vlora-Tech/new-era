@@ -13,19 +13,23 @@ import { cn } from '@/lib/utils';
 /**
  * Public header.
  *
- * A 64px bar on a solid white ground, closed by one hairline. It is deliberately
- * opaque: a translucent, blurred bar is the frosted-panel treatment the brief
- * rules out, and it also puts whatever happens to be scrolling underneath behind
- * the brand mark.
+ * An 80px bar — 96px from `lg` — on a solid white ground, closed by one
+ * hairline. It is deliberately opaque: a translucent, blurred bar is the
+ * frosted-panel treatment the brief rules out, and it also puts whatever happens
+ * to be scrolling underneath behind the brand mark.
  *
- * The mark here is set type, not the supplied artwork. The stacked lockup needs
- * 220px of width for its two wordmarks to read, which a 64px bar cannot give;
- * scaling it to fit turns both wordmarks into a smudge, and that is improvising
- * the compact lockup the guidelines say must be commissioned. So the artwork
- * appears at full size where there is genuinely room for it — the homepage
- * masthead, the footer, and the sign-in and registration pages — and the bar
- * carries the name as type until the horizontal lockup is delivered.
- * See docs/brand-assets-needed.md.
+ * The bar is that tall because the mark is the supplied artwork rather than set
+ * type, and the bar is sized to the mark instead of the mark being shrunk to the
+ * bar. It is still under the guidelines' 220px legibility floor: that is an
+ * owner-directed deviation, recorded in docs/brand-assets-needed.md, and the
+ * commissioned horizontal lockup removes it — `HORIZONTAL_LOCKUP_SRC` in
+ * `brand.tsx` switches every bar on the site at once, after which this bar can
+ * lose its extra height. The full-size lockup still appears in the footer and on
+ * the sign-in and registration pages.
+ *
+ * NOTE: the bar's height is load-bearing elsewhere — the drawer's `max-h` below
+ * and the homepage's `scroll-mt` on `#how-it-works` both subtract it. Changing
+ * `h-20 lg:h-24` means changing those two too.
  *
  * Navigation state is carried by three signals and never by colour alone: the
  * hue changes, a 2px rule is drawn under the active link, and `aria-current`
@@ -92,8 +96,9 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
                   href={link.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    // Full bar height, so the target is 64px tall and the rule
-                    // it draws when active lands on the header's own hairline.
+                    // Full bar height, so the target is the whole 80/96px band
+                    // and the rule it draws when active lands exactly on the
+                    // header's own hairline.
                     'inline-flex h-20 items-center border-b-2 px-3.5 lg:h-24',
                     'text-ink-700 text-[14px] font-medium',
                     'transition-colors duration-150 ease-out',
@@ -145,7 +150,10 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
       {menuOpen ? (
         <div
           id="public-mobile-nav"
-          className="border-line-200 bg-surface panel-in max-h-[calc(100dvh-4rem)] overflow-y-auto border-t md:hidden"
+          // 5rem/6rem, matching `h-20 lg:h-24` above. It was still subtracting
+          // the old 4rem bar, which let the panel run past the bottom of the
+          // viewport by the difference and put the register button out of reach.
+          className="border-line-200 bg-surface panel-in max-h-[calc(100dvh-5rem)] overflow-y-auto border-t md:hidden lg:max-h-[calc(100dvh-6rem)]"
         >
           <nav
             aria-label={COPY.nav.mainNavigation}

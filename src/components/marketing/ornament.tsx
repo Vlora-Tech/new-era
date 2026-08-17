@@ -9,17 +9,24 @@ import { cn } from '@/lib/utils';
  * becomes a mood. Everything below is inline SVG, server-rendered, first-party
  * markup, so no image host, no `data:` URI and no CSP directive is involved.
  *
- * THE PLACEMENT RULE. `KhatimField` has exactly three sanctioned placements, all
- * on the homepage and all the same figure: a course of tile 80 in `text-brand-500`
- * on white, exactly one row of complete stars tall, terminated by a drawn rule
- * and never by a fade.
+ * THE PLACEMENT RULE. `KhatimField` has exactly four sanctioned placements, all
+ * the same figure: a course of tile 80 in `text-brand-500`, on a light ground,
+ * terminated by a drawn rule and never by a fade.
  *
- *   1. The masthead, running from the logo toward the fore-edge at opacity 0.14.
+ *   1. The homepage masthead, running from the logo toward the fore-edge at
+ *      opacity 0.14.
  *   2. The full-bleed frieze that closes the hero, at 0.18.
  *   3. The identical frieze that closes the last chapter, at 0.18.
+ *   4. The student overview's masthead, at 0.16, filling the fore-edge half of
+ *      the greeting band and terminated by the panel's own border. It is the
+ *      same figure as 1 — a course running toward the fore-edge, beside the
+ *      text rather than behind it, which is why the text column there is capped
+ *      at 58% and why the field is hidden below `md`, where that half does not
+ *      exist. It earns its place because the student area is otherwise entirely
+ *      unbranded chrome and this is the one screen a student returns to.
  *
  * Two and three are bookends, and the second earns its place only because it
- * repeats the first exactly. A fourth placement, a different tile, a second
+ * repeats the first exactly. A fifth placement, a different tile, another
  * opacity or a field on any other page is decoration, and is what this note
  * exists to prevent.
  *

@@ -13,22 +13,24 @@ import { cn } from '@/lib/utils';
  * ask for a compact horizontal lockup to be commissioned rather than improvised
  * from this file.
  *
- * So there are two marks here, and the split is deliberate:
+ * So there are three marks here, and the split is deliberate:
  *
  *  - `BrandLogo` renders the supplied artwork unmodified, at no less than the
  *    220px the guidelines require for legibility, on white, with clear space.
- *    It is for places with room, and it is used in all of them: the homepage
- *    masthead, the footer, and the sign-in and registration pages.
- *  - `BrandWordmark` is set type, not a derived logo. It backs the narrow
- *    chrome — the public bar, the dashboard and admin rails, the checkout bar —
- *    where a 64px band cannot give the stacked lockup the width its two
- *    wordmarks need.
+ *    It is for places with room, and it is used in all of them: the footer, and
+ *    the sign-in and registration pages.
+ *  - `BrandBarLogo` renders the same artwork at 112px (88px on a phone) for the
+ *    public bar, which is sized to the mark rather than the mark to the bar.
+ *    That is under the 220px floor and is an owner-directed deviation; the
+ *    waiver, and the way out of it, are recorded in docs/brand-assets-needed.md.
+ *  - `BrandWordmark` is set type, not a derived logo. It backs the chrome that
+ *    still cannot take a lockup at all — the 264px dashboard and admin rails,
+ *    which already carry a section title beside the mark, and the checkout bar.
  *
- * Putting the artwork in a 64px bar was tried and reverted: at 56px tall both
- * wordmarks collapse into a smudge, and a `mix-blend-multiply` to drop its white
- * ground into the bar is a modification of the artwork. Type is the honest
- * placeholder until the horizontal lockup exists; one constant below switches
- * every bar on the site the day it is delivered.
+ * Two earlier attempts are recorded so they are not repeated: the artwork at
+ * 56px in a 64px bar, where both wordmarks collapse into a smudge, and a
+ * `mix-blend-multiply` to drop its white ground into a translucent bar, which is
+ * a modification of the artwork and is forbidden. Neither is in the code.
  *
  * See docs/brand-assets-needed.md.
  */

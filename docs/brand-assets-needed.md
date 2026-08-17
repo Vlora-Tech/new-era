@@ -35,10 +35,11 @@ a compact mark should be **commissioned**, not improvised from this file.
 ## Assets to commission
 
 1. **Horizontal lockup** — symbol beside the wordmark, for headers and
-   navigation bars where vertical space is limited. Needed as SVG. This is still
-   the only thing that will put the artwork itself in a 64px bar;
-   `HORIZONTAL_LOCKUP_SRC` in `src/components/layout/brand.tsx` is the single
-   constant that switches every bar on the site over on delivery day.
+   navigation bars where vertical space is limited. Needed as SVG. It is what
+   lets the public bar go back to a normal 64px height and lets the dashboard and
+   admin rails carry a mark at all; `HORIZONTAL_LOCKUP_SRC` in
+   `src/components/layout/brand.tsx` is the single constant that switches every
+   bar on the site over on delivery day.
 2. **Symbol-only mark** — for the favicon, app icon, and any square avatar
    context. Needed as SVG plus PNG at 512, 192, 180, 32 and 16 px.
 3. **Vector master of the current stacked lockup** — the supplied file is

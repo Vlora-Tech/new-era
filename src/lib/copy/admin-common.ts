@@ -136,6 +136,16 @@ export const ADMIN_COMMON_COPY = {
   form: {
     requiredMark: 'مطلوب',
     optionalMark: 'اختياري',
+    /**
+     * The empty row of a `<select>` inside a form.
+     *
+     * Deliberately not `filter.all` ("الكل"): above a list that row means "do not
+     * narrow the results", while inside a form it means "nothing has been chosen
+     * yet" — the same control, two opposite claims. A punctuation placeholder
+     * such as an em dash reads correctly on screen and announces as nothing at
+     * all, which leaves a screen-reader user with an unlabelled first option.
+     */
+    unchosen: 'لم يُحدَّد بعد',
     /** Summary panel above a rejected form, linking to the fields at fault. */
     errorsTitle: 'تحقّق من الحقول التالية',
     errorsBody: 'لم يُرسل النموذج. صحّح الحقول المذكورة ثم أعد المحاولة.',

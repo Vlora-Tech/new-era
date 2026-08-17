@@ -241,7 +241,7 @@ export function ProductList({
             title={COPY.adminCommon.emptiness.noResultsTitle}
             description={COPY.adminCommon.emptiness.noResultsBody}
             action={
-              <Button asChild variant="secondary" size="sm">
+              <Button asChild variant="secondary">
                 <Link href="/admin/products">{COPY.adminCommon.emptiness.noResultsAction}</Link>
               </Button>
             }
@@ -251,7 +251,7 @@ export function ProductList({
             title={COPY.adminProducts.empty.nothingYetTitle}
             description={COPY.adminProducts.empty.nothingYetBody}
             action={
-              <Button asChild size="sm">
+              <Button asChild>
                 <Link href="/admin/products/new">{COPY.adminProducts.empty.nothingYetAction}</Link>
               </Button>
             }

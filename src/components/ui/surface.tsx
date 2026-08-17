@@ -58,6 +58,9 @@ const badgeVariants = cva(
       variant: {
         neutral: 'bg-surface-muted text-ink-700',
         brand: 'bg-brand-100 text-brand-700',
+        // The colour code's teal, for the label that distinguishes a simulator
+        // from a course. 4.85:1 on its own ground.
+        teal: 'bg-accent-teal-soft text-accent-teal',
         success: 'bg-success-soft text-success',
         warning: 'bg-warning-soft text-warning',
         error: 'bg-error-soft text-error',

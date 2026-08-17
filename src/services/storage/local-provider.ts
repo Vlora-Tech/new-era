@@ -65,8 +65,21 @@ export function isValidObjectKey(key: string): boolean {
   return OBJECT_KEY_PATTERN.test(key);
 }
 
+/*
+ * `turbopackIgnore` on every filesystem call below.
+ *
+ * The bundler's static analysis sees a path built from a value it cannot resolve
+ * — `STORAGE_LOCAL_ROOT` is read at runtime — and responds by tracing the
+ * *entire* project into the server output, so that whatever the path turns out
+ * to be is present. That is the opposite of what this adapter wants: it would
+ * copy `public/`, `src/` and every fixture into the deployed bundle, on behalf
+ * of a code path `env()` refuses to enable in production at all. The comments
+ * opt those calls out of tracing, which is why `next build` is clean; nothing is
+ * lost, because the directory they resolve to is created at runtime by `mkdir`
+ * rather than shipped.
+ */
 function storageRoot(): string {
-  return path.resolve(process.cwd(), env().STORAGE_LOCAL_ROOT);
+  return path.resolve(/*turbopackIgnore: true*/ process.cwd(), env().STORAGE_LOCAL_ROOT);
 }
 
 /**
@@ -77,12 +90,15 @@ function storageRoot(): string {
  * guessed protected key resolves to a path that does not exist there.
  */
 function directoryFor(visibility: AssetVisibility): string {
-  return path.join(storageRoot(), visibility === 'PUBLIC' ? 'public' : 'protected');
+  return path.join(
+    /*turbopackIgnore: true*/ storageRoot(),
+    visibility === 'PUBLIC' ? 'public' : 'protected',
+  );
 }
 
 function resolveObjectPath(ref: StoredObjectRef): string | null {
   if (!isValidObjectKey(ref.objectKey)) return null;
-  return path.join(directoryFor(ref.visibility), ref.objectKey);
+  return path.join(/*turbopackIgnore: true*/ directoryFor(ref.visibility), ref.objectKey);
 }
 
 export const localStorageProvider: StorageProvider = {
@@ -100,7 +116,9 @@ export const localStorageProvider: StorageProvider = {
     // `wx` fails rather than overwriting. A UUID collision is vanishingly
     // unlikely and silently replacing somebody else's image would be
     // unrecoverable, so the improbable case is made loud instead of invisible.
-    await writeFile(path.join(directory, objectKey), input.body, { flag: 'wx' });
+    await writeFile(path.join(/*turbopackIgnore: true*/ directory, objectKey), input.body, {
+      flag: 'wx',
+    });
 
     return {
       objectKey,
@@ -119,7 +137,7 @@ export const localStorageProvider: StorageProvider = {
 
     let info;
     try {
-      info = await stat(objectPath);
+      info = await stat(/*turbopackIgnore: true*/ objectPath);
     } catch {
       // Absence is an ordinary outcome — a row that outlived its file, a key
       // copied from another environment — and it must produce a 404 rather than
@@ -133,7 +151,7 @@ export const localStorageProvider: StorageProvider = {
     // `ReadableStream` declarations — DOM and `node:stream/web` — have to be
     // reconciled; they are the same class at runtime.
     const body = Readable.toWeb(
-      createReadStream(objectPath),
+      createReadStream(/*turbopackIgnore: true*/ objectPath),
     ) as unknown as ReadableStream<Uint8Array>;
 
     return { body, sizeBytes: info.size };

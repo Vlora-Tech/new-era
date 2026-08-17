@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { AdminPageHead } from '@/components/admin/admin-page-head';
 import { Card, EmptyState, ErrorState } from '@/components/ui/surface';
 import { COPY } from '@/lib/copy';
 import { prisma } from '@/lib/db';
@@ -64,10 +65,10 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-ink-900 text-2xl font-semibold">{COPY.admin.overview}</h1>
-        <p className="text-ink-700 max-w-prose">{COPY.adminPages.overviewDescription}</p>
-      </header>
+      <AdminPageHead
+        title={COPY.admin.overview}
+        description={COPY.adminPages.overviewDescription}
+      />
 
       {counts ? (
         <Card className="p-5 sm:p-6">

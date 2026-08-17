@@ -242,6 +242,34 @@ export const COPY = {
     logoutFailed: 'تعذّر تسجيل الخروج، حاول مرة أخرى.',
     overviewSubtitle: 'ما تملكه الآن، وآخر محاولاتك، وآخر طلباتك.',
 
+    /*
+     * The overview's colour-coded surface.
+     *
+     * The hues are the colour code from globals.css and they carry the same
+     * meanings here as on the homepage: blue opens the sequence and marks the
+     * courses, gold marks effort and therefore the attempts, teal marks the
+     * simulator, green marks readiness and therefore the score. Orders are
+     * deliberately left neutral — a purchase is not one of the four movements
+     * of the method, and giving it a hue would turn the code into a palette.
+     */
+    statCourses: 'دورات مفعّلة',
+    statSimulators: 'محاكيات مفعّلة',
+    statAttempts: 'محاولات مسجّلة',
+    statBestScore: 'أفضل نتيجة',
+    /* Shown instead of a score when nothing has been graded yet: a zero here
+       would read as a result rather than as an absence. */
+    statNoScore: 'لا نتيجة بعد',
+
+    journeyTitle: 'طريقك حتى يوم الاختبار',
+    journeyBody: 'أربع خطوات، ولكل خطوة لونها الذي يرافقك في اللوحة.',
+
+    startHereTitle: 'ابدأ من هنا',
+    startHereBody: 'لوحتك جاهزة وتنتظر خطوتك الأولى — اختر مسارك وسيظهر محتواه هنا مباشرة.',
+    startCoursesTitle: 'دورات مرئية',
+    startCoursesBody: 'شروحات مبسّطة لكل مهارة، بلغة واضحة ومن دون حشو.',
+    startSimulatorsTitle: 'اختبارات محاكية',
+    startSimulatorsBody: 'أقسام موقوتة وأجواء تشبه يوم الاختبار الحقيقي.',
+
     coursesSubtitle: 'الدورات التي يتوفّر لك الوصول إليها.',
     simulatorsSubtitle: 'محاكيات الاختبار التي يتوفّر لك الوصول إليها.',
     attemptsSubtitle: 'سجل محاولاتك في محاكيات الاختبار.',

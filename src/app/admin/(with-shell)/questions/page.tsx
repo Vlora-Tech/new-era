@@ -27,7 +27,16 @@ export default async function AdminQuestionsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const query = questionListQuerySchema.parse(await searchParams);
+  const raw = await searchParams;
+  // A repeated parameter (`?domain=ALGEBRA&domain=GEOMETRY`) arrives as an array,
+  // which every `.catch()`ed field would quietly discard — leaving a filter
+  // visible in the URL and absent from the results. The first value wins instead,
+  // matching the products list.
+  const query = questionListQuerySchema.parse(
+    Object.fromEntries(
+      Object.entries(raw).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]),
+    ),
+  );
 
   // A thrown query becomes an error panel, never an empty table. A bank drawn
   // with no rows because the database was unreachable reads as "there are no

@@ -40,6 +40,49 @@
   --neb-warning-soft: #f6f0e3;
   --neb-error-soft: #f8eded;
 
+  /*
+   * THE COLOUR CODE.
+   *
+   * Four hues, and they are not decoration: they are the four movements of the
+   * method — افهم، تدرّب، اختبر نفسك، ادخل الاختبار بثقة — which the homepage
+   * states as four chips in the hero and then repeats in every numbered chapter.
+   * Blue is the brand and opens the sequence; gold is the one warm hue and marks
+   * effort; teal marks the simulator; green marks readiness. A fifth hue would
+   * make the set a palette instead of a code, which is the line between a system
+   * and a rainbow.
+   *
+   * Each hue ships exactly two values — one ink and one soft ground — and every
+   * ink clears 4.5:1 on white, on the warm canvas, on the blue field and on its
+   * own soft ground. `ink-700` is the smallest text permitted on any soft
+   * ground (about 5.5:1); `ink-600` is NOT, because it lands at 4.3–4.4:1.
+   *
+   * Actions are exempt. Every button on the site stays brand blue whatever the
+   * hue of the block it sits in: the code labels content, never controls, and a
+   * green button would read as a different kind of action rather than the same
+   * action in a different chapter.
+   */
+  --neb-accent-gold: #8a5a0a;
+  --neb-accent-gold-soft: #faf1df;
+  --neb-accent-teal: #0d7188;
+  --neb-accent-teal-soft: #e2f1f4;
+  --neb-accent-green: #1f7a4a;
+  --neb-accent-green-soft: #e6f3ec;
+
+  /*
+   * A pale blue ground the page could not previously reach. White and the warm
+   * canvas differ by 1.03:1, so a long page of alternating "colour" reads as one
+   * continuous white wall; this gives a band a hue without leaving the light
+   * scale.
+   *
+   * There is deliberately no dark counterpart. A deep navy ground for an
+   * inverted closing band was added here and removed again: the brief rules out
+   * dark sections, dark bands and dark tokens outright, so a token that exists
+   * only to paint one is the thing that has to go, not the section that would
+   * eventually use it. Contrast on it being good is not the point — the
+   * prohibition is not about contrast.
+   */
+  --neb-canvas-blue: #eef6fb;
+
   --neb-radius-control: 8px;
   --neb-radius-panel: 10px;
   --neb-focus: 0 0 0 3px rgb(38 134 200 / 0.28);
@@ -84,6 +127,16 @@
   --color-success-soft: var(--neb-success-soft);
   --color-warning-soft: var(--neb-warning-soft);
   --color-error-soft: var(--neb-error-soft);
+
+  /* The colour code. Blue is `brand-700`/`brand-100`; these are the other three. */
+  --color-accent-gold: var(--neb-accent-gold);
+  --color-accent-gold-soft: var(--neb-accent-gold-soft);
+  --color-accent-teal: var(--neb-accent-teal);
+  --color-accent-teal-soft: var(--neb-accent-teal-soft);
+  --color-accent-green: var(--neb-accent-green);
+  --color-accent-green-soft: var(--neb-accent-green-soft);
+
+  --color-canvas-blue: var(--neb-canvas-blue);
 
   --radius-control: var(--neb-radius-control);
   --radius-panel: var(--neb-radius-panel);

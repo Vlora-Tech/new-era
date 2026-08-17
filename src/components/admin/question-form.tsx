@@ -115,12 +115,12 @@ function splitTags(value: string): string[] {
 /**
  * The label on a select's "nothing chosen" row.
  *
- * An em dash rather than a word, and deliberately *not* the filter panel's
- * `الكل` — that means "all", which is right above a list and wrong inside a form,
- * where the empty row means "none yet". Punctuation carries the distinction
- * without authoring an Arabic string outside `COPY`.
+ * Deliberately *not* the filter panel's `الكل` — that means "all", which is right
+ * above a list and wrong inside a form, where the empty row means "none yet".
+ * A word rather than an em dash, because punctuation announces as silence and
+ * would leave the first option of three required selects unlabelled.
  */
-const UNCHOSEN = '—';
+const UNCHOSEN = COPY.adminCommon.form.unchosen;
 
 const DOMAINS = Object.keys(COPY.adminQuestions.domainLabels) as Domain[];
 const DIFFICULTIES = Object.keys(COPY.adminQuestions.difficultyLabels) as Difficulty[];

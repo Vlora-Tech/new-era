@@ -296,7 +296,7 @@ export function QuestionList({
               title={COPY.adminCommon.emptiness.noResultsTitle}
               description={COPY.adminCommon.emptiness.noResultsBody}
               action={
-                <Button asChild variant="outline">
+                <Button asChild variant="secondary">
                   <Link href="/admin/questions">{COPY.adminCommon.emptiness.noResultsAction}</Link>
                 </Button>
               }

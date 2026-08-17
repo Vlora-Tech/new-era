@@ -60,7 +60,11 @@ export function LoginForm() {
   });
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
+    // `method="post"` is the no-JS fallback, not the transport: submission
+    // normally goes through fetch in `onSubmit`. If hydration ever fails, a
+    // native POST fails loudly instead of a native GET putting the password
+    // into the URL, browser history and server logs.
+    <form onSubmit={onSubmit} method="post" className="flex flex-col gap-5" noValidate>
       <Field>
         <Label htmlFor="email">{COPY.auth.email}</Label>
         {/* Addresses are Latin; isolating them keeps the RTL layout stable. */}
@@ -135,7 +139,11 @@ export function RegisterForm() {
   });
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
+    // `method="post"` is the no-JS fallback, not the transport: submission
+    // normally goes through fetch in `onSubmit`. If hydration ever fails, a
+    // native POST fails loudly instead of a native GET putting the password
+    // into the URL, browser history and server logs.
+    <form onSubmit={onSubmit} method="post" className="flex flex-col gap-5" noValidate>
       <Field>
         <Label htmlFor="name">{COPY.auth.fullName}</Label>
         <Input

@@ -36,20 +36,65 @@ import { cn } from '@/lib/utils';
  * business shipping a role or an id to the browser, and `guards.ts` is
  * `server-only` in any case.
  */
+/**
+ * The rail's hues are the colour code, matching the overview's stat tiles and
+ * section heads item for item: blue for the brand's own page and the courses,
+ * teal for the simulator, gold for effort. Orders and the account are not
+ * movements of the method and stay neutral, which is what keeps the code a code.
+ *
+ * Colour is a third channel here, never the first: the active item is carried by
+ * `aria-current`, by weight and by a filled ground, and it would still be
+ * unambiguous in greyscale.
+ */
+type NavTone = 'brand' | 'teal' | 'gold' | 'neutral';
+
+const NAV_TONES: Record<NavTone, { rest: string; active: string }> = {
+  brand: { rest: 'text-brand-700', active: 'bg-brand-100 text-brand-700' },
+  teal: { rest: 'text-accent-teal', active: 'bg-accent-teal-soft text-accent-teal' },
+  gold: { rest: 'text-accent-gold', active: 'bg-accent-gold-soft text-accent-gold' },
+  neutral: { rest: 'text-ink-600', active: 'bg-surface-muted text-ink-900' },
+};
+
 type NavItem = {
   href: string;
   label: string;
+  tone: NavTone;
   icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
 };
 
 /** One outline family at one size; the icons are wayfinding, not decoration. */
 const NAV_ITEMS: readonly NavItem[] = [
-  { href: ROUTES.dashboard, label: COPY.dashboard.home, icon: House },
-  { href: ROUTES.dashboardCourses, label: COPY.dashboard.myCourses, icon: GraduationCap },
-  { href: ROUTES.dashboardSimulators, label: COPY.dashboard.mySimulators, icon: MonitorPlay },
-  { href: ROUTES.dashboardAttempts, label: COPY.dashboard.myAttempts, icon: ClipboardList },
-  { href: ROUTES.dashboardOrders, label: COPY.dashboard.myOrders, icon: ReceiptText },
-  { href: ROUTES.dashboardAccount, label: COPY.dashboard.myAccount, icon: UserRound },
+  { href: ROUTES.dashboard, label: COPY.dashboard.home, tone: 'brand', icon: House },
+  {
+    href: ROUTES.dashboardCourses,
+    label: COPY.dashboard.myCourses,
+    tone: 'brand',
+    icon: GraduationCap,
+  },
+  {
+    href: ROUTES.dashboardSimulators,
+    label: COPY.dashboard.mySimulators,
+    tone: 'teal',
+    icon: MonitorPlay,
+  },
+  {
+    href: ROUTES.dashboardAttempts,
+    label: COPY.dashboard.myAttempts,
+    tone: 'gold',
+    icon: ClipboardList,
+  },
+  {
+    href: ROUTES.dashboardOrders,
+    label: COPY.dashboard.myOrders,
+    tone: 'neutral',
+    icon: ReceiptText,
+  },
+  {
+    href: ROUTES.dashboardAccount,
+    label: COPY.dashboard.myAccount,
+    tone: 'neutral',
+    icon: UserRound,
+  },
 ];
 
 /**
@@ -69,6 +114,7 @@ function DashboardNav({ pathname }: { pathname: string }) {
       {NAV_ITEMS.map((item) => {
         const active = isActive(pathname, item.href);
         const Icon = item.icon;
+        const tone = NAV_TONES[item.tone];
 
         return (
           <Link
@@ -81,11 +127,20 @@ function DashboardNav({ pathname }: { pathname: string }) {
               'rounded-control flex min-h-11 items-center gap-3 px-3 py-2 text-sm',
               'transition-colors duration-150',
               active
-                ? 'bg-brand-100 text-brand-700 font-medium'
+                ? cn(tone.active, 'font-medium')
                 : 'text-ink-700 hover:bg-surface-muted hover:text-ink-900',
             )}
           >
-            <Icon className="size-5 shrink-0" aria-hidden="true" />
+            {/*
+              The icon keeps its hue at rest while the label stays `ink-700`, so
+              the rail reads as a coloured index rather than as six coloured
+              sentences. Inside an active item the whole row is already in the
+              hue, so the icon inherits it.
+            */}
+            <Icon
+              className={cn('size-5 shrink-0', active ? undefined : tone.rest)}
+              aria-hidden="true"
+            />
             <span className="truncate">{item.label}</span>
           </Link>
         );

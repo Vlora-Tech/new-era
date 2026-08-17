@@ -57,7 +57,7 @@ export default async function AdminProductsPage({
         title={COPY.adminProducts.listTitle}
         description={COPY.adminProducts.listDescription}
         action={
-          <Button asChild size="sm">
+          <Button asChild>
             <Link href="/admin/products/new">{COPY.adminProducts.createAction}</Link>
           </Button>
         }
