@@ -52,6 +52,8 @@ type Overview = {
   attemptCount: number;
   /** Best graded attempt as a 0–1 fraction, or null when nothing is graded. */
   bestScore: number | null;
+  /** Attempts the student could resume right now. */
+  inProgressCount: number;
 };
 
 export default async function DashboardOverviewPage() {
@@ -59,56 +61,63 @@ export default async function DashboardOverviewPage() {
 
   let overview: Overview | null = null;
   try {
-    const [entitlements, attempts, orders, attemptCount, gradedAttempts] = await Promise.all([
-      prisma.entitlement.findMany({
-        // Revoked access is deliberately excluded: this section answers "what can
-        // I open right now", not "what did I once have".
-        where: { userId: user.id, status: 'ACTIVE' },
-        orderBy: { grantedAt: 'desc' },
-        select: {
-          id: true,
-          grantedAt: true,
-          product: { select: { slug: true, title: true, shortDescription: true, type: true } },
-        },
-      }),
-      prisma.examAttempt.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: RECENT_LIMIT,
-        select: {
-          id: true,
-          mode: true,
-          status: true,
-          createdAt: true,
-          submittedAt: true,
-          correctCount: true,
-          totalQuestions: true,
-          simulator: { select: { product: { select: { title: true } } } },
-        },
-      }),
-      prisma.order.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: RECENT_LIMIT,
-        select: {
-          id: true,
-          productTitle: true,
-          productType: true,
-          amountHalalas: true,
-          status: true,
-          createdAt: true,
-        },
-      }),
-      prisma.examAttempt.count({ where: { userId: user.id } }),
-      // Only graded rows: an attempt still in progress has no score, and
-      // treating its null as a zero would invent a result the student never got.
-      prisma.examAttempt.findMany({
-        where: { userId: user.id, correctCount: { not: null }, totalQuestions: { gt: 0 } },
-        orderBy: { createdAt: 'desc' },
-        take: BEST_SCORE_SCAN_LIMIT,
-        select: { correctCount: true, totalQuestions: true },
-      }),
-    ]);
+    const [entitlements, attempts, orders, attemptCount, inProgressCount, gradedAttempts] =
+      await Promise.all([
+        prisma.entitlement.findMany({
+          // Revoked access is deliberately excluded: this section answers "what can
+          // I open right now", not "what did I once have".
+          where: { userId: user.id, status: 'ACTIVE' },
+          orderBy: { grantedAt: 'desc' },
+          select: {
+            id: true,
+            grantedAt: true,
+            product: { select: { slug: true, title: true, shortDescription: true, type: true } },
+          },
+        }),
+        prisma.examAttempt.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          take: RECENT_LIMIT,
+          select: {
+            id: true,
+            mode: true,
+            status: true,
+            createdAt: true,
+            submittedAt: true,
+            correctCount: true,
+            totalQuestions: true,
+            simulator: { select: { product: { select: { title: true } } } },
+          },
+        }),
+        prisma.order.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          take: RECENT_LIMIT,
+          select: {
+            id: true,
+            productTitle: true,
+            productType: true,
+            amountHalalas: true,
+            status: true,
+            createdAt: true,
+          },
+        }),
+        prisma.examAttempt.count({ where: { userId: user.id } }),
+        // Read rather than assumed: the strip caption says how many attempts are
+        // live, and a fixed sentence there would be the one invented figure on a
+        // page whose rule is that every number comes from the database.
+        prisma.examAttempt.count({
+          where: { userId: user.id, status: { in: ['CREATED', 'IN_PROGRESS'] } },
+        }),
+        // Only graded rows: an attempt still in progress has no score, and
+        // treating its null as a zero would invent a result the student never got.
+        prisma.examAttempt.findMany({
+          where: { userId: user.id, correctCount: { not: null }, totalQuestions: { gt: 0 } },
+          orderBy: { createdAt: 'desc' },
+          take: BEST_SCORE_SCAN_LIMIT,
+          select: { correctCount: true, totalQuestions: true },
+        }),
+      ]);
 
     const bestScore = gradedAttempts.reduce<number | null>((best, attempt) => {
       // `correctCount` is non-null by the `where` above; TypeScript cannot see
@@ -118,7 +127,7 @@ export default async function DashboardOverviewPage() {
       return best === null || ratio > best ? ratio : best;
     }, null);
 
-    overview = { entitlements, attempts, orders, attemptCount, bestScore };
+    overview = { entitlements, attempts, orders, attemptCount, inProgressCount, bestScore };
   } catch (error) {
     logger.error('dashboard overview query failed', { userId: user.id, error });
   }
@@ -152,6 +161,7 @@ function OverviewSections({ overview }: { overview: Overview }) {
     courses: courses.length,
     simulators: simulators.length,
     attempts: overview.attemptCount,
+    inProgressCount: overview.inProgressCount,
     bestScore: overview.bestScore,
   };
 

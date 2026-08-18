@@ -6,30 +6,26 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
- * Buttons.
+ * Buttons — the 2026 identity's control recipe (docs/design-system.md).
  *
  * Only `brand-700` carries white text: it is the one blue with sufficient
  * contrast (about 6.1:1). `brand-500` is reserved for icons and accents.
- * Radii stay modest and shadows are absent by design — the brand reads as
- * structural rather than decorative, and rank is carried by fill, border and
- * position rather than by elevation.
+ * Buttons are exempt from the colour code: every action stays brand blue
+ * whatever the hue of the block around it.
  *
- * Three things are deliberately absent and must stay absent:
- *
- *  - `box-shadow`. A tinted glow under the primary action is the decorative
- *    move the brief rules out, and it puts brand blue on the page as light
- *    rather than as ink.
- *  - `active:translate-y-px`. It would be the only transform in the entire
- *    interface, and it is what forces a special-case `prefers-reduced-motion`
- *    rule. `:active` already changes to `bg-brand-active`, which is a stronger
- *    signal and costs nothing.
- *  - `transition-all`. It animates whatever happens to change, including
- *    layout properties at a breakpoint. The site transitions colour only.
+ * Elevation is one quiet, navy-tinted step (`shadow-xs`, `shadow-card` on
+ * hover for the primary action) — depth as atmosphere, never glow. The only
+ * transform is `active:translate-y-px`, a 1px press that the global
+ * reduced-motion rule already collapses. Transitions cover colour and shadow
+ * only, never layout.
  */
 const buttonVariants = cva(
   cn(
     'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control',
-    'text-sm font-medium transition-colors duration-150 ease-out',
+    // Transform joins the transition list for the press: 2% down on `:active`
+    // is the feedback that makes a control feel physical. The global
+    // reduced-motion rule collapses it, so it needs no special case.
+    'text-sm font-semibold transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out active:scale-[0.98]',
     'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
     'disabled:pointer-events-none disabled:opacity-55',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -37,13 +33,35 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-brand-700 text-white hover:bg-brand-hover active:bg-brand-active',
+        primary:
+          'bg-brand-700 text-white shadow-xs hover:bg-brand-hover hover:shadow-card active:translate-y-px active:bg-brand-active active:shadow-xs',
         secondary:
-          'border border-brand-700 bg-surface text-brand-700 hover:bg-brand-100 active:bg-brand-200',
-        outline: 'border border-line-500 bg-surface text-ink-900 hover:bg-surface-muted',
+          'border border-brand-700 bg-surface text-brand-700 shadow-xs hover:bg-brand-50 active:bg-brand-100',
+        outline:
+          'border border-line-200 bg-surface text-ink-900 shadow-xs hover:border-line-500 hover:bg-surface-muted',
         ghost: 'text-ink-700 hover:bg-surface-muted hover:text-ink-900',
         link: 'text-brand-700 underline-offset-4 hover:underline',
-        danger: 'bg-error text-white hover:opacity-90',
+        danger: 'bg-error text-white shadow-xs hover:opacity-90 active:translate-y-px',
+        /*
+         * Marketing only — the landing page's primary pill. It is the single
+         * exception to "every control is brand blue": see docs/design-system.md
+         * § Marketing surface. Do not reach for it on a signed-in screen.
+         *
+         * The gradient runs brand-500 → teal-fill, and white text clears 4.5:1
+         * against both ends. Hover deepens the shadow rather than the fill,
+         * because darkening a two-stop gradient on hover reads as a colour
+         * change rather than a state change.
+         */
+        gradient: 'bg-gradient-brand text-white shadow-cta hover:shadow-glow active:translate-y-px',
+      },
+      /*
+       * Radius is a separate axis from variant: the marketing pill and the app's
+       * 10px control are the same button in two shapes, and folding the radius
+       * into `variant` would mean a `gradient` and a `gradient-square`.
+       */
+      shape: {
+        control: 'rounded-control',
+        pill: 'rounded-full',
       },
       size: {
         // 44px minimum touch target on the interactive sizes.
@@ -57,7 +75,7 @@ const buttonVariants = cva(
         icon: 'size-11',
       },
     },
-    defaultVariants: { variant: 'primary', size: 'md' },
+    defaultVariants: { variant: 'primary', size: 'md', shape: 'control' },
   },
 );
 

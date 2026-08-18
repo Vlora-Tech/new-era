@@ -1,12 +1,13 @@
 @import 'tailwindcss';
 
 /*
- * نيو إيرا design tokens.
+ * بناء العهد الجديد design tokens — the 2026 identity.
  *
- * The `--neb-*` custom properties are the brand's source of truth, copied
- * verbatim from the supplied token sheet. The `@theme inline` block below maps
- * them onto Tailwind's token names so utilities such as `bg-brand-700` and
- * `text-ink-700` resolve to brand values.
+ * The `--neb-*` custom properties are the brand's source of truth; the
+ * `@theme inline` block maps them onto Tailwind's token names so utilities such
+ * as `bg-brand-700` and `text-ink-700` resolve to brand values. The system is
+ * documented in docs/design-system.md; when a screen and that file disagree,
+ * the screen is wrong.
  *
  * Light only. There is deliberately no dark palette, no `prefers-color-scheme`
  * block, and no theme switch: the product ships one theme, and adding a second
@@ -15,20 +16,40 @@
 :root {
   color-scheme: light;
 
-  --neb-brand-700: #1066a4;
-  --neb-brand-500: #2686c8;
-  --neb-brand-hover: #0c568c;
-  --neb-brand-active: #08436f;
+  /*
+   * Brand blue, as a full scale. 700 is the anchor inherited from the supplied
+   * token sheet and the only blue that carries white text at body sizes
+   * (~6.1:1); 500 is ~3.9:1 and is reserved for icons and large accents.
+   * `hover` and `800`, `active` and `900` are the same colours under two names,
+   * because half the codebase says one and half says the other.
+   */
+  --neb-brand-50: #f2f8fc;
   --neb-brand-100: #eaf4fa;
   --neb-brand-200: #d5eaf6;
+  --neb-brand-300: #a9d4ec;
+  --neb-brand-400: #63aad8;
+  --neb-brand-500: #2686c8;
+  --neb-brand-600: #1a76b6;
+  --neb-brand-700: #1066a4;
+  --neb-brand-800: #0c568c;
+  --neb-brand-900: #08436f;
+  --neb-brand-950: #062e4d;
+  --neb-brand-hover: var(--neb-brand-800);
+  --neb-brand-active: var(--neb-brand-900);
 
-  --neb-text-primary: #16232d;
-  --neb-text-secondary: #52616b;
+  /*
+   * Cool cloud neutrals. The canvas was a warm paper grey (#f5f6f4) in the
+   * previous identity; the 2026 system cools it toward the brand's own axis so
+   * white surfaces read as sheets on sky rather than paper on paper. Ink and
+   * line values are unchanged — their contrast pairings are audited.
+   */
+  --neb-text-primary: #0e1b26;
+  --neb-text-secondary: #4a5a66;
   --neb-text-muted: #64727c;
   --neb-border: #d7e0e5;
   --neb-border-strong: #8798a3;
-  --neb-canvas: #f5f6f4;
-  --neb-surface-muted: #eef2f3;
+  --neb-canvas: #f6f9fc;
+  --neb-surface-muted: #ecf1f5;
   --neb-surface: #ffffff;
 
   --neb-success: #247a4a;
@@ -43,72 +64,111 @@
   /*
    * THE COLOUR CODE.
    *
-   * Four hues, and they are not decoration: they are the four movements of the
-   * method — افهم، تدرّب، اختبر نفسك، ادخل الاختبار بثقة — which the homepage
-   * states as four chips in the hero and then repeats in every numbered chapter.
-   * Blue is the brand and opens the sequence; gold is the one warm hue and marks
-   * effort; teal marks the simulator; green marks readiness. A fifth hue would
-   * make the set a palette instead of a code, which is the line between a system
-   * and a rainbow.
+   * Four hues, and they are not decoration. On the public site they are the
+   * four movements of the method — افهم، تدرّب، اختبر نفسك، ادخل الاختبار بثقة.
+   * In the tools they are the four subject domains — products, questions,
+   * students, orders. One code, two vocabularies; `src/lib/accent.ts` is the
+   * only place that turns a hue into classes. A fifth hue would make the set a
+   * palette instead of a code, which is the line between a system and a rainbow.
    *
    * Each hue ships exactly two values — one ink and one soft ground — and every
-   * ink clears 4.5:1 on white, on the warm canvas, on the blue field and on its
-   * own soft ground. `ink-700` is the smallest text permitted on any soft
-   * ground (about 5.5:1); `ink-600` is NOT, because it lands at 4.3–4.4:1.
+   * ink clears 4.5:1 on white, on the canvas, on the blue field and on its own
+   * soft ground. `ink-700` is the smallest text permitted on any soft ground
+   * (about 5.5:1); `ink-600` is NOT, because it lands at 4.3–4.4:1.
    *
-   * Actions are exempt. Every button on the site stays brand blue whatever the
-   * hue of the block it sits in: the code labels content, never controls, and a
-   * green button would read as a different kind of action rather than the same
-   * action in a different chapter.
+   * Actions are exempt. Every button stays brand blue whatever the hue of the
+   * block it sits in: the code labels content, never controls.
+   */
+  /*
+   * THREE values per hue, not two, and the split is what makes the interface
+   * read as energetic rather than muddy. `ink` is the AA text colour; `soft` is
+   * the ground; `fill` is a VIVID solid for icon tiles, progress bars and
+   * status dots. Before the split, `fill` was the same dark value as `ink`, so
+   * every icon chip on the site was a small brown or bottle-green square.
+   *
+   * Fills carry white GLYPHS, never white text: at 3.3–3.7:1 they clear the
+   * 3:1 graphics threshold but not the 4.5:1 text one. Gold and blue fills are
+   * dark enough for text as well.
    */
   --neb-accent-gold: #8a5a0a;
+  --neb-accent-gold-fill: #b45309;
   --neb-accent-gold-soft: #faf1df;
   --neb-accent-teal: #0d7188;
+  --neb-accent-teal-fill: #0891b2;
   --neb-accent-teal-soft: #e2f1f4;
-  --neb-accent-green: #1f7a4a;
-  --neb-accent-green-soft: #e6f3ec;
+  --neb-accent-green: #146c34;
+  --neb-accent-green-fill: #16a34a;
+  --neb-accent-green-soft: #e8f7ed;
 
   /*
-   * A pale blue ground the page could not previously reach. White and the warm
-   * canvas differ by 1.03:1, so a long page of alternating "colour" reads as one
-   * continuous white wall; this gives a band a hue without leaving the light
-   * scale.
-   *
-   * There is deliberately no dark counterpart. A deep navy ground for an
-   * inverted closing band was added here and removed again: the brief rules out
-   * dark sections, dark bands and dark tokens outright, so a token that exists
-   * only to paint one is the thing that has to go, not the section that would
-   * eventually use it. Contrast on it being good is not the point — the
-   * prohibition is not about contrast.
+   * Coral, and it is deliberately the smallest hue in the system: celebration
+   * only — a completed milestone, a finished course. It never labels a domain
+   * and never fills an area larger than a chip, because an alarm colour used
+   * for structure reads as an error.
+   */
+  --neb-accent-coral: #b23f3a;
+  --neb-accent-coral-fill: #e05a55;
+  --neb-accent-coral-soft: #fdeeec;
+
+  /*
+   * A pale blue ground for full-width bands. White and the canvas are ~1.05:1
+   * apart, so a long page of alternating "colour" reads as one continuous wall;
+   * this gives a band a hue without leaving the light scale. There is
+   * deliberately no dark counterpart: the product has no dark sections.
    */
   --neb-canvas-blue: #eef6fb;
 
-  --neb-radius-control: 8px;
-  --neb-radius-panel: 10px;
+  /*
+   * Shape. Three radii and a pill; nested corners never get tighter than their
+   * parent. The step up from 8/10 is half of what makes the 2026 surfaces read
+   * as current rather than 2018-admin-template.
+   */
+  --neb-radius-control: 10px;
+  --neb-radius-panel: 14px;
+  --neb-radius-card: 18px;
+
   --neb-focus: 0 0 0 3px rgb(38 134 200 / 0.28);
+  --neb-focus-error: 0 0 0 3px rgb(179 58 58 / 0.24);
 
   /*
-   * The one shadow on the site, and it is not decoration: it separates a
-   * genuinely overlaid surface — a modal, a mobile rail — from the page beneath
-   * it. There is deliberately no elevation *scale*. Rank on this site is carried
-   * by rule, fill and position; a card that floats is an effect, and an effect
-   * is what the brief rules out.
+   * Elevation — navy-tinted so depth reads as atmosphere rather than dirt, and
+   * deliberately quiet: one step per surface, chosen from this scale, never
+   * stacked. `overlay` remains reserved for genuinely overlaid surfaces
+   * (modals, drawers, menus).
    */
-  --neb-shadow-overlay: 0 12px 32px rgb(22 35 45 / 0.12);
+  --neb-shadow-xs: 0 1px 2px rgb(8 40 66 / 0.06);
+  --neb-shadow-card: 0 1px 2px rgb(8 40 66 / 0.04), 0 8px 24px -12px rgb(8 40 66 / 0.12);
+  --neb-shadow-card-lg: 0 2px 4px rgb(8 40 66 / 0.05), 0 24px 48px -16px rgb(8 40 66 / 0.16);
+  --neb-shadow-overlay: 0 12px 32px rgb(22 35 45 / 0.14);
+  /* Brand-tinted, for the one primary action in a conversion band. Not a glow
+     for general use: it puts brand blue on the page as light rather than ink. */
+  --neb-shadow-glow: 0 8px 28px -8px rgb(16 102 164 / 0.45);
+
+  /*
+   * Motion. Three durations, one curve family. `micro` is a control reacting to
+   * the pointer, `component` is a state change, `reveal` is a section arriving.
+   * Anything slower than `reveal` is decoration and does not belong here.
+   */
+  --neb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --neb-duration-micro: 150ms;
+  --neb-duration-component: 220ms;
+  --neb-duration-reveal: 420ms;
 }
 
 @theme inline {
-  /*
-   * Brand blues. `brand-700` is the only blue with enough contrast for white
-   * text at normal sizes (about 6.1:1); `brand-500` is about 3.9:1 and is
-   * therefore reserved for icons, charts and large accents.
-   */
-  --color-brand-700: var(--neb-brand-700);
-  --color-brand-500: var(--neb-brand-500);
-  --color-brand-hover: var(--neb-brand-hover);
-  --color-brand-active: var(--neb-brand-active);
+  --color-brand-50: var(--neb-brand-50);
   --color-brand-100: var(--neb-brand-100);
   --color-brand-200: var(--neb-brand-200);
+  --color-brand-300: var(--neb-brand-300);
+  --color-brand-400: var(--neb-brand-400);
+  --color-brand-500: var(--neb-brand-500);
+  --color-brand-600: var(--neb-brand-600);
+  --color-brand-700: var(--neb-brand-700);
+  --color-brand-800: var(--neb-brand-800);
+  --color-brand-900: var(--neb-brand-900);
+  --color-brand-950: var(--neb-brand-950);
+  --color-brand-hover: var(--neb-brand-hover);
+  --color-brand-active: var(--neb-brand-active);
 
   --color-ink-900: var(--neb-text-primary);
   --color-ink-700: var(--neb-text-secondary);
@@ -130,21 +190,43 @@
 
   /* The colour code. Blue is `brand-700`/`brand-100`; these are the other three. */
   --color-accent-gold: var(--neb-accent-gold);
+  --color-accent-gold-fill: var(--neb-accent-gold-fill);
   --color-accent-gold-soft: var(--neb-accent-gold-soft);
   --color-accent-teal: var(--neb-accent-teal);
+  --color-accent-teal-fill: var(--neb-accent-teal-fill);
   --color-accent-teal-soft: var(--neb-accent-teal-soft);
   --color-accent-green: var(--neb-accent-green);
+  --color-accent-green-fill: var(--neb-accent-green-fill);
   --color-accent-green-soft: var(--neb-accent-green-soft);
+  --color-accent-coral: var(--neb-accent-coral);
+  --color-accent-coral-fill: var(--neb-accent-coral-fill);
+  --color-accent-coral-soft: var(--neb-accent-coral-soft);
 
   --color-canvas-blue: var(--neb-canvas-blue);
 
   --radius-control: var(--neb-radius-control);
   --radius-panel: var(--neb-radius-panel);
+  --radius-card: var(--neb-radius-card);
 
+  --shadow-xs: var(--neb-shadow-xs);
+  --shadow-card: var(--neb-shadow-card);
+  --shadow-card-lg: var(--neb-shadow-card-lg);
   --shadow-overlay: var(--neb-shadow-overlay);
+  --shadow-glow: var(--neb-shadow-glow);
 
+  --ease-brand: var(--neb-ease);
+
+  /*
+   * Two families, two jobs. Alexandria carries headlines and display numerals —
+   * geometric, confident, unmistakably current; IBM Plex Sans Arabic carries
+   * body, UI and forms, where its reading rhythm is better. Both are served
+   * from this origin via next/font.
+   */
   --font-sans:
     var(--font-plex-arabic), 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-display:
+    var(--font-alexandria), var(--font-plex-arabic), 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma,
+    system-ui, sans-serif;
 }
 
 @layer base {
@@ -166,12 +248,17 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /*
+   * Headings are the display face. h5/h6 stay in the text face: at caption
+   * sizes the display family's geometry reads as decoration, not hierarchy.
+   */
   h1,
   h2,
   h3,
   h4 {
+    font-family: var(--font-display);
     line-height: 1.35;
-    font-weight: 600;
+    font-weight: 700;
     text-wrap: balance;
   }
 
@@ -249,6 +336,11 @@
   box-shadow: var(--neb-focus);
 }
 
+/* The display face as a utility, for stat numerals and non-heading display text. */
+@utility font-display {
+  font-family: var(--font-display);
+}
+
 /*
  * The only type step above 34px on the site, and it belongs to the homepage
  * <h1> alone. Roughly 40px at 375, 49 at 768, 55 at 1024, 62 at 1280, 68 at
@@ -258,9 +350,10 @@
  * action leaves the viewport on a 1280 × 720 laptop.
  */
 @utility text-display {
+  font-family: var(--font-display);
   font-size: clamp(2.5rem, 1.9rem + 2.45vw, 4.25rem);
-  line-height: 1.14;
-  font-weight: 600;
+  line-height: 1.16;
+  font-weight: 700;
   /* Arabic is cursive; tracking breaks the joins between letters. */
   letter-spacing: 0;
   /* Clearance for the ا/ل ascenders under whatever rule sits above them. */
@@ -299,4 +392,353 @@
  */
 @utility logo-clear-space {
   background-color: var(--color-surface);
+}
+
+/* ── Type scale ──────────────────────────────────────────────────────────────
+ *
+ * The survey found the same headline set as arbitrary values in a dozen files
+ * (`text-[30px] leading-[1.28]` and friends), which is why two pages of equal
+ * rank read at different sizes. These four utilities are the sanctioned steps
+ * below `text-display`. Arabic needs air: nothing here drops under 1.3.
+ */
+@utility text-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 2vw, 3.25rem);
+  line-height: 1.22;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.25rem + 1.3vw, 2.375rem);
+  line-height: 1.28;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+@utility text-h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* The paragraph directly under a headline. Larger and airier than body. */
+@utility text-lead {
+  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  line-height: 1.85;
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────────
+ *
+ * Only `opacity` and `transform` are animated anywhere in this system, so every
+ * effect below stays on the compositor. The global `prefers-reduced-motion`
+ * block collapses all of it to 0.01ms, which lands each element on its final
+ * state instantly rather than leaving it at the `from` keyframe.
+ */
+@keyframes neb-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes neb-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/*
+ * Scroll-triggered entrance with NO JavaScript: a scroll-driven timeline ties
+ * the animation to the element's own progress through the viewport. Browsers
+ * without `animation-timeline` (and readers who asked for reduced motion) never
+ * enter the block, so the content is simply visible from the start — the
+ * correct degradation, and the reason this needs no IntersectionObserver, no
+ * hydration and no layout shift.
+ *
+ * `--reveal-delay` staggers a group; set it inline on each child.
+ */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: neb-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 20%;
+    }
+  }
+}
+
+/* An entrance for content already in the viewport at load — the hero. */
+@utility enter {
+  animation: neb-reveal var(--neb-duration-reveal) var(--neb-ease) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@utility pop-in {
+  animation: neb-pop-in var(--neb-duration-component) var(--neb-ease) both;
+}
+
+/*
+ * The interaction contract for a card that is, or contains, a link. Hover
+ * raises it half a step; the press returns it. Kept as one utility so a dozen
+ * card components cannot drift to a dozen different lifts.
+ */
+@utility lift {
+  transition:
+    transform var(--neb-duration-component) var(--neb-ease),
+    box-shadow var(--neb-duration-component) var(--neb-ease),
+    border-color var(--neb-duration-component) var(--neb-ease);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--neb-shadow-card-lg);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+}
+
+/* ── Brand texture ───────────────────────────────────────────────────────────
+ *
+ * Two backgrounds, both built from the identity's own geometry rather than
+ * stock decoration, and both subtle enough to sit under content. They are the
+ * sanctioned alternative to tinting a whole section.
+ */
+@utility bg-brand-mesh {
+  background-image:
+    radial-gradient(60% 55% at 88% 8%, rgb(38 134 200 / 0.13), transparent 70%),
+    radial-gradient(50% 50% at 8% 0%, rgb(8 145 178 / 0.1), transparent 70%);
+}
+
+@utility bg-grid-fade {
+  background-image:
+    linear-gradient(to left, rgb(16 102 164 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(16 102 164 / 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(75% 60% at 50% 0%, black, transparent 75%);
+}
+
+/* ── Marketing surface ───────────────────────────────────────────────────────
+ *
+ * The landing page is the one surface allowed a gradient and ambient motion.
+ * Everything in this block is documented in docs/design-system.md § Marketing
+ * surface, and none of it may be used on a signed-in screen: the app shell,
+ * dashboard, admin, checkout and exam workspace stay flat.
+ *
+ * The whole set is built from two hues already in the system — brand blue
+ * flowing into the teal accent. There is deliberately no third stop and no new
+ * hue: the previous draft of this page ran indigo into violet, and adopting
+ * that would have made the identity two identities.
+ */
+:root {
+  --neb-gradient-brand: linear-gradient(
+    95deg,
+    var(--neb-brand-500) 0%,
+    var(--neb-accent-teal-fill) 100%
+  );
+  --neb-gradient-brand-deep: linear-gradient(
+    95deg,
+    var(--neb-brand-600) 0%,
+    var(--neb-accent-teal) 100%
+  );
+  --neb-gradient-tile: linear-gradient(140deg, var(--neb-brand-400), var(--neb-accent-teal-fill));
+
+  /*
+   * Marketing elevation. Deeper than the app scale because the objects these
+   * wrap are marketing plates floating on a field, not UI surfaces sitting on a
+   * canvas. `cta` is brand-tinted — the same argument as `shadow-glow`, which it
+   * does not replace: that one is for a control inside a conversion band, this
+   * one is for the pill on the hero.
+   */
+  --neb-shadow-cta: 0 14px 30px -6px rgb(16 102 164 / 0.34);
+  --neb-shadow-float: 0 18px 40px -16px rgb(8 40 66 / 0.3);
+  --neb-shadow-plate: 0 40px 80px -30px rgb(8 40 66 / 0.28), 0 2px 6px rgb(8 40 66 / 0.05);
+
+  /* Larger than the app's 10/14/18 for the same reason the shadows are deeper. */
+  --neb-radius-plate: 26px;
+  --neb-radius-shell: 28px;
+}
+
+@theme inline {
+  --shadow-cta: var(--neb-shadow-cta);
+  --shadow-float: var(--neb-shadow-float);
+  --shadow-plate: var(--neb-shadow-plate);
+
+  --radius-plate: var(--neb-radius-plate);
+  --radius-shell: var(--neb-radius-shell);
+}
+
+@utility bg-gradient-brand {
+  background-image: var(--neb-gradient-brand);
+}
+
+@utility bg-gradient-brand-deep {
+  background-image: var(--neb-gradient-brand-deep);
+}
+
+@utility bg-gradient-tile {
+  background-image: var(--neb-gradient-tile);
+}
+
+/*
+ * Gradient headline type. The solid colour is declared FIRST and unconditionally:
+ * a browser without `background-clip: text` keeps it and renders brand blue,
+ * whereas setting `-webkit-text-fill-color: transparent` up front would render
+ * nothing at all. That is the whole reason for the @supports wrapper.
+ */
+@utility text-gradient-brand {
+  color: var(--neb-brand-700);
+
+  @supports (background-clip: text) or (-webkit-background-clip: text) {
+    background-image: var(--neb-gradient-brand-deep);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/*
+ * The hero's ambient field — the same idea as `bg-brand-mesh` at the scale of a
+ * full viewport, so the top of the page has weather rather than a flat white.
+ * Three blobs, brand and teal, all well under 0.2 alpha; nothing here sits
+ * behind body text at a strength that would touch its contrast.
+ */
+@utility bg-hero-glow {
+  background-image:
+    radial-gradient(42% 34% at 78% 2%, rgb(38 134 200 / 0.18), transparent 72%),
+    radial-gradient(38% 32% at 16% 0%, rgb(8 145 178 / 0.16), transparent 72%),
+    radial-gradient(60% 26% at 50% 0%, rgb(105 180 224 / 0.16), transparent 78%);
+}
+
+/* ── Marketing motion ────────────────────────────────────────────────────────
+ *
+ * Ambient and decorative, and therefore gated on `prefers-reduced-motion` at the
+ * source rather than leaning on the global collapse in @layer base: that rule
+ * clamps duration, which for an infinite float would still leave the element
+ * jittering at 0.01ms. These simply never start.
+ */
+@keyframes neb-float-a {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes neb-float-b {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes neb-float-c {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-6px, -9px);
+  }
+}
+
+@keyframes neb-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@utility float-a {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-float-a 8s ease-in-out infinite;
+  }
+}
+
+@utility float-b {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-float-b 9s ease-in-out infinite;
+  }
+}
+
+@utility float-c {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-float-c 10s ease-in-out infinite;
+  }
+}
+
+@utility glow-pulse {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-glow-pulse 7s ease-in-out infinite;
+  }
+}
+
+/*
+ * Chart entrances, scroll-driven on the element's own view() timeline — the same
+ * mechanism as `reveal`, and the reason this page needs no IntersectionObserver.
+ *
+ * Read the direction carefully: the FINISHED state is what the element is styled
+ * with (`height: var(--bar-height)`, `stroke-dashoffset: var(--ring-offset)`),
+ * and the keyframe only animates *from* empty. So a browser without
+ * `animation-timeline`, or a reader who asked for less motion, gets a complete
+ * chart rather than a blank one.
+ */
+@keyframes neb-grow-bar {
+  from {
+    height: 0%;
+  }
+}
+
+@keyframes neb-draw-ring {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
+
+@utility grow-bar {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: neb-grow-bar 900ms var(--neb-ease) both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+      animation-delay: var(--bar-delay, 0ms);
+    }
+  }
+}
+
+@utility draw-ring {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: neb-draw-ring 1400ms var(--neb-ease) both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 40%;
+    }
+  }
 }

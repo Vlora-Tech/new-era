@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Mail, Phone } from 'lucide-react';
 
 import { Card, Container, SectionHeading } from '@/components/ui/surface';
 import { COPY } from '@/lib/copy';
@@ -29,27 +30,44 @@ export default async function ContactPage() {
           description="للاستفسارات المتعلقة بالحساب أو الطلبات أو المحتوى."
         />
 
-        <Card className="mt-8 flex flex-col gap-4 p-6">
-          <div className="flex flex-col gap-1">
-            <span className="text-ink-900 text-sm font-medium">{COPY.auth.email}</span>
-            {email ? (
-              <a href={`mailto:${email}`} className="text-brand-700 hover:underline">
-                <bdi dir="ltr">{email}</bdi>
-              </a>
-            ) : (
-              <span className="text-ink-600">لم تُضبط بعد.</span>
-            )}
+        <Card className="mt-8 flex flex-col gap-5 p-6">
+          <div className="flex items-center gap-4">
+            {/* The tile is decoration; the channel is named by the label. */}
+            <span
+              aria-hidden="true"
+              className="bg-brand-100 text-brand-700 rounded-control flex size-10 shrink-0 items-center justify-center"
+            >
+              <Mail className="size-5" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="text-ink-900 text-sm font-medium">{COPY.auth.email}</span>
+              {email ? (
+                <a href={`mailto:${email}`} className="text-brand-700 hover:underline">
+                  <bdi dir="ltr">{email}</bdi>
+                </a>
+              ) : (
+                <span className="text-ink-600">لم تُضبط بعد.</span>
+              )}
+            </div>
           </div>
 
-          <div className="border-line-200 flex flex-col gap-1 border-t pt-4">
-            <span className="text-ink-900 text-sm font-medium">{COPY.auth.phone}</span>
-            {phone ? (
-              <bdi dir="ltr" className="text-ink-700">
-                {phone}
-              </bdi>
-            ) : (
-              <span className="text-ink-600">لم يُضبط بعد.</span>
-            )}
+          <div className="border-line-200 flex items-center gap-4 border-t pt-5">
+            <span
+              aria-hidden="true"
+              className="bg-brand-100 text-brand-700 rounded-control flex size-10 shrink-0 items-center justify-center"
+            >
+              <Phone className="size-5" />
+            </span>
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="text-ink-900 text-sm font-medium">{COPY.auth.phone}</span>
+              {phone ? (
+                <bdi dir="ltr" className="text-ink-700">
+                  {phone}
+                </bdi>
+              ) : (
+                <span className="text-ink-600">لم يُضبط بعد.</span>
+              )}
+            </div>
           </div>
         </Card>
 

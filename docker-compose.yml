@@ -1,4 +1,4 @@
-# Local development database for نيو إيرا.
+# Local development database for بناء العهد الجديد.
 #
 # Collation note: the Alpine image is built on musl, which silently ignores libc
 # collations other than C — Arabic text would sort by code point. PostgreSQL 17 on

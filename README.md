@@ -1,4 +1,4 @@
-# نيو إيرا — New Era learning platform
+# بناء العهد الجديد — New Era learning platform
 
 An Arabic-only, right-to-left, light-theme platform for Saudi secondary-school
 students preparing for **اختبار القدرات العامة**.

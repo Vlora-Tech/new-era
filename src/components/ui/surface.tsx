@@ -24,10 +24,10 @@ export function Container({
  * A grouping surface. Used only where content genuinely forms a separate
  * object — structured information belongs in a list or a table instead.
  *
- * `interactive` adds a border-colour change on hover and nothing else: no lift,
- * no shadow, no scale. A card that moves under the cursor is an effect; a card
- * whose edge sharpens is a state. Default `false`, so every existing call site
- * renders byte-identically.
+ * Cards rest on `shadow-card`, the identity's one panel elevation
+ * (docs/design-system.md). `interactive` adds the sanctioned hover lift: half a
+ * step of translate and one step of shadow, collapsed automatically under
+ * reduced motion by the global rule.
  */
 export function Card({
   className,
@@ -41,8 +41,9 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-panel border-line-200 bg-surface border',
-        interactive && 'hover:border-line-500 transition-colors duration-150 ease-out',
+        'rounded-panel border-line-200 bg-surface shadow-card border',
+        interactive &&
+          'hover:border-brand-500/40 hover:shadow-card-lg transition-all duration-200 ease-out hover:-translate-y-0.5',
         className,
       )}
     >
@@ -258,8 +259,13 @@ export function EmptyState({
         className,
       )}
     >
-      <Inbox className="text-ink-600 size-8" aria-hidden="true" />
-      <p className="text-ink-900 text-base font-medium">{title}</p>
+      <span
+        aria-hidden="true"
+        className="bg-surface-muted text-ink-600 rounded-panel flex size-12 items-center justify-center"
+      >
+        <Inbox className="size-6" />
+      </span>
+      <p className="text-ink-900 text-base font-semibold">{title}</p>
       {description ? <p className="text-ink-700 max-w-prose text-sm">{description}</p> : null}
       {action}
     </div>
@@ -294,8 +300,13 @@ export function ErrorState({
         className,
       )}
     >
-      <AlertTriangle className="text-error size-8" aria-hidden="true" />
-      <p className="text-ink-900 text-base font-medium">{title}</p>
+      <span
+        aria-hidden="true"
+        className="text-error rounded-panel flex size-12 items-center justify-center bg-white/70"
+      >
+        <AlertTriangle className="size-6" />
+      </span>
+      <p className="text-ink-900 text-base font-semibold">{title}</p>
       <p className="text-ink-700 max-w-prose text-sm">{description}</p>
       {action}
     </div>

@@ -1,7 +1,16 @@
+import { ADMIN_ATTEMPTS_COPY } from './copy/admin-attempts';
+import { ADMIN_AUDIT_COPY } from './copy/admin-audit';
 import { ADMIN_COMMON_COPY } from './copy/admin-common';
+import { ADMIN_COURSES_COPY } from './copy/admin-courses';
+import { ADMIN_ENTITLEMENTS_COPY } from './copy/admin-entitlements';
 import { ADMIN_MEDIA_COPY } from './copy/admin-media';
+import { ADMIN_ORDERS_COPY } from './copy/admin-orders';
 import { ADMIN_PRODUCTS_COPY } from './copy/admin-products';
 import { ADMIN_QUESTIONS_COPY } from './copy/admin-questions';
+import { ADMIN_SETTINGS_COPY } from './copy/admin-settings';
+import { ADMIN_SIMULATORS_COPY } from './copy/admin-simulators';
+import { ADMIN_STUDENTS_COPY } from './copy/admin-students';
+import { LANDING_COPY } from './copy/landing';
 
 /**
  * Central Arabic copy bank.
@@ -18,9 +27,11 @@ import { ADMIN_QUESTIONS_COPY } from './copy/admin-questions';
  * The administration CRUD screens are built by several people at once, and a
  * single object literal is the worst possible shape for that: two edits to the
  * same region are a merge conflict at best and a silently dropped block at
- * worst. `COPY.adminCommon`, `.adminProducts`, `.adminQuestions` and
- * `.adminMedia` are therefore authored in four sibling modules and composed in
- * below, so each screen's strings have exactly one owner and one file.
+ * worst. Every `COPY.admin*` key below is therefore authored in its own sibling
+ * module under `./copy/` and composed in here, so each screen's strings have
+ * exactly one owner and one file. The rule is one screen, one module: a screen
+ * being built writes only its own file, and this composition block is the sole
+ * shared line it touches.
  *
  * The access pattern is unchanged — `COPY.adminProducts.fields.slug.label` reads
  * the same whether the object was written here or imported — and because each
@@ -37,7 +48,7 @@ import { ADMIN_QUESTIONS_COPY } from './copy/admin-questions';
  * resolver to prefer.
  */
 export const BRAND = {
-  name: 'نيو إيرا',
+  name: 'بناء العهد الجديد',
   fullName: 'بناء العهد الجديد',
   tagline: 'استعد لاختبار القدرات بثقة',
 } as const;
@@ -47,7 +58,7 @@ export const BRAND = {
  * Wording is fixed: it is the product's independence statement.
  */
 export const INDEPENDENCE_DISCLAIMER =
-  'منصة نيو إيرا منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو للمركز الوطني للقياس، ولا تمثل نتائجها نتيجة رسمية أو ضمانًا لدرجة الاختبار.';
+  'منصة بناء العهد الجديد منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو للمركز الوطني للقياس، ولا تمثل نتائجها نتيجة رسمية أو ضمانًا لدرجة الاختبار.';
 
 export const COPY = {
   common: {
@@ -79,7 +90,7 @@ export const COPY = {
     riyal: 'ر.س.',
     // Distinct from an empty state: an outage must never read as "no data".
     loadFailedTitle: 'تعذّر تحميل البيانات',
-    loadFailedBody: 'حدثت مشكلة أثناء الاتصال بالخادم. هذه ليست نتيجة فارغة — أعد المحاولة.',
+    loadFailedBody: 'حدثت مشكلة أثناء الاتصال بالخادم. أعد المحاولة.',
   },
 
   nav: {
@@ -102,91 +113,61 @@ export const COPY = {
     productsGroup: 'المنتجات',
     informationGroup: 'معلومات',
     legalNavigation: 'روابط قانونية',
+    /*
+     * Added with the 2026 landing page. `faq` is a section anchor rather than a
+     * route: it resolves to `/#faq`, which works from every public page because
+     * a root-relative hash navigates home first. `start` is the header's own
+     * call to action, deliberately shorter than `register` — the bar has less
+     * room than a form's submit button.
+     */
+    faq: 'الأسئلة الشائعة',
+    start: 'ابدأ الآن',
   },
 
+  /**
+   * The 2026 landing page, authored in `./copy/landing.ts`.
+   *
+   * `home` below is what remains of the page this replaced. It is deliberately
+   * not merged into `landing`: four other surfaces still read from it (both
+   * catalogue pages, the root layout's meta description, and the dashboard's
+   * next-steps rail), so it is now shared copy rather than page copy.
+   */
+  landing: LANDING_COPY,
+
+  /**
+   * What survives of the landing page this replaced.
+   *
+   * It is no longer page copy — the 2026 landing page reads from `landing`
+   * above — but four other surfaces still import these six strings, and
+   * moving them would only relocate the coupling:
+   *
+   *   `supporting`     → the root layout, as the site's meta description
+   *   `coursesBody`    → the courses catalogue, as its own description
+   *   `simulatorsBody` → the simulators catalogue, likewise
+   *   `pathSteps`      → the dashboard's next-steps rail, so the signed-in
+   *                      advice cannot drift from the marketing promise
+   *   `ctaPrimary` / `ctaSecondary` → `marketing/cta-section.tsx`
+   *
+   * Thirty-six further keys went with the old page — its hero, the four
+   * movements of the method, the featured ledger, the sample question and the
+   * old FAQ. They had no reader left, and a copy bank whose entries outlive
+   * their screens stops being a source of truth and becomes an archive.
+   */
   home: {
-    eyebrow: 'استعد لاختبار القدرات بثقة',
-    heading: 'درجتك تبدأ من هنا',
     supporting:
       'استعد لاختبار القدرات العامة المحوسب بطريقة أوضح وأذكى، من خلال شروحات مبسطة، ومفاتيح للحل، وأسئلة تدريبية، واختبارات محاكية تساعدك على فهم السؤال والتعامل مع أنماطه بثقة.',
-    primaryAction: 'ابدأ استعدادك الآن',
-    secondaryAction: 'استكشف الدورات والاختبارات',
-    learningLine: 'افهم أكثر • تدرّب أكثر • اختبر نفسك • ادخل الاختبار بثقة',
-    safeExamClaim: 'تدريبات أصلية تحاكي المهارات والأنماط المعلنة رسميًا لاختبار القدرات العامة.',
-    pathTitle: 'أربع خطوات حتى يوم الاختبار',
     pathSteps: [
       { title: 'افهم', body: 'شروحات مبسطة لكل مهارة، بلغة واضحة ومن دون حشو.' },
       { title: 'تدرّب', body: 'أسئلة تدريبية مصنّفة حسب المهارة ومستوى الصعوبة.' },
       { title: 'اختبر نفسك', body: 'اختبارات محاكية بأقسام وتوقيت يشبه تجربة الاختبار.' },
       { title: 'ادخل الاختبار بثقة', body: 'مراجعة لأدائك تُظهر ما يحتاج إلى تقوية قبل الموعد.' },
     ],
-    productsTitle: 'مساران واضحان للاستعداد',
-    coursesTitle: 'دورات مرئية',
     coursesBody:
       'دروس مرتبة في وحدات، مع سؤال قصير بعد كل درس يثبّت الفكرة قبل الانتقال إلى ما بعدها.',
-    simulatorsTitle: 'محاكيات الاختبار',
     simulatorsBody:
       'اختبارات مقسّمة إلى أقسام موقوتة، مع حفظ تلقائي للإجابات ومراجعة مفصّلة بعد التسليم.',
-    featuredTitle: 'من محتوى المنصة',
-    featuredEmpty: 'لا توجد منتجات منشورة بعد. تابعنا قريبًا.',
-    howTitle: 'كيف تشتري وتتعلّم؟',
-    howSteps: [
-      { title: 'أنشئ حسابك', body: 'تسجيل مباشر بالبريد وكلمة المرور، ويبدأ حسابك فورًا.' },
-      { title: 'اشترِ ما تحتاجه', body: 'شراء لمرة واحدة لكل دورة أو محاكٍ، بلا اشتراكات متكررة.' },
-      { title: 'ابدأ فورًا', body: 'يُفتح المحتوى مباشرة بعد تأكيد عملية الدفع.' },
-    ],
-    whyTitle: 'لماذا هذه الطريقة مفيدة؟',
-    /**
-     * Described as method, never as outcome: nothing here promises a score, a
-     * band or an improvement, because the platform cannot know one.
-     */
-    whyReasons: [
-      {
-        title: 'تدريب على النمط لا على السؤال',
-        body: 'الأسئلة مصنّفة حسب المهارة والمهارة الفرعية، فتتدرّب على طريقة التفكير التي يتكرر استخدامها بدل حفظ إجابات بعينها.',
-      },
-      {
-        title: 'ظروف قريبة من يوم الاختبار',
-        body: 'أقسام موقوتة، وانتقال لا رجعة فيه بين الأقسام، وحفظ تلقائي للإجابات — حتى تكون التجربة مألوفة قبل أن تخوضها فعليًا.',
-      },
-      {
-        title: 'مراجعة تدلّك على ما يحتاج إلى تقوية',
-        body: 'بعد كل محاولة ترى دقتك في كل مهارة والزمن الذي استغرقته، فتعرف أين تضع جهدك في المرة القادمة.',
-      },
-    ],
-    faqTitle: 'أسئلة شائعة',
-    faq: [
-      {
-        question: 'هل الشراء لمرة واحدة أم اشتراك متكرر؟',
-        answer:
-          'الشراء لمرة واحدة لكل دورة أو محاكٍ. لا توجد اشتراكات شهرية ولا تجديد تلقائي، ويبقى ما اشتريته متاحًا في حسابك.',
-      },
-      {
-        question: 'متى يُفتح المحتوى بعد الدفع؟',
-        answer:
-          'يُفتح مباشرة بعد تأكيد عملية الدفع لدى مزوّد الدفع، ويظهر المنتج في لوحتك دون خطوات إضافية.',
-      },
-      {
-        question: 'كيف تعمل مقاطع الدروس؟',
-        answer:
-          'المقاطع محمية ومرتبطة بحسابك، ويحفظ الموضع الذي توقفت عنده تلقائيًا لتكمل من حيث انتهيت.',
-      },
-      {
-        question: 'ما الفرق بين المحاكاة الكاملة والتدريب؟',
-        answer:
-          'المحاكاة الكاملة تلتزم بأقسام وتوقيت وقواعد انتقال ثابتة. أما التدريب فيتيح اختيار المهارة ومستوى الصعوبة وعرض الشرح فور الإجابة.',
-      },
-      {
-        question: 'هل نتائج المحاكي درجة رسمية؟',
-        answer:
-          'لا. النتائج مؤشرات أداء تدريبية تساعدك على معرفة ما يحتاج إلى تقوية، ولا تمثل درجة رسمية ولا تنبؤًا بها.',
-      },
-      {
-        question: 'هل الأسئلة منقولة من اختبارات سابقة؟',
-        answer:
-          'لا. جميع الأسئلة من إعداد المنصة، وتحاكي المهارات والأنماط المعلنة رسميًا دون نقل أي محتوى محمي.',
-      },
-    ],
+    ctaPrimary: 'ابدأ التدريب الآن',
+    ctaSecondary: 'استكشف الدورات',
   },
 
   auth: {
@@ -222,7 +203,21 @@ export const COPY = {
     welcome: 'أهلًا بك',
     continueLearning: 'أكمل من حيث توقفت',
     myCourses: 'دوراتي',
-    mySimulators: 'محاكياتي',
+    /*
+     * «اختباراتي», not «محاكياتي».
+     *
+     * The possessive of «محاكٍ» reads as an odd, technical word in a student's
+     * own navigation — it names the machinery rather than the thing they sat.
+     * The product itself is still «محاكي اختبار» in the catalogue and on its own
+     * card, because that is what is being sold and describing it as a plain
+     * اختبار would overclaim: this platform's exams are simulations, and the
+     * independence statement rests on that distinction. Only the student's
+     * personal shelf is renamed.
+     *
+     * Spelled with hamzat al-wasl («اختباراتي»), matching «اختبار القدرات
+     * العامة» and every other use of the word in this file.
+     */
+    mySimulators: 'اختباراتي',
     myAttempts: 'محاولاتي',
     myOrders: 'طلباتي',
     myAccount: 'حسابي',
@@ -260,11 +255,27 @@ export const COPY = {
        would read as a result rather than as an absence. */
     statNoScore: 'لا نتيجة بعد',
 
+    /*
+     * The caption under each tile's numeral.
+     *
+     * Each is rendered only while it is actually true, which is why the attempt
+     * one is a live count rather than a fixed phrase: the design mocked it as
+     * «منها واحدة قيد التنفيذ», and printing that sentence for a student with no
+     * live attempt would be the one invented figure on a strip whose whole rule
+     * is that every number is read from the database.
+     *
+     * The first two are statements about the purchase model, not about counts,
+     * so they hold for any non-zero value — and are hidden at zero, where
+     * "permanent access" to nothing would read as a taunt.
+     */
+    statCoursesHint: 'وصول دائم',
+    statSimulatorsHint: 'جاهزة للبدء',
+    statAttemptsInProgress: 'منها {count} قيد التنفيذ',
+
     journeyTitle: 'طريقك حتى يوم الاختبار',
-    journeyBody: 'أربع خطوات، ولكل خطوة لونها الذي يرافقك في اللوحة.',
 
     startHereTitle: 'ابدأ من هنا',
-    startHereBody: 'لوحتك جاهزة وتنتظر خطوتك الأولى — اختر مسارك وسيظهر محتواه هنا مباشرة.',
+    startHereBody: 'اختر مسارك وسيظهر محتواه في لوحتك مباشرة.',
     startCoursesTitle: 'دورات مرئية',
     startCoursesBody: 'شروحات مبسّطة لكل مهارة، بلغة واضحة ومن دون حشو.',
     startSimulatorsTitle: 'اختبارات محاكية',
@@ -287,6 +298,21 @@ export const COPY = {
     recentOrders: 'آخر الطلبات',
     viewAll: 'عرض الكل',
     openItem: 'فتح',
+
+    /*
+     * Creating an attempt, which is a different act from starting one.
+     *
+     * `COPY.exam.startAction` starts the *clock* on an attempt that already
+     * exists, on the instructions screen. This begins one step earlier: it asks
+     * the server for an attempt and takes the student to those instructions. The
+     * two are worded apart because the clock has not started yet here, and a
+     * student who reads "ابدأ المحاولة" in both places would reasonably think
+     * the first press already began the timing.
+     */
+    startSimulator: 'ابدأ المحاكاة',
+    startingSimulator: 'جارٍ تجهيز المحاولة…',
+    startSimulatorFailed: 'تعذّر تجهيز المحاولة، حاول مرة أخرى.',
+    resumeSimulator: 'متابعة المحاولة',
 
     outOf: 'من',
     accessGrantedAt: 'تاريخ الوصول',
@@ -380,11 +406,9 @@ export const COPY = {
     logoutFailed: 'تعذّر تسجيل الخروج، حاول مرة أخرى.',
 
     notBuiltTitle: 'لم تُبنَ هذه الشاشة بعد',
-    notBuiltBody:
-      'المسار جاهز داخل لوحة التحكم، أما أدوات هذه الشاشة فلم تُنفَّذ بعد. لا تُعرض هنا أي بيانات أو أرقام حتى تكتمل.',
+    notBuiltBody: 'المسار جاهز داخل لوحة التحكم، أما أدوات هذه الشاشة فلم تُنفَّذ بعد.',
 
-    overviewDescription:
-      'ملخص موجز لحالة المنصة. كل رقم هنا مقروء مباشرة من قاعدة البيانات، ولا يوجد أي تقدير أو توقّع.',
+    overviewDescription: 'ملخص موجز لحالة المنصة.',
     productsDescription: 'إدارة ما يُعرض للبيع: الدورات ومحاكيات الاختبار، مع أسعارها وحالة نشرها.',
     coursesDescription: 'بناء محتوى الدورات: الوحدات والدروس ومقاطع الفيديو والأسئلة القصيرة.',
     questionsDescription: 'بنك الأسئلة: الإنشاء والتصنيف ومسار المراجعة والنشر وإصدارات كل سؤال.',
@@ -400,7 +424,6 @@ export const COPY = {
 
     counts: {
       title: 'أعداد حالية',
-      note: 'أعداد فعلية في لحظة فتح الصفحة. ليست مؤشرات أداء ولا اتجاهات زمنية.',
       publishedProducts: 'منتجات منشورة',
       draftProducts: 'منتجات مسودة',
       students: 'حسابات طلاب',
@@ -410,20 +433,68 @@ export const COPY = {
       paidOrders: 'طلبات مدفوعة',
       pendingOrders: 'طلبات بانتظار الدفع',
     },
-    overviewRestTitle: 'بقية شاشة النظرة العامة لم تُبنَ بعد',
-    overviewRestBody:
-      'ستُضاف هنا لاحقًا أدوات المتابعة التفصيلية. لن تُعرض قبل ذلك أي رسوم أو أرقام تقديرية.',
+    /**
+     * The work queue.
+     *
+     * Every row is a count of things that need a person to do something, and
+     * every row links to the screen where that something is done. It is
+     * deliberately not a second block of statistics: the counts above describe
+     * the platform, these describe an obligation, and mixing the two would bury
+     * "a payment is waiting on your decision" among "we have 264 questions".
+     *
+     * Zero is the good answer here, and it is stated as one — an empty queue
+     * reads as "nothing is waiting", never as a screen that failed to load.
+     */
+    attention: {
+      title: 'يحتاج إلى إجراء',
+      allClearTitle: 'لا شيء ينتظر إجراءً',
+      allClearBody: 'لا توجد مدفوعات موقوفة على قرار، ولا أسئلة قيد المراجعة، ولا محاكيات معطّلة.',
+
+      paymentsNeedReview: 'مدفوعات تنتظر قرارًا',
+      paymentsNeedReviewNote: 'استرداد جزئي أو حالة غير قاطعة لا يقررها النظام تلقائيًا.',
+
+      questionsInReview: 'أسئلة قيد المراجعة',
+      questionsInReviewNote: 'أُرسلت للمراجعة وتنتظر اعتمادًا أو إعادة إلى المسودة.',
+
+      failedWebhooks: 'إشعارات دفع فاشلة',
+      failedWebhooksNote: 'وصلت من مزوّد الدفع وتعذّرت معالجتها.',
+
+      simulatorsWithoutVersion: 'محاكيات بلا إصدار مفعّل',
+      simulatorsWithoutVersionNote: 'منشورة للبيع، ولا يستطيع الطالب بدء محاولة عليها.',
+
+      review: 'مراجعة',
+    },
+
+    /** The audit trail's most recent rows, as a window onto the full screen. */
+    recent: {
+      title: 'آخر النشاط',
+      note: 'أحدث الإجراءات الإدارية، بأسماء منفّذيها وأوقاتها.',
+      viewAll: 'عرض السجل كاملًا',
+      emptyTitle: 'لا يوجد نشاط مسجَّل بعد',
+      emptyBody: 'يظهر هنا كل إجراء إداري فور تنفيذه.',
+      systemActor: 'النظام',
+    },
   },
 
   /**
    * The administration CRUD screens, composed from `./copy/`.
    *
-   * See the note at the top of this file for why these four are separate
-   * modules rather than four more blocks in this literal.
+   * See the note at the top of this file for why each of these is a separate
+   * module rather than one more block in this literal. Ordered chrome-first,
+   * then by the order the sections appear in the administration navigation, so
+   * this list reads the same way the sidebar does.
    */
   adminCommon: ADMIN_COMMON_COPY,
   adminProducts: ADMIN_PRODUCTS_COPY,
+  adminCourses: ADMIN_COURSES_COPY,
   adminQuestions: ADMIN_QUESTIONS_COPY,
+  adminSimulators: ADMIN_SIMULATORS_COPY,
+  adminStudents: ADMIN_STUDENTS_COPY,
+  adminOrders: ADMIN_ORDERS_COPY,
+  adminEntitlements: ADMIN_ENTITLEMENTS_COPY,
+  adminAttempts: ADMIN_ATTEMPTS_COPY,
+  adminSettings: ADMIN_SETTINGS_COPY,
+  adminAudit: ADMIN_AUDIT_COPY,
   adminMedia: ADMIN_MEDIA_COPY,
 
   errors: {

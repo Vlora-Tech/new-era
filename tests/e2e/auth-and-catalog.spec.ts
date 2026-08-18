@@ -49,7 +49,10 @@ test.describe('public surface', () => {
     await expect(html).toHaveAttribute('lang', 'ar');
     await expect(html).toHaveAttribute('dir', 'rtl');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('درجتك تبدأ من هنا');
+    // The h1 is split across two runs so the second can carry the gradient
+    // clip, so this asserts on the accent run alone rather than on a substring
+    // that spans the boundary and would break on a whitespace change.
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('يبدأ من هنا');
 
     // The independence statement is a standing disclosure, not decoration.
     await expect(page.getByText('منصة تدريبية مستقلة').first()).toBeVisible();

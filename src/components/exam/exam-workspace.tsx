@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import * as Dialog from '@radix-ui/react-dialog';
-import { AlertTriangle, Check, Flag, Loader2, LogOut } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Flag, Loader2, LogOut } from 'lucide-react';
 
 import { RichTextView } from '@/components/exam/question-content';
 import { Button } from '@/components/ui/button';
@@ -408,7 +408,7 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
       <header className="border-line-200 bg-surface sticky top-0 z-10 border-b">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 flex-col">
-            <span className="text-ink-900 truncate text-sm font-medium">{section.title}</span>
+            <span className="text-ink-900 truncate text-sm font-semibold">{section.title}</span>
             <span className="text-ink-600 text-xs">
               {fillTemplate(COPY.exam.sectionOfTotal, {
                 current: formatNumber(section.position),
@@ -417,28 +417,34 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
             </span>
           </div>
 
-          <p className="text-ink-700 text-sm">
+          {/* Position, not progress: no percentage is computed on this screen,
+              so the indicator stays an honest count in a quiet chip. */}
+          <p className="bg-surface-muted text-ink-700 rounded-full px-3 py-1 text-xs font-medium tabular-nums">
             {fillTemplate(COPY.exam.questionOfTotal, {
               current: formatNumber(index + 1),
               total: formatNumber(questions.length),
             })}
           </p>
 
-          <div className="ms-auto flex items-center gap-4">
+          <div className="ms-auto flex items-center gap-3">
             <SaveIndicator status={saveStatus} />
             {remainingSec === null ? null : (
               <p
                 className={cn(
-                  'text-sm font-semibold tabular-nums',
-                  remainingSec <= warningThreshold ? 'text-warning' : 'text-ink-900',
+                  // The warning threshold changes ground and border, never
+                  // blinks: a flashing clock is pressure, not information.
+                  'rounded-control flex items-center gap-2 border px-2.5 py-1 text-sm font-semibold tabular-nums transition-colors duration-150',
+                  remainingSec <= warningThreshold
+                    ? 'border-warning/30 bg-warning-soft text-warning'
+                    : 'text-ink-900 border-transparent',
                 )}
                 // Announced on a slow cadence: a per-second live region would
                 // make the timer unusable with a screen reader.
                 aria-live="off"
               >
-                <span className="text-ink-600 me-2 text-xs font-normal">
-                  {COPY.exam.timeRemaining}
-                </span>
+                {/* ink-700, not ink-600: this label also sits on the warning
+                    ground once the threshold is crossed. */}
+                <span className="text-ink-700 text-xs font-normal">{COPY.exam.timeRemaining}</span>
                 <bdi>
                   <span dir="ltr">{formatDuration(remainingSec)}</span>
                 </bdi>
@@ -457,10 +463,12 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
             could reach a locked or a future section. */}
         <nav
           aria-label={COPY.exam.navigatorLabel}
-          className="rounded-panel border-line-200 bg-surface h-fit border p-4 lg:w-64"
+          className="rounded-panel border-line-200 bg-surface h-fit border p-4 lg:w-72"
         >
           <p className="text-ink-600 mb-3 text-xs">{COPY.exam.navigatorHint}</p>
-          <ol className="grid grid-cols-8 gap-1.5 lg:grid-cols-6">
+          {/* Auto-fill rather than a fixed column count: the cell floor is the
+              44px touch target, so the grid reflows instead of shrinking it. */}
+          <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2">
             {questions.map((question, questionIndex) => {
               const local = answers.get(question.id);
               const isCurrent = questionIndex === index;
@@ -474,18 +482,20 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
                       number: formatNumber(questionIndex + 1),
                     })}
                     className={cn(
-                      'rounded-control relative flex size-9 items-center justify-center border text-sm',
+                      'rounded-control relative flex h-11 w-full items-center justify-center border text-sm tabular-nums transition-colors duration-150',
                       'focus-visible:outline-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2',
+                      // Answered carries a ground *and* a weight; current adds a
+                      // ring; flagged adds the corner mark. No state is colour alone.
                       local?.selectedOptionKey
-                        ? 'border-brand-700 bg-brand-100 text-brand-700 font-medium'
-                        : 'border-line-200 text-ink-700 hover:bg-surface-muted',
+                        ? 'border-brand-700 bg-brand-100 text-brand-700 font-semibold'
+                        : 'border-line-200 bg-surface text-ink-700 hover:border-brand-500/50 hover:bg-brand-50',
                       isCurrent && 'outline-brand-500 outline-2 outline-offset-2',
                     )}
                   >
                     {formatNumber(questionIndex + 1)}
                     {local?.flagged ? (
                       <Flag
-                        className="text-warning absolute -end-1 -top-1 size-3 fill-current"
+                        className="text-warning absolute end-1 top-1 size-3 fill-current"
                         aria-hidden="true"
                       />
                     ) : null}
@@ -495,38 +505,50 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
             })}
           </ol>
 
-          <dl className="text-ink-700 mt-4 flex flex-col gap-1 text-xs">
-            <div className="flex justify-between gap-2">
+          <dl className="border-line-200 text-ink-700 mt-4 flex flex-col gap-1.5 border-t pt-3 text-xs">
+            <div className="flex items-center justify-between gap-2">
               <dt>{COPY.exam.navigatorAnswered}</dt>
-              <dd className="font-medium">{formatNumber(answered)}</dd>
+              <dd className="text-ink-900 font-semibold tabular-nums">{formatNumber(answered)}</dd>
             </div>
-            <div className="flex justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <dt>{COPY.exam.navigatorUnanswered}</dt>
-              <dd className="font-medium">{formatNumber(unanswered)}</dd>
+              <dd className="text-ink-900 font-semibold tabular-nums">
+                {formatNumber(unanswered)}
+              </dd>
             </div>
-            <div className="flex justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <dt>{COPY.exam.navigatorFlagged}</dt>
-              <dd className="font-medium">{formatNumber(flaggedCount)}</dd>
+              <dd className="text-ink-900 font-semibold tabular-nums">
+                {formatNumber(flaggedCount)}
+              </dd>
             </div>
           </dl>
         </nav>
 
         <main className="flex min-w-0 flex-1 flex-col gap-6">
+          {/* The stimulus is a flat panel and the question is an elevated one:
+              the reader can tell reference material from the thing being asked
+              without reading either. */}
           {current.content.stimulus ? (
-            <section className="rounded-panel border-line-200 bg-surface border p-5">
-              <h2 className="text-ink-600 mb-2 text-xs font-medium">
+            <section className="rounded-panel border-line-200 bg-surface border p-5 sm:p-6">
+              <h2 className="text-ink-600 border-line-200 mb-3 border-b pb-2 text-xs font-semibold">
                 {current.content.stimulus.title ?? COPY.exam.passageLabel}
               </h2>
               <RichTextView document={current.content.stimulus.content} />
             </section>
           ) : null}
 
-          <section className="rounded-panel border-line-200 bg-surface flex flex-col gap-5 border p-5 sm:p-6">
-            <RichTextView document={current.content.stem} paragraphClassName="text-lg" />
+          <section className="rounded-panel border-line-200 bg-surface shadow-card flex flex-col gap-5 border p-5 sm:p-6">
+            {/* The lead step rather than the display h3: a stem runs to several
+                lines, and 1.85 line-height is what makes those lines readable. */}
+            <RichTextView
+              document={current.content.stem}
+              paragraphClassName="text-lead font-semibold"
+            />
 
             {current.hint ? (
-              <div className="rounded-control bg-brand-100 p-3">
-                <p className="text-brand-700 mb-1 text-xs font-medium">{COPY.exam.hintLabel}</p>
+              <div className="rounded-control border-brand-700/20 bg-brand-50 border p-4">
+                <p className="text-brand-700 mb-1 text-xs font-semibold">{COPY.exam.hintLabel}</p>
                 <RichTextView document={current.hint} paragraphClassName="text-sm" />
               </div>
             ) : null}
@@ -539,10 +561,13 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
                   <label
                     key={option.key}
                     className={cn(
-                      'rounded-control flex cursor-pointer items-start gap-3 border p-3 transition-colors',
+                      // rest → hover → selected, one 150ms colour step apart, on a
+                      // 52px target. Selection is border + ground + weight.
+                      'rounded-control flex min-h-13 cursor-pointer items-start gap-3 border p-3.5 transition-colors duration-150',
+                      'has-[:focus-visible]:outline-brand-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2',
                       checked
-                        ? 'border-brand-700 bg-brand-100'
-                        : 'border-line-200 hover:bg-surface-muted',
+                        ? 'border-brand-700 bg-brand-100 font-semibold'
+                        : 'border-line-200 bg-surface hover:border-brand-500/50 hover:bg-brand-50',
                     )}
                   >
                     <input
@@ -576,11 +601,13 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
           </section>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Forward is left in RTL, so back points right. */}
             <Button
               variant="outline"
               onClick={() => setIndex((value) => Math.max(0, value - 1))}
               disabled={index === 0}
             >
+              <ArrowRight className="size-4" aria-hidden="true" />
               {COPY.exam.previousQuestion}
             </Button>
             <Button
@@ -589,6 +616,7 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
               disabled={index >= questions.length - 1}
             >
               {COPY.exam.nextQuestion}
+              <ArrowLeft className="size-4" aria-hidden="true" />
             </Button>
 
             <Button className="ms-auto" onClick={() => setAdvanceOpen(true)}>
@@ -597,7 +625,11 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
           </div>
 
           {saveStatus === 'error' ? (
-            <p role="alert" className="text-error text-sm">
+            <p
+              role="alert"
+              className="rounded-control border-error/30 bg-error-soft text-error flex items-start gap-2 border p-3 text-sm font-medium"
+            >
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               {COPY.exam.saveFailedBody}
             </p>
           ) : null}
@@ -615,7 +647,7 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
         error={actionError}
         onConfirm={confirmAdvance}
       >
-        <ul className="text-ink-700 flex flex-col gap-1 text-sm">
+        <ul className="rounded-control bg-surface-muted text-ink-700 flex flex-col gap-1 p-3 text-sm">
           {unanswered > 0 ? (
             <li>{fillTemplate(COPY.exam.unansweredNotice, { count: formatNumber(unanswered) })}</li>
           ) : (
@@ -674,8 +706,14 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       // interrupting announcement on every keystroke would be worse than useless.
       aria-live="polite"
       className={cn(
-        'flex items-center gap-1.5 text-xs',
-        status === 'error' ? 'text-error font-medium' : 'text-ink-600',
+        // A chip, so the three outcomes read as one control changing state
+        // rather than three different pieces of text appearing in the bar.
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors duration-150',
+        status === 'error'
+          ? 'bg-error-soft text-error'
+          : status === 'saved'
+            ? 'bg-success-soft text-success'
+            : 'bg-surface-muted text-ink-700',
       )}
     >
       {content}
@@ -716,9 +754,9 @@ function ConfirmDialog({
           // not depend on which physical side `start` resolves to.
           className="rounded-panel bg-surface shadow-overlay fixed inset-0 m-auto h-fit w-[min(32rem,calc(100vw-2rem))] p-6"
         >
-          <Dialog.Title className="text-ink-900 text-lg font-semibold">{title}</Dialog.Title>
+          <Dialog.Title className="text-ink-900 text-h3">{title}</Dialog.Title>
 
-          <div className="border-warning/30 bg-warning-soft rounded-control mt-3 flex gap-2 border p-3">
+          <div className="border-warning/30 bg-warning-soft rounded-control mt-4 flex gap-2 border p-3">
             <AlertTriangle className="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <Dialog.Description className="text-ink-900 text-sm leading-relaxed">
               {warning}

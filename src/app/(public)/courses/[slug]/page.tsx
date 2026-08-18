@@ -8,6 +8,7 @@ import { Badge, Card, Container, ErrorState, RuledHead, Subhead } from '@/compon
 import { getCurrentUser } from '@/lib/auth/guards';
 import { COPY } from '@/lib/copy';
 import { formatDurationWords, formatHalalas, formatNumber } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import { getCourseDetail } from '@/services/catalog/product-detail';
 
 export const dynamic = 'force-dynamic';
@@ -139,7 +140,15 @@ export default async function CourseDetailPage({ params }: PageProps) {
                         return (
                           <li
                             key={lesson.id}
-                            className="flex items-center justify-between gap-4 py-3.5"
+                            /*
+                             * `relative` anchors the playable row's full-row hit
+                             * area below. A locked row stays inert: it is not a
+                             * link, so it is not a tab stop either.
+                             */
+                            className={cn(
+                              'relative flex items-center justify-between gap-4 py-3.5',
+                              openToAll && 'group',
+                            )}
                           >
                             <span className="flex min-w-0 items-center gap-3">
                               {openToAll ? (
@@ -157,7 +166,25 @@ export default async function CourseDetailPage({ params }: PageProps) {
                                   <span className="sr-only">يُفتح بعد الشراء:</span>
                                 </>
                               )}
-                              <span className="text-ink-900 text-[15px]">{lesson.title}</span>
+                              {/*
+                               * A lesson the viewer may watch — a preview, or any
+                               * lesson once the course is owned — opens the
+                               * player. Without this the row drew a play icon and
+                               * a معاينة badge and then did nothing at all, which
+                               * is the whole reason a preview looked broken.
+                               * `after:inset-0` makes the entire row the target
+                               * rather than the title's own text box.
+                               */}
+                              {openToAll ? (
+                                <Link
+                                  href={`/learn/${course.slug}/${lesson.id}`}
+                                  className="text-ink-900 group-hover:text-brand-700 rounded-control text-[15px] transition-colors duration-150 after:absolute after:inset-0"
+                                >
+                                  {lesson.title}
+                                </Link>
+                              ) : (
+                                <span className="text-ink-900 text-[15px]">{lesson.title}</span>
+                              )}
                               {lesson.isPreview ? <Badge variant="brand">معاينة</Badge> : null}
                             </span>
 
@@ -179,8 +206,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
         {/* Compact purchase summary, sticky on desktop only. */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <Card className="p-6">
-            <p className="text-ink-900 text-[28px] leading-none font-semibold">
+          {/* The one hero-weight shadow on the page: the panel being acted on. */}
+          <Card className="shadow-card-lg p-6">
+            {/* The price is a stat numeral: display face, 700, tabular. */}
+            <p className="text-ink-900 font-display text-[30px] leading-none font-bold tabular-nums">
               {formatHalalas(course.priceHalalas)}
             </p>
             <p className="text-ink-700 mt-3 text-sm leading-[1.8]">

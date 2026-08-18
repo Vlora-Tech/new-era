@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Timer } from 'lucide-react';
 
 import { ProductGrid, type CatalogProduct } from '@/components/marketing/product-grid';
 import { Container, PageHead } from '@/components/ui/surface';
@@ -17,7 +18,7 @@ export default async function SimulatorsPage() {
   let failed = false;
 
   try {
-    products = await prisma.product.findMany({
+    const rows = await prisma.product.findMany({
       where: { type: 'EXAM_SIMULATOR', status: 'PUBLISHED' },
       orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
       select: {
@@ -26,21 +27,40 @@ export default async function SimulatorsPage() {
         title: true,
         shortDescription: true,
         priceHalalas: true,
+        /*
+         * The simulator behind the product. Only the track is read: it is a
+         * fixed enum with an Arabic label in `copy.ts`, unlike the section and
+         * question counts, which belong to a published version and must never
+         * be shown as zeroes when there is none.
+         */
+        examSimulator: { select: { track: true } },
       },
     });
+
+    products = rows.map(({ examSimulator, ...product }) => ({
+      ...product,
+      track: examSimulator?.track ?? null,
+    }));
   } catch {
     failed = true;
   }
 
   return (
-    <Container className="py-10 lg:py-16">
-      <PageHead title={COPY.nav.simulators} description={COPY.home.simulatorsBody} />
+    <Container className="py-12 lg:py-16">
+      {/* The v3 heading step, set from here: `PageHead` is shared with the legal pages. */}
+      <PageHead
+        title={COPY.nav.simulators}
+        description={COPY.home.simulatorsBody}
+        className="enter [&_h1]:text-h1"
+      />
 
-      <div className="mt-12">
+      <div className="reveal mt-12">
         <ProductGrid
           products={products}
           basePath="/simulators"
           typeLabel={COPY.statusLabels.productType.EXAM_SIMULATOR}
+          typeVariant="teal"
+          icon={Timer}
           emptyTitle="لا توجد محاكيات منشورة بعد."
           emptyDescription="سيظهر هنا كل ما يُنشر من محاكيات."
           failed={failed}

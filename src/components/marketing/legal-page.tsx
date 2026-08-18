@@ -51,7 +51,9 @@ export function LegalSection({
   return (
     <section>
       <Subhead title={heading} />
-      <div className="text-ink-700 mt-4 flex flex-col gap-4 text-[16px] leading-[1.9]">
+      {/* mt-5 after a Subhead is the detail pages' rhythm; the wider paragraph
+          gap keeps 16px/1.9 legal prose from setting as one solid block. */}
+      <div className="text-ink-700 mt-5 flex flex-col gap-5 text-[16px] leading-[1.9]">
         {children}
       </div>
     </section>

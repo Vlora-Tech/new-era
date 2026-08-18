@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { Check, Minus, X } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { ArrowRight, Check, ListChecks, Minus, X } from 'lucide-react';
 
 import { RichTextView } from '@/components/exam/question-content';
 import { Button } from '@/components/ui/button';
-import { Badge, Card } from '@/components/ui/surface';
+import { ProgressBar, ProgressRing } from '@/components/ui/progress';
+import { Badge, Card, Notice } from '@/components/ui/surface';
 import { ROUTES } from '@/lib/constants';
 import { COPY } from '@/lib/copy';
 import { formatDuration, formatNumber, formatPercent } from '@/lib/format';
@@ -54,40 +56,73 @@ export function ExamResults({
             </Badge>
           ) : null}
         </div>
-        <p className="text-brand-700 text-sm font-medium">{simulatorTitle}</p>
-        <h1 className="text-ink-900 text-2xl font-semibold sm:text-3xl">
-          {COPY.exam.resultsTitle}
-        </h1>
-        <p className="text-ink-700">{COPY.exam.resultsSubtitle}</p>
+        <p className="text-brand-700 text-sm font-semibold">{simulatorTitle}</p>
+        <h1 className="text-ink-900 text-h2">{COPY.exam.resultsTitle}</h1>
+        <p className="text-ink-700 text-lead measure-ar-lg">{COPY.exam.resultsSubtitle}</p>
       </header>
 
-      <dl className="grid gap-3 sm:grid-cols-4">
-        <Stat label={COPY.exam.correctCount} value={formatNumber(totals.correct)} />
-        <Stat label={COPY.exam.incorrectCount} value={formatNumber(totals.incorrect)} />
-        <Stat label={COPY.exam.unansweredCount} value={formatNumber(totals.unanswered)} />
-        <Stat label={COPY.exam.totalCount} value={formatNumber(totals.total)} />
+      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat
+          label={COPY.exam.correctCount}
+          value={formatNumber(totals.correct)}
+          tone="success"
+          icon={Check}
+        />
+        <Stat
+          label={COPY.exam.incorrectCount}
+          value={formatNumber(totals.incorrect)}
+          tone="error"
+          icon={X}
+        />
+        <Stat
+          label={COPY.exam.unansweredCount}
+          value={formatNumber(totals.unanswered)}
+          tone="neutral"
+          icon={Minus}
+        />
+        <Stat
+          label={COPY.exam.totalCount}
+          value={formatNumber(totals.total)}
+          tone="brand"
+          icon={ListChecks}
+        />
       </dl>
 
-      <Card className="flex flex-col gap-2 p-5">
-        <p className="text-ink-600 text-sm">{COPY.exam.accuracyLabel}</p>
-        <p className="text-ink-900 text-2xl font-semibold">{formatPercent(accuracy)}</p>
-        <p className="text-ink-700 text-sm leading-relaxed">{COPY.exam.notAnOfficialScore}</p>
+      <Card className="flex flex-wrap items-center justify-between gap-5 p-5 sm:p-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <p className="text-ink-900 text-base font-semibold">{COPY.exam.accuracyLabel}</p>
+          <p className="text-ink-700 measure-ar-lg text-sm leading-relaxed">
+            {COPY.exam.notAnOfficialScore}
+          </p>
+        </div>
+        {/* The ring draws a ratio the data already carries. Its svg is
+            aria-hidden by contract; the numeral inside it is not, so the figure
+            is still read once, in words. */}
+        <ProgressRing value={accuracy * 100} size={96} strokeWidth={8} className="text-brand-600">
+          <span className="text-ink-900 font-display text-lg font-bold tabular-nums">
+            {formatPercent(accuracy)}
+          </span>
+        </ProgressRing>
       </Card>
 
       {summary && summary.domains.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="text-ink-900 text-lg font-semibold">{COPY.exam.domainsTitle}</h2>
+          <h2 className="text-ink-900 text-h3">{COPY.exam.domainsTitle}</h2>
           <ul className="flex flex-col gap-2">
             {summary.domains.map((domain) => (
               <li
                 key={domain.domain}
-                className="rounded-control border-line-200 flex flex-wrap items-baseline justify-between gap-2 border px-4 py-3"
+                className="rounded-panel border-line-200 bg-surface flex flex-col gap-2 border px-4 py-3"
               >
-                <span className="text-ink-900 font-medium">{DOMAIN_LABELS[domain.domain]}</span>
-                <span className="text-ink-700 text-sm">
-                  {formatNumber(domain.correct)} / {formatNumber(domain.total)} ·{' '}
-                  {formatPercent(domain.accuracy)}
-                </span>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-ink-900 font-semibold">{DOMAIN_LABELS[domain.domain]}</span>
+                  <span className="text-ink-700 text-sm tabular-nums">
+                    {formatNumber(domain.correct)} / {formatNumber(domain.total)} ·{' '}
+                    {formatPercent(domain.accuracy)}
+                  </span>
+                </div>
+                {/* The ratio is already in the payload; nothing new is computed. */}
+                <ProgressBar value={domain.accuracy * 100} />
               </li>
             ))}
           </ul>
@@ -96,18 +131,22 @@ export function ExamResults({
 
       {summary && summary.subskills.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="text-ink-900 text-lg font-semibold">{COPY.exam.subskillsTitle}</h2>
+          <h2 className="text-ink-900 text-h3">{COPY.exam.subskillsTitle}</h2>
           <ul className="flex flex-col gap-2">
             {summary.subskills.map((subskill) => (
               <li
                 key={`${subskill.domain}-${subskill.subskill}`}
-                className="rounded-control border-line-200 flex flex-wrap items-baseline justify-between gap-2 border px-4 py-3"
+                className="rounded-panel border-line-200 bg-surface flex flex-col gap-2 border px-4 py-3"
               >
-                <span className="text-ink-900">{subskill.subskill}</span>
-                <span className="text-ink-700 text-sm">
-                  {formatNumber(subskill.correct)} / {formatNumber(subskill.total)} ·{' '}
-                  {formatPercent(subskill.accuracy)}
-                </span>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-ink-900">{subskill.subskill}</span>
+                  <span className="text-ink-700 text-sm tabular-nums">
+                    {formatNumber(subskill.correct)} / {formatNumber(subskill.total)} ·{' '}
+                    {formatPercent(subskill.accuracy)}
+                  </span>
+                </div>
+                {/* Thinner than the domain bar: a subskill is a detail of one. */}
+                <ProgressBar value={subskill.accuracy * 100} className="h-1.5" />
               </li>
             ))}
           </ul>
@@ -116,15 +155,15 @@ export function ExamResults({
 
       {summary && summary.sections.length > 0 ? (
         <section className="flex flex-col gap-3">
-          <h2 className="text-ink-900 text-lg font-semibold">{COPY.exam.sectionsTitle}</h2>
+          <h2 className="text-ink-900 text-h3">{COPY.exam.sectionsTitle}</h2>
           <ul className="flex flex-col gap-2">
             {summary.sections.map((section) => (
               <li
                 key={section.attemptSectionId}
-                className="rounded-control border-line-200 flex flex-wrap items-baseline justify-between gap-2 border px-4 py-3"
+                className="rounded-panel border-line-200 bg-surface flex flex-wrap items-baseline justify-between gap-2 border px-4 py-3"
               >
-                <span className="text-ink-900 font-medium">{section.title}</span>
-                <span className="text-ink-700 text-sm">
+                <span className="text-ink-900 font-semibold">{section.title}</span>
+                <span className="text-ink-700 text-sm tabular-nums">
                   {COPY.exam.sectionElapsed}:{' '}
                   <bdi>
                     <span dir="ltr">
@@ -145,10 +184,12 @@ export function ExamResults({
       ) : null}
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-ink-900 text-lg font-semibold">{COPY.exam.reviewTitle}</h2>
+        <h2 className="text-ink-900 text-h3">{COPY.exam.reviewTitle}</h2>
         {sections.map((section) => (
           <div key={section.id} className="flex flex-col gap-3">
-            <h3 className="text-ink-700 text-sm font-medium">{section.title}</h3>
+            <h3 className="text-ink-900 border-s-brand-700 border-s-2 ps-3 text-base font-semibold">
+              {section.title}
+            </h3>
             {section.questions.map((question) => {
               const chosen = question.options.find(
                 (option) => option.key === question.selectedOptionKey,
@@ -158,8 +199,11 @@ export function ExamResults({
               );
 
               return (
-                <Card key={question.id} className="flex flex-col gap-3 p-5">
-                  <div className="flex items-start gap-2">
+                <Card key={question.id} className="flex flex-col gap-4 p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="bg-surface-muted text-ink-700 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums">
+                      {formatNumber(question.position)}
+                    </span>
                     <ResultMark
                       state={
                         question.selectedOptionKey === null
@@ -169,24 +213,26 @@ export function ExamResults({
                             : 'incorrect'
                       }
                     />
-                    <span className="text-ink-600 text-sm">{formatNumber(question.position)}</span>
                   </div>
 
-                  <RichTextView document={question.stem} />
+                  <RichTextView document={question.stem} paragraphClassName="font-medium" />
 
+                  {/* The ground states the verdict a second time, after the mark
+                      above; the `dt` states it in words, so neither row depends
+                      on its colour being seen. */}
                   <dl className="flex flex-col gap-2 text-sm">
-                    <div className="flex flex-col gap-1">
-                      <dt className="text-ink-600">{COPY.exam.yourAnswer}</dt>
-                      <dd
-                        className={cn(
-                          'font-medium',
-                          question.selectedOptionKey === null
-                            ? 'text-ink-600'
-                            : question.isCorrect
-                              ? 'text-success'
-                              : 'text-error',
-                        )}
-                      >
+                    <div
+                      className={cn(
+                        'rounded-control flex flex-col gap-1 border p-3',
+                        question.selectedOptionKey === null
+                          ? 'border-line-200 bg-surface-muted'
+                          : question.isCorrect
+                            ? 'border-success/25 bg-success-soft'
+                            : 'border-error/25 bg-error-soft',
+                      )}
+                    >
+                      <dt className="text-ink-700 font-medium">{COPY.exam.yourAnswer}</dt>
+                      <dd className="text-ink-900 font-medium">
                         {chosen ? (
                           <RichTextView document={chosen.content} className="gap-1" />
                         ) : (
@@ -195,9 +241,9 @@ export function ExamResults({
                       </dd>
                     </div>
                     {!question.isCorrect && correct ? (
-                      <div className="flex flex-col gap-1">
-                        <dt className="text-ink-600">{COPY.exam.correctAnswer}</dt>
-                        <dd className="text-success font-medium">
+                      <div className="rounded-control border-success/25 bg-success-soft flex flex-col gap-1 border p-3">
+                        <dt className="text-ink-700 font-medium">{COPY.exam.correctAnswer}</dt>
+                        <dd className="text-ink-900 font-medium">
                           <RichTextView document={correct.content} className="gap-1" />
                         </dd>
                       </div>
@@ -205,8 +251,9 @@ export function ExamResults({
                   </dl>
 
                   {question.explanation ? (
-                    <div className="rounded-control bg-surface-muted p-3">
-                      <p className="text-ink-600 mb-1 text-xs font-medium">
+                    <div className="rounded-control bg-surface-muted p-4">
+                      {/* ink-700, not ink-600: surface-muted is a tinted ground. */}
+                      <p className="text-ink-700 mb-1 text-xs font-semibold">
                         {COPY.exam.explanationLabel}
                       </p>
                       <RichTextView document={question.explanation} paragraphClassName="text-sm" />
@@ -219,13 +266,17 @@ export function ExamResults({
         ))}
       </section>
 
-      <p className="text-ink-600 max-w-prose text-xs leading-relaxed">
-        {resultDisclaimer || COPY.legal.independenceDisclaimer}
-      </p>
+      {/* The standing disclosure, in the system's own figure: a ground and an
+          inline-start rule. Not an alert — nothing here has gone wrong. */}
+      <Notice tone="neutral">{resultDisclaimer || COPY.legal.independenceDisclaimer}</Notice>
 
       <div>
         <Button asChild variant="outline">
-          <Link href={ROUTES.dashboardAttempts}>{COPY.exam.backToAttempts}</Link>
+          <Link href={ROUTES.dashboardAttempts}>
+            {/* Backwards, so the arrow points right in RTL. */}
+            <ArrowRight className="size-4" aria-hidden="true" />
+            {COPY.exam.backToAttempts}
+          </Link>
         </Button>
       </div>
     </div>
@@ -244,11 +295,41 @@ const DOMAIN_LABELS: Record<string, string> = {
   DATA_ANALYSIS: 'تفسير البيانات',
 };
 
-function Stat({ label, value }: { label: string; value: string }) {
+/**
+ * Grounds and glyphs for the four totals. Every tile still carries its Arabic
+ * label, so the tone is a second signal and never the only one.
+ */
+const STAT_TONES = {
+  success: { ground: 'border-success/25 bg-success-soft', glyph: 'bg-success' },
+  error: { ground: 'border-error/25 bg-error-soft', glyph: 'bg-error' },
+  neutral: { ground: 'border-line-200 bg-surface-muted', glyph: 'bg-ink-600' },
+  brand: { ground: 'border-brand-700/25 bg-brand-100', glyph: 'bg-brand-600' },
+} as const;
+
+function Stat({
+  label,
+  value,
+  tone,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  tone: keyof typeof STAT_TONES;
+  icon: ComponentType<{ className?: string }>;
+}) {
+  const { ground, glyph } = STAT_TONES[tone];
   return (
-    <div className="rounded-control border-line-200 bg-surface flex flex-col gap-1 border px-4 py-3">
-      <dt className="text-ink-600 text-sm">{label}</dt>
-      <dd className="text-ink-900 text-xl font-semibold">{value}</dd>
+    <div className={cn('rounded-panel flex flex-col gap-3 border p-4', ground)}>
+      {/* A filled square carrying a white GLYPH — never white text. */}
+      <span
+        aria-hidden="true"
+        className={cn('rounded-control flex size-9 items-center justify-center text-white', glyph)}
+      >
+        <Icon className="size-5" />
+      </span>
+      {/* ink-700 is the floor on a tinted ground. */}
+      <dt className="text-ink-700 text-sm font-medium">{label}</dt>
+      <dd className="text-ink-900 text-h3 tabular-nums">{value}</dd>
     </div>
   );
 }

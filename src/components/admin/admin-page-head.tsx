@@ -41,7 +41,7 @@ export function AdminPageHead({
         action sits on the left under `dir="rtl"` with no physical offset.
       */}
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-ink-900 min-w-0 text-2xl font-semibold">{title}</h1>
+        <h1 className="text-ink-900 min-w-0 text-2xl font-bold">{title}</h1>
         {action ? <div className="ms-auto flex shrink-0 items-center gap-2">{action}</div> : null}
       </div>
 

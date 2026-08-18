@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&amp;family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:#fff;color:#0E1117;font-family:'IBM Plex Sans Arabic','Alexandria',system-ui,sans-serif;-webkit-font-smoothing:antialiased;text-wrap:pretty;overflow-x:hidden}
+  a{color:#5B62F5;text-decoration:none}
+  a:hover{color:#3F46E0}
+  @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(12px)}}
+  @keyframes floatC{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-9px) translateX(-6px)}}
+  @keyframes glowPulse{0%,100%{opacity:.55}50%{opacity:.9}}
+  @keyframes dash{to{stroke-dashoffset:0}}
+</style>
+</helmet>
+
+<div dir="rtl" style="position:relative;width:100%;overflow:hidden;background:#fff;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif">
+
+  <div style="position:absolute;top:-600px;right:-160px;width:1100px;height:1000px;border-radius:50%;background:radial-gradient(closest-side,rgba(126,141,255,.5),rgba(126,141,255,0));pointer-events:none"></div>
+  <div style="position:absolute;top:-560px;left:-200px;width:980px;height:940px;border-radius:50%;background:radial-gradient(closest-side,rgba(171,145,255,.42),rgba(171,145,255,0));pointer-events:none"></div>
+  <div style="position:absolute;top:-320px;left:50%;width:1500px;height:620px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(196,209,255,.55),rgba(255,255,255,0));pointer-events:none"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:820px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.62) 26%,rgba(255,255,255,.94) 52%,#fff 78%);pointer-events:none"></div>
+
+  <header style="position:sticky;top:0;z-index:60;width:100%;backdrop-filter:blur(14px);background:rgba(255,255,255,.72);border-bottom:1px solid rgba(232,234,244,.9)">
+    <div style="max-width:1240px;margin:0 auto;padding:14px clamp(16px,3vw,40px);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <a href="#top" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+        <span style="width:42px;height:42px;border-radius:13px;background:linear-gradient(140deg,#6E8BFF 0%,#7B5CF6 55%,#8A5AF0 100%);box-shadow:0 6px 16px rgba(103,92,246,.32);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.02em">ع</span>
+        <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;color:#0E1117;letter-spacing:-.01em;white-space:nowrap">بناء العهد الجديد</span>
+      </a>
+      <nav style="display:flex;align-items:center;gap:4px;padding:6px;border:1px solid #E9EBF4;background:rgba(255,255,255,.75);border-radius:999px;box-shadow:0 1px 2px rgba(16,24,40,.04)">
+        <a href="#top" style="padding:9px 16px;border-radius:999px;font-size:15px;color:#111420;font-weight:500;text-decoration:none;white-space:nowrap" style-hover="background:#F2F4FB">الرئيسية</a>
+        <a href="#courses" style="padding:9px 16px;border-radius:999px;font-size:15px;color:#525A6E;font-weight:500;text-decoration:none;white-space:nowrap" style-hover="background:#F2F4FB;color:#111420">الدورات</a>
+        <a href="#sims" style="padding:9px 16px;border-radius:999px;font-size:15px;color:#525A6E;font-weight:500;text-decoration:none;white-space:nowrap" style-hover="background:#F2F4FB;color:#111420">المحاكيات</a>
+        <a href="#journey" style="padding:9px 16px;border-radius:999px;font-size:15px;color:#525A6E;font-weight:500;text-decoration:none;white-space:nowrap" style-hover="background:#F2F4FB;color:#111420">كيف تعمل المنصة؟</a>
+        <a href="#faq" style="padding:9px 16px;border-radius:999px;font-size:15px;color:#525A6E;font-weight:500;text-decoration:none;white-space:nowrap" style-hover="background:#F2F4FB;color:#111420">الأسئلة الشائعة</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a href="#products" style="padding:11px 18px;border-radius:999px;font-size:15px;font-weight:500;color:#232838;white-space:nowrap;border:1px solid #E5E8F2;background:#fff;text-decoration:none" style-hover="background:#F4F6FC">تسجيل الدخول</a>
+        <a href="#products" style="padding:12px 24px;border-radius:999px;font-size:15px;font-weight:600;color:#fff;white-space:nowrap;background:linear-gradient(95deg,#4E7BF8 0%,#7B5CF6 100%);box-shadow:0 8px 20px rgba(94,84,246,.3);text-decoration:none" style-hover="box-shadow:0 12px 26px rgba(94,84,246,.42);color:#fff">ابدأ الآن</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="top" style="scroll-margin-top:96px;position:relative;padding:96px 40px 0;text-align:center">
+    <div style="max-width:1000px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E3E6F3;background:rgba(255,255,255,.86);border-radius:999px;box-shadow:0 2px 8px rgba(16,24,40,.05)">
+        <span style="width:26px;height:26px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:16px">bolt</span>
+        <span style="font-size:14.5px;color:#2C3345;font-weight:500;white-space:nowrap">منصة تدريب متخصصة في اختبار القدرات</span>
+      </div>
+      <h1 data-reveal="" data-reveal-delay="80" style="margin:26px 0 0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(38px,6vw,80px);line-height:1.14;letter-spacing:-.03em;color:#0B0E15">استعدادك للقدرات <span style="background:linear-gradient(95deg,#4E7BF8 0%,#7B5CF6 55%,#9B5BEC 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">يبدأ من هنا</span></h1>
+      <p data-reveal="" data-reveal-delay="150" style="margin:26px auto 0;max-width:660px;font-size:clamp(15px,1.2vw,18px);line-height:1.85;color:#5A6175;font-weight:300">تأسيس منظم، تدريبات عملية، ومحاكيات تساعدك تتدرب على تجربة الاختبار وتتابع تقدمك خطوة بخطوة.</p>
+      <div data-reveal="" data-reveal-delay="220" style="margin:38px auto 0;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
+        <a href="#products" style="padding:17px 38px;border-radius:999px;font-size:17px;font-weight:600;color:#fff;white-space:nowrap;background:linear-gradient(95deg,#4E7BF8 0%,#7B5CF6 100%);box-shadow:0 14px 30px rgba(94,84,246,.34);text-decoration:none" style-hover="box-shadow:0 18px 38px rgba(94,84,246,.46);color:#fff">ابدأ استعدادك</a>
+        <a href="#sims" style="padding:16px 32px;border-radius:999px;font-size:16.5px;font-weight:500;color:#1B2130;white-space:nowrap;background:rgba(255,255,255,.9);border:1px solid #E2E5F1;text-decoration:none" style-hover="background:#fff;color:#1B2130">استكشف المحاكيات</a>
+      </div>
+      <p data-reveal="" data-reveal-delay="280" style="margin:20px 0 0;font-size:14px;color:#79808F;letter-spacing:.01em">شراء مرة واحدة • وصول دائم</p>
+    </div>
+
+    <div data-reveal="" data-reveal-delay="340" style="position:relative;max-width:1240px;margin:70px auto 0;padding:0">
+      <div style="position:absolute;inset:auto 8% -40px 8%;height:70%;border-radius:50%;background:radial-gradient(closest-side,rgba(123,92,246,.34),rgba(123,92,246,0));animation:glowPulse 7s ease-in-out infinite;pointer-events:none"></div>
+
+      <div style="position:relative;border-radius:26px;padding:10px;background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(244,246,255,.75));border:1px solid rgba(255,255,255,.9);box-shadow:0 40px 80px -30px rgba(38,45,90,.35),0 2px 6px rgba(16,24,40,.05)">
+        <div style="border-radius:18px;overflow:hidden;border:1px solid #E8EAF3;background:#fff">
+
+          <div style="direction:ltr;display:flex;align-items:center;gap:14px;padding:11px 16px;background:#FBFCFE;border-bottom:1px solid #EEF0F7">
+            <div style="display:flex;gap:6px"><span style="width:11px;height:11px;border-radius:50%;background:#FF5F57"></span><span style="width:11px;height:11px;border-radius:50%;background:#FEBC2E"></span><span style="width:11px;height:11px;border-radius:50%;background:#28C840"></span></div>
+            <div style="flex:1;display:flex;justify-content:center"><div style="min-width:280px;max-width:420px;width:40%;height:24px;border-radius:8px;background:#F1F3F9;border:1px solid #E9ECF5"></div></div>
+            <span style="font-family:'Material Symbols Rounded';font-size:17px;color:#AFB6C6">add</span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 22px;border-bottom:1px solid #F0F2F8">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Alexandria',sans-serif;font-weight:700;font-size:14px">ع</span>
+              <span style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:15px;color:#131722">بناء العهد الجديد</span>
+            </div>
+            <div style="flex:1;max-width:360px;display:flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid #E9ECF5;border-radius:999px;background:#FAFBFE">
+              <span style="font-family:'Material Symbols Rounded';font-size:17px;color:#AEB5C5">search</span>
+              <span style="font-size:13px;color:#A7AEBE">ابحث في الدروس والمحاكيات</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-family:'Material Symbols Rounded';font-size:20px;color:#8A92A5">notifications</span>
+              <span style="width:32px;height:32px;border-radius:50%;background:linear-gradient(140deg,#DDE4FF,#C9BEFF);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:#3A3F80">ع.م</span>
+            </div>
+          </div>
+
+          <div style="padding:26px 22px 28px;background:linear-gradient(180deg,#FCFDFF 0%,#F7F9FE 100%)">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+              <div>
+                <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:21px;color:#101521">مرحبًا عبدالله 👋</div>
+                <div style="margin-top:6px;font-size:13.5px;color:#7A8194">جاهز لجلسة تدريب اليوم؟ باقي لك درسان في وحدة النسب.</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);color:#fff;font-size:13.5px;font-weight:600;white-space:nowrap;box-shadow:0 8px 18px rgba(94,84,246,.28)">
+                <span style="font-family:'Material Symbols Rounded';font-size:16px">play_arrow</span>ابدأ التدريب
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px">
+              <div style="display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #ECEEF6;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03)">
+                <span style="width:38px;height:38px;border-radius:11px;background:#EEF1FF;display:flex;align-items:center;justify-content:center;color:#5A6BF0;font-family:'Material Symbols Rounded';font-size:20px">school</span>
+                <div><div style="font-size:12px;color:#828A9C">تقدمك في الدورة</div><div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;color:#0F1420">68%</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #ECEEF6;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03)">
+                <span style="width:38px;height:38px;border-radius:11px;background:#F1EEFF;display:flex;align-items:center;justify-content:center;color:#7B5CF6;font-family:'Material Symbols Rounded';font-size:20px">timer</span>
+                <div><div style="font-size:12px;color:#828A9C">آخر محاكاة</div><div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;color:#0F1420">74%</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #ECEEF6;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03)">
+                <span style="width:38px;height:38px;border-radius:11px;background:#EAF1FF;display:flex;align-items:center;justify-content:center;color:#4E7BF8;font-family:'Material Symbols Rounded';font-size:20px">quiz</span>
+                <div><div style="font-size:12px;color:#828A9C">الأسئلة التي أجبت عنها</div><div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;color:#0F1420">1,240</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #ECEEF6;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03)">
+                <span style="width:38px;height:38px;border-radius:11px;background:#EDF6F1;display:flex;align-items:center;justify-content:center;color:#3E9A6D;font-family:'Material Symbols Rounded';font-size:20px">task_alt</span>
+                <div><div style="font-size:12px;color:#828A9C">الدروس المكتملة</div><div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;color:#0F1420">38</div></div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
+              <div style="padding:20px;background:#fff;border:1px solid #ECEEF6;border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.03)">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:15.5px;color:#111623">تقدمك</div>
+                  <div style="display:flex;align-items:center;gap:14px;font-size:11.5px;color:#7B8395">
+                    <span style="display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:3px;background:#4E7BF8"></span>كمي</span>
+                    <span style="display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:3px;background:#C3B8FA"></span>لفظي</span>
+                  </div>
+                </div>
+                <div style="margin-top:18px;display:flex;align-items:flex-end;gap:14px;height:150px;padding-bottom:22px;border-bottom:1px solid #F0F2F8;position:relative">
+                  <div style="position:absolute;inset:0 0 22px 0;display:flex;flex-direction:column;justify-content:space-between"><span style="border-top:1px dashed #EEF0F7"></span><span style="border-top:1px dashed #EEF0F7"></span><span style="border-top:1px dashed #EEF0F7"></span><span style="border-top:1px dashed #EEF0F7"></span></div>
+                  <div data-bars="" style="position:relative;flex:1;display:flex;align-items:flex-end;justify-content:space-between;gap:10px;height:100%">
+                    <div style="flex:1;display:flex;align-items:flex-end;gap:5px;height:100%"><span data-bar="46" style="flex:1;height:46%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#6E8BFF,#4E7BF8);transition:height .9s cubic-bezier(.2,.75,.2,1)"></span><span data-bar="34" style="flex:1;height:34%;border-radius:5px 5px 0 0;background:#D9D2FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .1s"></span></div>
+                    <div style="flex:1;display:flex;align-items:flex-end;gap:5px;height:100%"><span data-bar="58" style="flex:1;height:58%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#6E8BFF,#4E7BF8);transition:height .9s cubic-bezier(.2,.75,.2,1) .08s"></span><span data-bar="44" style="flex:1;height:44%;border-radius:5px 5px 0 0;background:#D9D2FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .18s"></span></div>
+                    <div style="flex:1;display:flex;align-items:flex-end;gap:5px;height:100%"><span data-bar="52" style="flex:1;height:52%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#6E8BFF,#4E7BF8);transition:height .9s cubic-bezier(.2,.75,.2,1) .16s"></span><span data-bar="62" style="flex:1;height:62%;border-radius:5px 5px 0 0;background:#D9D2FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .26s"></span></div>
+                    <div style="flex:1;display:flex;align-items:flex-end;gap:5px;height:100%"><span data-bar="74" style="flex:1;height:74%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#6E8BFF,#4E7BF8);transition:height .9s cubic-bezier(.2,.75,.2,1) .24s"></span><span data-bar="56" style="flex:1;height:56%;border-radius:5px 5px 0 0;background:#D9D2FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .34s"></span></div>
+                    <div style="flex:1;display:flex;align-items:flex-end;gap:5px;height:100%"><span data-bar="86" style="flex:1;height:86%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#6E8BFF,#4E7BF8);transition:height .9s cubic-bezier(.2,.75,.2,1) .32s"></span><span data-bar="70" style="flex:1;height:70%;border-radius:5px 5px 0 0;background:#D9D2FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .42s"></span></div>
+                  </div>
+                </div>
+                <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:11.5px;color:#98A0B0"><span>الأسبوع 1</span><span>الأسبوع 2</span><span>الأسبوع 3</span><span>الأسبوع 4</span><span>الأسبوع 5</span></div>
+              </div>
+
+              <div style="padding:20px;background:#fff;border:1px solid #ECEEF6;border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.03);display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                  <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:15.5px;color:#111623">الأداء في المحاكيات</div>
+                  <div style="display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid #ECEEF6;border-radius:999px;font-size:11.5px;color:#79808F">آخر 4 محاولات<span style="font-family:'Material Symbols Rounded';font-size:14px">expand_more</span></div>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:26px;padding:18px 0 6px;flex-wrap:wrap">
+                  <div style="position:relative;width:150px;height:150px">
+                    <svg viewBox="0 0 120 120" style="width:150px;height:150px;transform:rotate(-90deg)">
+                      <circle cx="60" cy="60" r="50" fill="none" stroke="#F0F2F8" stroke-width="13"></circle>
+                      <circle data-ring="74" cx="60" cy="60" r="50" fill="none" stroke="url(#ringGrad)" stroke-width="13" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,.75,.2,1)"></circle>
+                      <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4E7BF8"></stop><stop offset="100%" stop-color="#8A5AF0"></stop></linearGradient></defs>
+                    </svg>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                      <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:30px;color:#0F1420;letter-spacing:-.02em">74%</span>
+                      <span style="font-size:11.5px;color:#828A9C">مؤشر تدريبي</span>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:12px;min-width:130px">
+                    <div><div style="display:flex;justify-content:space-between;font-size:12.5px;color:#5F6779;margin-bottom:6px"><span>لفظي</span><span style="font-weight:600;color:#151A27">72%</span></div><div style="height:7px;border-radius:99px;background:#F1F3F9"><div style="width:72%;height:100%;border-radius:99px;background:linear-gradient(90deg,#7B5CF6,#4E7BF8)"></div></div></div>
+                    <div><div style="display:flex;justify-content:space-between;font-size:12.5px;color:#5F6779;margin-bottom:6px"><span>كمي</span><span style="font-weight:600;color:#151A27">64%</span></div><div style="height:7px;border-radius:99px;background:#F1F3F9"><div style="width:64%;height:100%;border-radius:99px;background:linear-gradient(90deg,#7B5CF6,#4E7BF8)"></div></div></div>
+                    <div style="margin-top:2px;font-size:11.5px;color:#98A0B0;line-height:1.7">المؤشرات تدريبية وليست درجة رسمية.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px;padding:18px 20px;background:#fff;border:1px solid #ECEEF6;border-radius:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.03)">
+              <span style="width:52px;height:52px;border-radius:14px;background:linear-gradient(140deg,#E7EDFF,#DCD6FD);display:flex;align-items:center;justify-content:center;color:#5A63E8;font-family:'Material Symbols Rounded';font-size:24px">menu_book</span>
+              <div style="flex:1;min-width:220px">
+                <div style="font-size:12px;color:#828A9C">أكمل من حيث توقفت</div>
+                <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:15.5px;color:#111623;margin-top:3px">دورة تأسيس القدرات — القسم الكمي · وحدة النسب</div>
+                <div style="margin-top:10px;height:7px;border-radius:99px;background:#F1F3F9"><div style="width:34%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="font-size:12.5px;color:#79808F;white-space:nowrap">الدرس 4 من 12</span>
+                <span style="padding:11px 20px;border-radius:999px;background:#111623;color:#fff;font-size:13.5px;font-weight:600;white-space:nowrap">أكمل الدرس</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ floatingCards }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="position:absolute;top:16%;right:-2%;display:flex;align-items:center;gap:11px;padding:13px 16px;background:rgba(255,255,255,.94);border:1px solid #EAECF5;border-radius:16px;box-shadow:0 18px 40px -16px rgba(38,45,90,.4);animation:floatA 8s ease-in-out infinite">
+            <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:18px">record_voice_over</span>
+            <div><div style="font-size:11.5px;color:#828A9C">لفظي</div><div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:16px;color:#0F1420">72%</div></div>
+          </div>
+          <div style="position:absolute;top:44%;left:-3%;display:flex;align-items:center;gap:11px;padding:13px 16px;background:rgba(255,255,255,.94);border:1px solid #EAECF5;border-radius:16px;box-shadow:0 18px 40px -16px rgba(38,45,90,.4);animation:floatB 9s ease-in-out infinite">
+            <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:18px">calculate</span>
+            <div><div style="font-size:11.5px;color:#828A9C">كمي</div><div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:16px;color:#0F1420">64%</div></div>
+          </div>
+          <div style="position:absolute;bottom:16%;right:-1%;display:flex;align-items:center;gap:9px;padding:11px 15px;background:rgba(255,255,255,.94);border:1px solid #EAECF5;border-radius:14px;box-shadow:0 16px 34px -16px rgba(38,45,90,.36);animation:floatC 10s ease-in-out infinite">
+            <span style="font-family:'Material Symbols Rounded';font-size:18px;color:#3E9A6D">check_circle</span>
+            <span style="font-size:13px;color:#2A303F;font-weight:500">آخر محاولة مكتملة</span>
+          </div>
+          <div style="position:absolute;bottom:30%;left:-1%;display:flex;align-items:center;gap:9px;padding:11px 15px;background:rgba(255,255,255,.94);border:1px solid #EAECF5;border-radius:14px;box-shadow:0 16px 34px -16px rgba(38,45,90,.36);animation:floatA 11s ease-in-out infinite">
+            <span style="font-family:'Material Symbols Rounded';font-size:18px;color:#5A63E8">cloud_done</span>
+            <span style="font-size:13px;color:#2A303F;font-weight:500">تم حفظ تقدمك</span>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </section>
+
+  <section id="features" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,140px) clamp(16px,3vw,40px) clamp(50px,6vw,90px);text-align:center">
+    <div style="max-width:1240px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">grid_view</span>
+        <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">المميزات</span>
+      </div>
+      <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;max-width:760px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">كل ما تحتاجه للاستعداد في مكان واحد</h2>
+      <p data-reveal="" data-reveal-delay="120" style="margin:20px auto 0;max-width:620px;font-size:clamp(15px,1.1vw,17px);line-height:1.85;color:#5A6175;font-weight:300">من التأسيس إلى التدريب والمحاكاة، أدوات تساعدك تبني مستواك وتعرف أين تحتاج تركز أكثر.</p>
+
+      <div style="margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;text-align:right">
+
+        <div data-reveal="" style="padding:26px;background:linear-gradient(180deg,#FBFBFF 0%,#FFF 45%);border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -28px rgba(38,45,90,.4)">
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(19px,1.6vw,24px);color:#0D1119;letter-spacing:-.01em">دورات منظمة</h3>
+          <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:#616878;font-weight:300">دروس مرتبة تساعدك تبدأ من الأساس وتتقدم خطوة بخطوة.</p>
+          <div style="margin-top:22px;padding:16px;border:1px solid #EDEFF7;border-radius:16px;background:linear-gradient(180deg,#F8F9FE,#F2F4FB)">
+            <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid #EEF0F7">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:#8A91A2"><span>وحدة 2 · النسب والتناسب</span><span>4 / 12</span></div>
+              <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:#F6F8FE;border:1px solid #EDF0F9"><span style="font-family:'Material Symbols Rounded';font-size:16px;color:#3E9A6D">check_circle</span><span style="font-size:12.5px;color:#3C4353">مفهوم النسبة</span></div>
+                <div style="display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:linear-gradient(90deg,#EEF2FF,#F6F3FF);border:1px solid #E2E6FB"><span style="font-family:'Material Symbols Rounded';font-size:16px;color:#5A63E8">play_circle</span><span style="font-size:12.5px;color:#242B3B;font-weight:500">حل مسائل النسب</span><span style="margin-right:auto;font-size:11px;color:#8A91A2">08:24</span></div>
+                <div style="display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:#FAFBFE;border:1px solid #EFF1F8"><span style="font-family:'Material Symbols Rounded';font-size:16px;color:#B9C0CF">lock</span><span style="font-size:12.5px;color:#8A91A2">تمرين الوحدة</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="90" style="padding:26px;background:linear-gradient(180deg,#FBFBFF 0%,#FFF 45%);border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -28px rgba(38,45,90,.4)">
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(19px,1.6vw,24px);color:#0D1119;letter-spacing:-.01em">محاكاة واقعية</h3>
+          <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:#616878;font-weight:300">اختبارات مقسمة ومؤقتة تساعدك تتدرب على تجربة الاختبار.</p>
+          <div style="margin-top:22px;padding:16px;border:1px solid #EDEFF7;border-radius:16px;background:linear-gradient(180deg,#F8F9FE,#F2F4FB)">
+            <div style="padding:14px;border-radius:12px;background:#fff;border:1px solid #EEF0F7">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="padding:4px 10px;border-radius:999px;background:#EEF2FF;color:#4453C8;font-size:11px;font-weight:600">القسم الكمي</span>
+                <span style="display:flex;align-items:center;gap:5px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:14px;color:#111623"><span style="font-family:'Material Symbols Rounded';font-size:15px;color:#7B5CF6">timer</span>12:42</span>
+              </div>
+              <div style="margin-top:14px;height:6px;border-radius:99px;background:#F1F3F9"><div style="width:62%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+              <div style="margin-top:9px;font-size:11.5px;color:#8A91A2">السؤال 15 من 24</div>
+              <div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap">
+                <span style="width:26px;height:26px;border-radius:8px;background:#5A63E8;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600">15</span>
+                <span style="width:26px;height:26px;border-radius:8px;background:#EEF1FA;color:#6B7385;font-size:11px;display:flex;align-items:center;justify-content:center">16</span>
+                <span style="width:26px;height:26px;border-radius:8px;background:#EEF1FA;color:#6B7385;font-size:11px;display:flex;align-items:center;justify-content:center">17</span>
+                <span style="width:26px;height:26px;border-radius:8px;background:#EEF1FA;color:#6B7385;font-size:11px;display:flex;align-items:center;justify-content:center">18</span>
+                <span style="width:26px;height:26px;border-radius:8px;background:#F6F8FE;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">19</span>
+                <span style="width:26px;height:26px;border-radius:8px;background:#F6F8FE;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="180" style="padding:26px;background:linear-gradient(180deg,#FBFBFF 0%,#FFF 45%);border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -28px rgba(38,45,90,.4)">
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(19px,1.6vw,24px);color:#0D1119;letter-spacing:-.01em">تابع تقدمك</h3>
+          <p style="margin:10px 0 0;font-size:15px;line-height:1.8;color:#616878;font-weight:300">اعرف الدروس المكتملة ونتائج محاولاتك السابقة بسهولة.</p>
+          <div style="margin-top:22px;padding:16px;border:1px solid #EDEFF7;border-radius:16px;background:linear-gradient(180deg,#F8F9FE,#F2F4FB)">
+            <div style="padding:14px;border-radius:12px;background:#fff;border:1px solid #EEF0F7">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:#8A91A2"><span>مؤشر الأداء</span><span>أسبوعي</span></div>
+              <div style="margin-top:16px;display:flex;align-items:flex-end;gap:8px;height:96px">
+                <span data-bar="38" style="flex:1;height:38%;border-radius:5px 5px 0 0;background:#E4E8FB;transition:height .9s cubic-bezier(.2,.75,.2,1)"></span>
+                <span data-bar="55" style="flex:1;height:55%;border-radius:5px 5px 0 0;background:#CFD8FA;transition:height .9s cubic-bezier(.2,.75,.2,1) .08s"></span>
+                <span data-bar="46" style="flex:1;height:46%;border-radius:5px 5px 0 0;background:#E4E8FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .16s"></span>
+                <span data-bar="88" style="flex:1;height:88%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#7B5CF6,#4E7BF8);transition:height .9s cubic-bezier(.2,.75,.2,1) .24s"></span>
+                <span data-bar="64" style="flex:1;height:64%;border-radius:5px 5px 0 0;background:#CFD8FA;transition:height .9s cubic-bezier(.2,.75,.2,1) .32s"></span>
+                <span data-bar="72" style="flex:1;height:72%;border-radius:5px 5px 0 0;background:#E4E8FB;transition:height .9s cubic-bezier(.2,.75,.2,1) .4s"></span>
+              </div>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F1F3F9;display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:12px;color:#5F6779">دروس مكتملة هذا الأسبوع</span>
+                <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:16px;color:#0F1420">6</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:22px;text-align:right">
+        <div data-reveal="" style="padding:28px;background:linear-gradient(180deg,#FBFBFF 0%,#FFF 45%);border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -28px rgba(38,45,90,.4)">
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(19px,1.6vw,24px);color:#0D1119;letter-spacing:-.01em">اختبارات بعد الدروس</h3>
+          <p style="margin:10px 0 0;max-width:440px;font-size:15px;line-height:1.8;color:#616878;font-weight:300">طبّق مباشرة على المهارات التي تعلمتها.</p>
+          <div style="margin-top:22px;padding:20px;border:1px solid #EDEFF7;border-radius:16px;background:linear-gradient(180deg,#F8F9FE,#F1F3FB)">
+            <div style="padding:18px;border-radius:14px;background:#fff;border:1px solid #EEF0F7;box-shadow:0 10px 24px -18px rgba(38,45,90,.3)">
+              <div style="font-size:12px;color:#8A91A2">تمرين سريع · وحدة النسب</div>
+              <div style="margin-top:8px;font-family:'Alexandria',sans-serif;font-weight:600;font-size:15.5px;color:#111623;line-height:1.6">إذا كانت نسبة الأولاد إلى البنات 3 : 5، وعدد البنات 20، فكم عدد الأولاد؟</div>
+              <div style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px">
+                <span style="padding:11px 14px;border-radius:11px;border:1px solid #EDEFF7;background:#FAFBFE;font-size:13px;color:#454C5D">10</span>
+                <span style="padding:11px 14px;border-radius:11px;border:1px solid #C9CFFB;background:linear-gradient(90deg,#EFF2FF,#F7F4FF);font-size:13px;color:#1E2537;font-weight:600;display:flex;align-items:center;justify-content:space-between">12<span style="font-family:'Material Symbols Rounded';font-size:16px;color:#5A63E8">check_circle</span></span>
+                <span style="padding:11px 14px;border-radius:11px;border:1px solid #EDEFF7;background:#FAFBFE;font-size:13px;color:#454C5D">15</span>
+                <span style="padding:11px 14px;border-radius:11px;border:1px solid #EDEFF7;background:#FAFBFE;font-size:13px;color:#454C5D">18</span>
+              </div>
+              <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
+                <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#3E9A6D"><span style="font-family:'Material Symbols Rounded';font-size:15px">cloud_done</span>تم حفظ الإجابة</span>
+                <span style="padding:9px 18px;border-radius:999px;background:#111623;color:#fff;font-size:12.5px;font-weight:600">التالي</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="90" style="padding:28px;background:linear-gradient(180deg,#FBFBFF 0%,#FFF 45%);border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -28px rgba(38,45,90,.4)">
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(19px,1.6vw,24px);color:#0D1119;letter-spacing:-.01em">وصول دائم</h3>
+          <p style="margin:10px 0 0;max-width:440px;font-size:15px;line-height:1.8;color:#616878;font-weight:300">اشترِ المنتج مرة واحدة وارجع له وقت ما تحتاج.</p>
+          <div style="margin-top:22px;padding:20px;border:1px solid #EDEFF7;border-radius:16px;background:linear-gradient(180deg,#F8F9FE,#F1F3FB);position:relative;overflow:hidden">
+            <div style="position:absolute;top:-60px;left:-40px;width:240px;height:240px;border-radius:50%;background:radial-gradient(closest-side,rgba(123,92,246,.18),rgba(123,92,246,0))"></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:13px;background:#fff;border:1px solid #EEF0F7">
+                <span style="width:40px;height:40px;border-radius:12px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:21px">all_inclusive</span>
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:600;color:#161B29">دورة تأسيس القدرات</div><div style="font-size:11.5px;color:#8A91A2;margin-top:2px">مُفعّلة · وصول دائم</div></div>
+                <span style="padding:5px 11px;border-radius:999px;background:#EDF7F1;color:#2F8259;font-size:11px;font-weight:600">مُفعّل</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:13px;background:#fff;border:1px solid #EEF0F7">
+                <span style="width:40px;height:40px;border-radius:12px;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:21px">timer</span>
+                <div style="flex:1"><div style="font-size:13.5px;font-weight:600;color:#161B29">محاكي القدرات — 4 نماذج</div><div style="font-size:11.5px;color:#8A91A2;margin-top:2px">شراء مرة واحدة · بدون اشتراك</div></div>
+                <span style="padding:5px 11px;border-radius:999px;background:#EDF7F1;color:#2F8259;font-size:11px;font-weight:600">مُفعّل</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:13px;background:rgba(255,255,255,.6);border:1px dashed #DDE1F0;font-size:12px;color:#79808F">
+                <span style="font-family:'Material Symbols Rounded';font-size:16px;color:#9AA1B2">history</span>سجل محاولاتك محفوظ ويظل متاحًا لك
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="benefits" style="scroll-margin-top:96px;position:relative;padding:clamp(70px,8vw,110px) clamp(16px,3vw,40px);background:linear-gradient(180deg,#FFF 0%,#F6F7FD 18%,#F3F4FC 55%,#F8F7FE 100%);border-top:1px solid #F0F1F8;border-bottom:1px solid #F0F1F8;overflow:hidden">
+    <div style="max-width:1240px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:clamp(40px,5vw,70px);align-items:center">
+      <div>
+        <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+          <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">insights</span>
+          <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">طريقة أذكى للاستعداد</span>
+        </div>
+        <h2 data-reveal="" data-reveal-delay="60" style="margin:22px 0 0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,3.8vw,50px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">تعلّم، طبّق، ثم اختبر مستواك</h2>
+        <p data-reveal="" data-reveal-delay="110" style="margin:18px 0 0;max-width:480px;font-size:clamp(15px,1.1vw,17px);line-height:1.85;color:#5A6175;font-weight:300">رحلة تدريب واضحة تساعدك تنتقل من فهم المهارة إلى تطبيقها تحت الوقت.</p>
+
+        <div style="margin-top:38px;display:flex;flex-direction:column;gap:16px">
+          <div data-reveal="" style="display:flex;align-items:stretch;gap:14px">
+            <span style="flex:none;width:52px;height:52px;border-radius:15px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:24px;box-shadow:0 10px 22px -10px rgba(94,84,246,.6)">school</span>
+            <div style="flex:1;padding:14px 20px;background:rgba(255,255,255,.85);border:1px solid #E9EBF5;border-radius:16px;transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateX(-6px);box-shadow:0 18px 34px -24px rgba(38,45,90,.45)">
+              <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:17px;color:#0F1420">ابدأ بالتأسيس</div>
+              <div style="margin-top:5px;font-size:14px;line-height:1.75;color:#666D7D;font-weight:300">رتّب تعلمك من خلال وحدات ودروس واضحة.</div>
+            </div>
+          </div>
+          <div data-reveal="" data-reveal-delay="90" style="display:flex;align-items:stretch;gap:14px">
+            <span style="flex:none;width:52px;height:52px;border-radius:15px;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:24px;box-shadow:0 10px 22px -10px rgba(94,84,246,.6)">edit_note</span>
+            <div style="flex:1;padding:14px 20px;background:rgba(255,255,255,.85);border:1px solid #E9EBF5;border-radius:16px;transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateX(-6px);box-shadow:0 18px 34px -24px rgba(38,45,90,.45)">
+              <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:17px;color:#0F1420">طبّق مباشرة</div>
+              <div style="margin-top:5px;font-size:14px;line-height:1.75;color:#666D7D;font-weight:300">اختبارات قصيرة بعد الدروس تساعدك تتأكد من فهم المهارة.</div>
+            </div>
+          </div>
+          <div data-reveal="" data-reveal-delay="180" style="display:flex;align-items:stretch;gap:14px">
+            <span style="flex:none;width:52px;height:52px;border-radius:15px;background:linear-gradient(140deg,#8A5AF0,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:24px;box-shadow:0 10px 22px -10px rgba(94,84,246,.6)">timer</span>
+            <div style="flex:1;padding:14px 20px;background:rgba(255,255,255,.85);border:1px solid #E9EBF5;border-radius:16px;transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateX(-6px);box-shadow:0 18px 34px -24px rgba(38,45,90,.45)">
+              <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:17px;color:#0F1420">اختبر نفسك تحت الوقت</div>
+              <div style="margin-top:5px;font-size:14px;line-height:1.75;color:#666D7D;font-weight:300">انتقل إلى المحاكيات عندما تكون جاهزًا.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-reveal="" data-reveal-delay="140" style="position:relative;min-height:520px;display:flex;align-items:center;justify-content:center">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(120,130,190,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(120,130,190,.13) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(closest-side,#000 40%,transparent 78%);-webkit-mask-image:radial-gradient(closest-side,#000 40%,transparent 78%)"></div>
+        <div style="position:absolute;width:400px;height:440px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(240,242,255,.35));border:1px solid rgba(255,255,255,.9)"></div>
+        <div style="position:absolute;width:300px;height:330px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(236,240,255,.5))"></div>
+        <div style="position:relative;width:210px;height:230px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#8FA6FF 0%,#7B5CF6 55%,#8A5AF0 100%);box-shadow:0 30px 60px -20px rgba(94,84,246,.6);display:flex;align-items:center;justify-content:center">
+          <span style="font-family:'Material Symbols Rounded';font-size:70px;color:#fff;font-weight:300">school</span>
+        </div>
+        <span style="position:absolute;top:22%;right:16%;width:22px;height:22px;border-radius:50%;background:linear-gradient(140deg,#7B8FFF,#5A63E8);box-shadow:0 6px 14px rgba(94,84,246,.4);animation:floatA 7s ease-in-out infinite"></span>
+        <span style="position:absolute;bottom:20%;left:18%;width:26px;height:26px;border-radius:50%;background:linear-gradient(140deg,#9B87FF,#6E5AF0);box-shadow:0 6px 14px rgba(94,84,246,.4);animation:floatB 9s ease-in-out infinite"></span>
+        <span style="position:absolute;top:32%;left:8%;width:16px;height:16px;border-radius:50%;background:#C6CEFF;animation:floatC 8s ease-in-out infinite"></span>
+        <div style="position:absolute;top:12%;left:2%;padding:12px 15px;background:#fff;border:1px solid #EAECF5;border-radius:14px;box-shadow:0 20px 40px -22px rgba(38,45,90,.45);animation:floatA 9s ease-in-out infinite">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:7px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:14px">trending_up</span><span style="font-size:12.5px;font-weight:600;color:#1B2130">تحسّن الكمي</span></div>
+          <div style="margin-top:8px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:17px;color:#0F1420">+12%</div>
+        </div>
+        <div style="position:absolute;bottom:14%;right:0;padding:12px 15px;background:#fff;border:1px solid #EAECF5;border-radius:14px;box-shadow:0 20px 40px -22px rgba(38,45,90,.45);animation:floatB 10s ease-in-out infinite">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:24px;height:24px;border-radius:7px;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:14px">replay</span><span style="font-size:12.5px;font-weight:600;color:#1B2130">محاولات مكتملة</span></div>
+          <div style="margin-top:8px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:17px;color:#0F1420">3</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="courses" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0">
+    <div style="max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:26px">
+
+      <div data-reveal="" style="padding:clamp(24px,3vw,44px);background:linear-gradient(150deg,#FBFBFF 0%,#FFF 40%);border:1px solid #EAECF5;border-radius:28px;box-shadow:0 2px 4px rgba(16,24,40,.03)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:clamp(28px,3.5vw,56px);align-items:center">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+              <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">menu_book</span>
+              <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">الدورات التدريبية</span>
+            </div>
+            <h2 style="margin:22px 0 0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(26px,3vw,40px);line-height:1.3;letter-spacing:-.025em;color:#0B0E15">ابنِ أساس قوي قبل ما تدخل المحاكاة</h2>
+            <p style="margin:16px 0 0;max-width:420px;font-size:16px;line-height:1.85;color:#5A6175;font-weight:300">دروس فيديو منظمة داخل وحدات، مع تدريبات قصيرة بعد كل درس تساعدك تبني المهارة بالتدريج.</p>
+            <div style="margin-top:26px;display:flex;flex-direction:column;gap:12px;max-width:400px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:14.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>وحدات مرتبة من الأساس إلى المسائل المركبة</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>تمرين بعد كل درس للتأكد من الفهم</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>تقدمك محفوظ وتكمل من حيث توقفت</div>
+            </div>
+          </div>
+
+          <div style="position:relative">
+            <div style="position:absolute;inset:10% -4% -8% -4%;border-radius:50%;background:radial-gradient(closest-side,rgba(123,92,246,.22),rgba(123,92,246,0))"></div>
+            <div style="position:relative;border-radius:20px;overflow:hidden;border:1px solid #E8EAF3;background:#fff;box-shadow:0 34px 60px -34px rgba(38,45,90,.5)">
+              <div style="direction:ltr;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#FBFCFE;border-bottom:1px solid #EEF0F7">
+                <div style="display:flex;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:#FF5F57"></span><span style="width:9px;height:9px;border-radius:50%;background:#FEBC2E"></span><span style="width:9px;height:9px;border-radius:50%;background:#28C840"></span></div>
+                <span style="margin-left:auto;direction:rtl;font-size:11.5px;color:#9AA1B2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">دورة تأسيس القدرات — القسم الكمي</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0">
+                <div style="padding:16px;background:#FAFBFE;border-left:1px solid #EEF0F7">
+                  <div style="font-size:11.5px;color:#8A91A2;margin-bottom:10px">الوحدات</div>
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #EEF0F7"><span style="width:20px;height:20px;border-radius:6px;background:#EDF7F1;color:#3E9A6D;font-family:'Material Symbols Rounded';font-size:13px;display:flex;align-items:center;justify-content:center">check</span><span style="font-size:12.5px;color:#454C5D">1. أساسيات النسب</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #EEF0F7"><span style="width:20px;height:20px;border-radius:6px;background:#EDF7F1;color:#3E9A6D;font-family:'Material Symbols Rounded';font-size:13px;display:flex;align-items:center;justify-content:center">check</span><span style="font-size:12.5px;color:#454C5D">2. الكسور</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:linear-gradient(90deg,#EFF2FF,#F7F4FF);border:1px solid #DFE4FB"><span style="width:20px;height:20px;border-radius:6px;background:#5A63E8;color:#fff;font-family:'Material Symbols Rounded';font-size:13px;display:flex;align-items:center;justify-content:center">play_arrow</span><span style="font-size:12.5px;color:#1E2537;font-weight:600">3. المتوسطات</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:#fff;border:1px solid #EEF0F7"><span style="width:20px;height:20px;border-radius:6px;background:#F1F3F9;color:#AEB5C5;font-family:'Material Symbols Rounded';font-size:13px;display:flex;align-items:center;justify-content:center">lock</span><span style="font-size:12.5px;color:#8A91A2">4. المسائل اللفظية</span></div>
+                  </div>
+                </div>
+                <div style="padding:16px;min-width:0">
+                  <div style="position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(150deg,#1B1E33 0%,#2B2A5A 45%,#3A2E6E 100%);aspect-ratio:16/10;display:flex;align-items:center;justify-content:center">
+                    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:34px 34px"></div>
+                    <div style="position:absolute;top:-40px;left:-30px;width:220px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(123,92,246,.55),rgba(123,92,246,0))"></div>
+                    <span style="position:relative;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.94);display:flex;align-items:center;justify-content:center;color:#3B3F8F;font-family:'Material Symbols Rounded';font-size:30px;box-shadow:0 12px 28px rgba(10,12,40,.45)">play_arrow</span>
+                    <div style="position:absolute;bottom:12px;right:14px;left:14px;display:flex;align-items:center;gap:10px">
+                      <div style="flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.25)"><div style="width:38%;height:100%;border-radius:99px;background:#fff"></div></div>
+                      <span style="font-size:10.5px;color:rgba(255,255,255,.8)">04:12</span>
+                    </div>
+                  </div>
+                  <div style="margin-top:14px;font-family:'Alexandria',sans-serif;font-weight:600;font-size:14.5px;color:#111623">حساب المتوسط الحسابي في المسائل المركبة</div>
+                  <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:#8A91A2"><span>الدرس 4 من 12</span><span>34%</span></div>
+                  <div style="margin-top:7px;height:6px;border-radius:99px;background:#F1F3F9"><div style="width:34%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+                  <div style="margin-top:14px;display:flex;align-items:center;gap:10px">
+                    <span style="padding:11px 22px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);color:#fff;font-size:13px;font-weight:600;white-space:nowrap;box-shadow:0 10px 22px -10px rgba(94,84,246,.7)">أكمل الدرس</span>
+                    <span style="padding:11px 18px;border-radius:999px;border:1px solid #E7E9F4;color:#3B4252;font-size:13px;white-space:nowrap">تمرين الدرس</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sims" data-reveal="" style="scroll-margin-top:110px;padding:clamp(24px,3vw,44px);background:linear-gradient(150deg,#F9FAFF 0%,#FFF 45%);border:1px solid #EAECF5;border-radius:28px;box-shadow:0 2px 4px rgba(16,24,40,.03)">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:clamp(28px,3.5vw,56px);align-items:center">
+          <div style="order:2">
+            <div style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+              <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">timer</span>
+              <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">محاكيات القدرات</span>
+            </div>
+            <h2 style="margin:22px 0 0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(26px,3vw,40px);line-height:1.3;letter-spacing:-.025em;color:#0B0E15">تدرّب على اتخاذ القرار تحت الوقت</h2>
+            <p style="margin:16px 0 0;max-width:420px;font-size:16px;line-height:1.85;color:#5A6175;font-weight:300">اختبارات مقسمة ومؤقتة بواجهة هادئة، مع حفظ تلقائي للإجابات ومؤشرات تدريبية بعد كل محاولة.</p>
+            <div style="margin-top:26px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;max-width:420px">
+              <div style="padding:14px 16px;border:1px solid #EAECF5;border-radius:14px;background:#fff">
+                <div style="font-size:11.5px;color:#8A91A2">مدة القسم</div>
+                <div style="margin-top:4px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:17px;color:#0F1420">25 دقيقة</div>
+              </div>
+              <div style="padding:14px 16px;border:1px solid #EAECF5;border-radius:14px;background:#fff">
+                <div style="font-size:11.5px;color:#8A91A2">عدد الأسئلة</div>
+                <div style="margin-top:4px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:17px;color:#0F1420">24 سؤالًا</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="position:relative;order:1">
+            <div style="position:absolute;inset:8% -4% -10% -4%;border-radius:50%;background:radial-gradient(closest-side,rgba(78,123,248,.24),rgba(78,123,248,0))"></div>
+            <div style="position:relative;border-radius:20px;overflow:hidden;border:1px solid #E8EAF3;background:#fff;box-shadow:0 34px 60px -34px rgba(38,45,90,.5)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #EEF0F7;background:#FBFCFE">
+                <span style="padding:5px 12px;border-radius:999px;background:#EEF2FF;color:#4453C8;font-size:12px;font-weight:600">القسم اللفظي</span>
+                <span style="font-size:12px;color:#8A91A2">السؤال 18 من 24</span>
+                <span style="display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;border:1px solid #E4E7F3;font-family:'Alexandria',sans-serif;font-weight:700;font-size:13.5px;color:#111623"><span style="font-family:'Material Symbols Rounded';font-size:16px;color:#7B5CF6">timer</span>12:42</span>
+              </div>
+              <div style="height:4px;background:#F1F3F9"><div style="width:75%;height:100%;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+              <div style="padding:24px 22px">
+                <div style="font-size:12px;color:#8A91A2">اختر الكلمة التي تكمل المعنى</div>
+                <div style="margin-top:10px;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(16px,1.4vw,20px);line-height:1.7;color:#0F1420">القراءة المستمرة ...... حصيلة الطالب اللغوية.</div>
+                <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;border:1px solid #EDEFF7;background:#FAFBFE">
+                    <span style="width:26px;height:26px;border-radius:8px;background:#F1F3F9;color:#6B7385;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600">أ</span>
+                    <span style="font-size:14.5px;color:#3B4252">تُقلّل</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;border:1.5px solid #B9C1F8;background:linear-gradient(90deg,#EFF2FF,#F7F4FF);box-shadow:0 10px 22px -16px rgba(94,84,246,.7)">
+                    <span style="width:26px;height:26px;border-radius:8px;background:#5A63E8;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600">ب</span>
+                    <span style="font-size:14.5px;color:#161B29;font-weight:600">تُنمّي</span>
+                    <span style="margin-right:auto;font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">radio_button_checked</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;border:1px solid #EDEFF7;background:#FAFBFE">
+                    <span style="width:26px;height:26px;border-radius:8px;background:#F1F3F9;color:#6B7385;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600">ج</span>
+                    <span style="font-size:14.5px;color:#3B4252">تُؤخّر</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:13px;border:1px solid #EDEFF7;background:#FAFBFE">
+                    <span style="width:26px;height:26px;border-radius:8px;background:#F1F3F9;color:#6B7385;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600">د</span>
+                    <span style="font-size:14.5px;color:#3B4252">تُوقف</span>
+                  </div>
+                </div>
+                <div style="margin-top:20px;padding-top:18px;border-top:1px solid #F1F3F9;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#3E9A6D;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:17px">cloud_done</span>تم حفظ الإجابة</span>
+                  <span style="display:flex;align-items:center;gap:8px;padding:12px 26px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);color:#fff;font-size:13.5px;font-weight:600;white-space:nowrap;box-shadow:0 12px 24px -12px rgba(94,84,246,.8)">التالي<span style="font-family:'Material Symbols Rounded';font-size:17px">arrow_back</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0;text-align:center">
+    <div style="max-width:1240px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">workspace_premium</span>
+        <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">لماذا المنصة؟</span>
+      </div>
+      <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;max-width:720px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">مصممة عشان يكون تدريبك أوضح</h2>
+      <p data-reveal="" data-reveal-delay="110" style="margin:20px auto 0;max-width:640px;font-size:clamp(15px,1.1vw,17px);line-height:1.85;color:#5A6175;font-weight:300">كل جزء في تجربة التعلم مصمم ليساعدك تتدرب بشكل منظم وتعرف تقدمك بدون تعقيد.</p>
+
+      <div style="margin-top:52px;display:flex;flex-wrap:wrap;gap:20px;text-align:right;align-items:stretch">
+        <div data-reveal="" style="flex:1 1 300px;display:flex;flex-direction:column;padding:28px;background:linear-gradient(165deg,#EFF1FF 0%,#F8F7FF 45%,#FFF 100%);border:1px solid #E6E8F6;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04)">
+          <span style="width:52px;height:52px;border-radius:15px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:26px;box-shadow:0 12px 24px -12px rgba(94,84,246,.7)">insights</span>
+          <h3 style="margin:22px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:22px;line-height:1.45;color:#0D1119;letter-spacing:-.01em">تقدّمك واضح خطوة بخطوة</h3>
+          <p style="margin:12px 0 0;font-size:14.5px;line-height:1.85;color:#5F6779;font-weight:300">لوحة واحدة تجمع دروسك ومحاولاتك ومؤشرات أدائك، فتعرف من نظرة واحدة أين وصلت وأين تحتاج تدريبًا أكثر.</p>
+          <div style="margin-top:20px;padding:14px;border-radius:14px;background:rgba(255,255,255,.75);border:1px solid #E9EBF7">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#5F6779;margin-bottom:7px"><span>لفظي</span><span style="font-weight:600;color:#151A27">72%</span></div>
+            <div style="height:7px;border-radius:99px;background:#EEF0F9"><div style="width:72%;height:100%;border-radius:99px;background:linear-gradient(90deg,#7B5CF6,#4E7BF8)"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:#5F6779;margin:13px 0 7px"><span>كمي</span><span style="font-weight:600;color:#151A27">64%</span></div>
+            <div style="height:7px;border-radius:99px;background:#EEF0F9"><div style="width:64%;height:100%;border-radius:99px;background:linear-gradient(90deg,#7B5CF6,#4E7BF8)"></div></div>
+          </div>
+          <a href="#products" style="margin-top:auto;padding-top:24px;text-decoration:none"><span style="display:inline-block;padding:14px 30px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);color:#fff;font-size:15px;font-weight:600;box-shadow:0 12px 26px -12px rgba(94,84,246,.8)">ابدأ استعدادك</span></a>
+        </div>
+
+        <div style="flex:2 1 620px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;min-width:0">
+          <div data-reveal="" data-reveal-delay="80" style="padding:26px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+            <span style="width:46px;height:46px;border-radius:13px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:23px;box-shadow:0 10px 20px -10px rgba(94,84,246,.65)">verified_user</span>
+            <h3 style="margin:20px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">محتوى أصلي وموثق الحقوق</h3>
+            <p style="margin:10px 0 0;font-size:14.5px;line-height:1.8;color:#616878;font-weight:300">لا تستخدم تسريبات أو تجميعات من الاختبارات الرسمية.</p>
+          </div>
+          <div data-reveal="" data-reveal-delay="140" style="padding:26px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+            <span style="width:46px;height:46px;border-radius:13px;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:23px;box-shadow:0 10px 20px -10px rgba(94,84,246,.65)">translate</span>
+            <h3 style="margin:20px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">تجربة عربية بالكامل</h3>
+            <p style="margin:10px 0 0;font-size:14.5px;line-height:1.8;color:#616878;font-weight:300">واجهة RTL مصممة من البداية للطالب السعودي.</p>
+          </div>
+          <div data-reveal="" data-reveal-delay="200" style="padding:26px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+            <span style="width:46px;height:46px;border-radius:13px;background:linear-gradient(140deg,#8A5AF0,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:23px;box-shadow:0 10px 20px -10px rgba(94,84,246,.65)">bookmark_added</span>
+            <h3 style="margin:20px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">تقدم محفوظ</h3>
+            <p style="margin:10px 0 0;font-size:14.5px;line-height:1.8;color:#616878;font-weight:300">ارجع وكمل تدريبك من المكان الذي توقفت عنده.</p>
+          </div>
+          <div data-reveal="" data-reveal-delay="260" style="padding:26px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+            <span style="width:46px;height:46px;border-radius:13px;background:linear-gradient(140deg,#6E8BFF,#8A5AF0);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:23px;box-shadow:0 10px 20px -10px rgba(94,84,246,.65)">bar_chart</span>
+            <h3 style="margin:20px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">نتائج تدريبية واضحة</h3>
+            <p style="margin:10px 0 0;font-size:14.5px;line-height:1.8;color:#616878;font-weight:300">شاهد مؤشرات أدائك واعرف الجوانب التي تحتاج تدريبًا إضافيًا.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="demo" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0;text-align:center">
+    <div style="max-width:1240px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">play_circle</span>
+        <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">تجربة المحاكي</span>
+      </div>
+      <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;max-width:760px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">شوف تجربة المحاكي قبل ما تبدأ</h2>
+      <p data-reveal="" data-reveal-delay="110" style="margin:20px auto 0;max-width:620px;font-size:clamp(15px,1.1vw,17px);line-height:1.85;color:#5A6175;font-weight:300">واجهة هادئة وواضحة تساعدك تركز على السؤال والوقت بدون تشتيت.</p>
+
+      <div data-reveal="" data-reveal-delay="170" style="position:relative;margin-top:52px">
+        <div style="position:absolute;inset:14% -2% -6% -2%;border-radius:50%;background:radial-gradient(closest-side,rgba(105,105,250,.3),rgba(105,105,250,0));animation:glowPulse 8s ease-in-out infinite;pointer-events:none"></div>
+        <div style="position:relative;border-radius:26px;padding:9px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(243,245,255,.7));border:1px solid rgba(255,255,255,.9);box-shadow:0 44px 84px -40px rgba(38,45,90,.5)">
+          <div style="border-radius:19px;overflow:hidden;border:1px solid #E7E9F3;background:#fff;text-align:right">
+            <div style="direction:ltr;display:flex;align-items:center;gap:12px;padding:10px 16px;background:#F7F9FC;border-bottom:1px solid #EDEFF7">
+              <div style="display:flex;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#FF5F57"></span><span style="width:10px;height:10px;border-radius:50%;background:#FEBC2E"></span><span style="width:10px;height:10px;border-radius:50%;background:#28C840"></span></div>
+              <div style="display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:9px 9px 0 0;background:#fff;border:1px solid #EDEFF7;border-bottom:none;font-size:11.5px;color:#5F6779;white-space:nowrap"><span style="width:14px;height:14px;border-radius:4px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6)"></span>محاكي القدرات — القسم اللفظي</div>
+              <div style="flex:1;display:flex;justify-content:center"><div style="min-width:220px;max-width:380px;width:36%;padding:5px 12px;border-radius:8px;background:#EEF1F7;font-size:11px;color:#9AA1B2;text-align:center">exam.example.sa/simulator</div></div>
+            </div>
+
+            <div style="position:relative">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 24px;border-bottom:1px solid #F0F2F8;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="padding:6px 14px;border-radius:999px;background:#EEF2FF;color:#4453C8;font-size:12.5px;font-weight:600">القسم اللفظي</span>
+                  <span style="font-size:12.5px;color:#8A91A2">السؤال 18 من 24</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:999px;border:1px solid #E4E7F3;background:#FBFCFE;font-family:'Alexandria',sans-serif;font-weight:700;font-size:15px;color:#111623;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:#7B5CF6">timer</span>الوقت المتبقي 12:42</span>
+                </div>
+              </div>
+              <div style="height:5px;background:#F1F3F9"><div style="width:75%;height:100%;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+
+              <div style="display:flex;flex-wrap:wrap;gap:0">
+                <div style="flex:1 1 420px;padding:clamp(22px,2.6vw,40px);min-width:0">
+                  <div style="font-size:12.5px;color:#8A91A2">اقرأ السؤال ثم اختر الإجابة الأنسب</div>
+                  <div style="margin-top:12px;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(17px,1.7vw,26px);line-height:1.65;color:#0B0E15">أكمل الجملة: التخطيط الجيد للوقت ...... من فرص إتمام جميع أسئلة القسم.</div>
+                  <div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+                    <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:14px;border:1px solid #EDEFF7;background:#FAFBFE"><span style="width:28px;height:28px;border-radius:9px;background:#F1F3F9;color:#6B7385;font-size:12.5px;display:flex;align-items:center;justify-content:center;font-weight:600">أ</span><span style="font-size:15px;color:#3B4252">يُقلّل</span></div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:14px;border:1.5px solid #B9C1F8;background:linear-gradient(90deg,#EFF2FF,#F7F4FF);box-shadow:0 12px 26px -18px rgba(94,84,246,.8)"><span style="width:28px;height:28px;border-radius:9px;background:#5A63E8;color:#fff;font-size:12.5px;display:flex;align-items:center;justify-content:center;font-weight:600">ب</span><span style="font-size:15px;color:#161B29;font-weight:600">يزيد</span><span style="margin-right:auto;font-family:'Material Symbols Rounded';font-size:20px;color:#5A63E8">radio_button_checked</span></div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:14px;border:1px solid #EDEFF7;background:#FAFBFE"><span style="width:28px;height:28px;border-radius:9px;background:#F1F3F9;color:#6B7385;font-size:12.5px;display:flex;align-items:center;justify-content:center;font-weight:600">ج</span><span style="font-size:15px;color:#3B4252">لا يؤثر في</span></div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-radius:14px;border:1px solid #EDEFF7;background:#FAFBFE"><span style="width:28px;height:28px;border-radius:9px;background:#F1F3F9;color:#6B7385;font-size:12.5px;display:flex;align-items:center;justify-content:center;font-weight:600">د</span><span style="font-size:15px;color:#3B4252">يُلغي</span></div>
+                  </div>
+                  <div style="margin-top:26px;padding-top:20px;border-top:1px solid #F1F3F9;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                    <span style="display:flex;align-items:center;gap:8px;font-size:13px;color:#3E9A6D;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:18px">cloud_done</span>تم حفظ الإجابة تلقائيًا</span>
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <span style="padding:12px 20px;border-radius:999px;border:1px solid #E7E9F4;color:#3B4252;font-size:13.5px;white-space:nowrap">السابق</span>
+                      <span style="display:flex;align-items:center;gap:8px;padding:13px 28px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);color:#fff;font-size:14px;font-weight:600;white-space:nowrap;box-shadow:0 14px 28px -14px rgba(94,84,246,.85)">التالي<span style="font-family:'Material Symbols Rounded';font-size:18px">arrow_back</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="flex:0 1 300px;padding:clamp(22px,2.6vw,32px);background:linear-gradient(180deg,#FAFBFE,#F5F7FD);border-right:1px solid #F0F2F8;min-width:0">
+                  <div style="font-size:12px;color:#8A91A2">خريطة الأسئلة</div>
+                  <div style="margin-top:14px;display:grid;grid-template-columns:repeat(6,1fr);gap:7px">
+                    <span style="aspect-ratio:1;border-radius:8px;background:#DDE2FA;color:#4B54B8;font-size:11px;display:flex;align-items:center;justify-content:center">13</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#DDE2FA;color:#4B54B8;font-size:11px;display:flex;align-items:center;justify-content:center">14</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#DDE2FA;color:#4B54B8;font-size:11px;display:flex;align-items:center;justify-content:center">15</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#DDE2FA;color:#4B54B8;font-size:11px;display:flex;align-items:center;justify-content:center">16</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#DDE2FA;color:#4B54B8;font-size:11px;display:flex;align-items:center;justify-content:center">17</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#5A63E8;color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -6px rgba(94,84,246,.9)">18</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#fff;border:1px solid #E9ECF5;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">19</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#fff;border:1px solid #E9ECF5;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">20</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#fff;border:1px solid #E9ECF5;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">21</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#fff;border:1px solid #E9ECF5;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">22</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#fff;border:1px solid #E9ECF5;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">23</span>
+                    <span style="aspect-ratio:1;border-radius:8px;background:#fff;border:1px solid #E9ECF5;color:#AEB5C5;font-size:11px;display:flex;align-items:center;justify-content:center">24</span>
+                  </div>
+                  <div style="margin-top:18px;padding:14px;border-radius:13px;background:#fff;border:1px solid #EDEFF7">
+                    <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#5F6779"><span>تمت الإجابة</span><span style="font-family:'Alexandria',sans-serif;font-weight:700;color:#111623">17</span></div>
+                    <div style="margin-top:10px;height:6px;border-radius:99px;background:#F1F3F9"><div style="width:71%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+                    <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:#8A91A2;line-height:1.7"><span style="font-family:'Material Symbols Rounded';font-size:15px;color:#9AA1B2">info</span>لا يمكن الرجوع بعد إنهاء القسم</div>
+                  </div>
+                </div>
+              </div>
+
+              <div data-play="" onClick="{{ dismissPlay }}" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(20,24,52,.06),rgba(20,24,52,.16));backdrop-filter:blur(1.5px);cursor:pointer;transition:opacity .5s ease">
+                <span style="width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;color:#4A4FBF;font-family:'Material Symbols Rounded';font-size:44px;box-shadow:0 22px 50px -14px rgba(30,34,90,.55);transition:transform .3s ease" style-hover="transform:scale(1.06)">play_arrow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="products" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0;text-align:center">
+    <div style="max-width:1240px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">shopping_bag</span>
+        <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">ابدأ بطريقتك</span>
+      </div>
+      <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;max-width:760px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">اختر اللي يناسب مرحلة استعدادك</h2>
+      <p data-reveal="" data-reveal-delay="110" style="margin:20px auto 0;max-width:620px;font-size:clamp(15px,1.1vw,17px);line-height:1.85;color:#5A6175;font-weight:300">كل منتج يُشترى مرة واحدة ويمنحك وصولًا دائمًا إليه.</p>
+
+      <div style="margin-top:52px;display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:22px;text-align:right;align-items:start">
+
+        <div data-reveal="" style="padding:30px;background:#fff;border:1px solid #EAECF5;border-radius:26px;box-shadow:0 1px 2px rgba(16,24,40,.04)">
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:23px;color:#0D1119;letter-spacing:-.01em">الدورات التدريبية</h3>
+          <p style="margin:9px 0 0;font-size:14.5px;line-height:1.8;color:#616878;font-weight:300">تأسيس منظم للكمي واللفظي بدروس ووحدات متدرجة.</p>
+          <div style="margin-top:22px;display:flex;align-items:baseline;gap:9px">
+            <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(26px,2.4vw,34px);color:#0B0E15;letter-spacing:-.02em">شراء مرة واحدة</span>
+          </div>
+          <div style="margin-top:4px;font-size:13px;color:#8A91A2">وصول دائم للمنتج بعد الشراء</div>
+          <a href="#products" style="display:block;margin-top:22px;padding:15px;border-radius:999px;border:1px solid #E2E5F1;background:#fff;text-align:center;font-size:15px;font-weight:600;color:#151A27;text-decoration:none" style-hover="background:#F5F7FC;color:#151A27">استعرض الدورات</a>
+          <div style="margin-top:26px;padding-top:20px;border-top:1px solid #F0F2F8">
+            <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:14px;color:#151A27">ما يتضمنه المنتج</div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>دروس فيديو منظمة</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>وحدات تدريبية</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>اختبارات قصيرة</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>متابعة التقدم</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>وصول دائم</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="90" style="position:relative;padding:30px;background:linear-gradient(180deg,#FCFCFF,#FFF);border:1.5px solid #C7CCFA;border-radius:26px;box-shadow:0 30px 60px -34px rgba(80,72,220,.55)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:23px;color:#0D1119;letter-spacing:-.01em">محاكيات القدرات</h3>
+            <span style="padding:5px 13px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);color:#fff;font-size:11.5px;font-weight:600;white-space:nowrap">للتدريب العملي</span>
+          </div>
+          <p style="margin:9px 0 0;font-size:14.5px;line-height:1.8;color:#616878;font-weight:300">تجربة اختبار مؤقتة ومقسمة مع مؤشرات أداء بعد كل محاولة.</p>
+          <div style="margin-top:22px;display:flex;align-items:baseline;gap:9px">
+            <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(26px,2.4vw,34px);color:#0B0E15;letter-spacing:-.02em">شراء مرة واحدة</span>
+          </div>
+          <div style="margin-top:4px;font-size:13px;color:#8A91A2">بدون اشتراك شهري</div>
+          <a href="#products" style="display:block;margin-top:22px;padding:15px;border-radius:999px;background:linear-gradient(95deg,#4E7BF8,#7B5CF6);text-align:center;font-size:15px;font-weight:600;color:#fff;text-decoration:none;box-shadow:0 16px 32px -16px rgba(94,84,246,.9)" style-hover="color:#fff;box-shadow:0 20px 40px -16px rgba(94,84,246,1)">استعرض المحاكيات</a>
+          <div style="margin-top:26px;padding-top:20px;border-top:1px solid #F0F2F8">
+            <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:14px;color:#151A27">ما يتضمنه المنتج</div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>تجربة اختبار مؤقتة</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>أقسام منظمة</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>حفظ تلقائي للإجابات</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>نتائج ومؤشرات تدريبية</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>سجل المحاولات</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#4A5162"><span style="font-family:'Material Symbols Rounded';font-size:19px;color:#5A63E8">check_circle</span>وصول دائم</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="180" style="padding:30px;background:linear-gradient(170deg,#F5F6FF 0%,#FBFBFF 55%,#FFF 100%);border:1px solid #E6E8F6;border-radius:26px;box-shadow:0 1px 2px rgba(16,24,40,.04)">
+          <div style="display:flex;align-items:center;justify-content:center;padding:26px 0 22px">
+            <span style="width:96px;height:96px;border-radius:28px;background:linear-gradient(150deg,#8FA6FF,#7B5CF6 60%,#8A5AF0);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:48px;font-weight:300;box-shadow:0 24px 44px -20px rgba(94,84,246,.8)">all_inclusive</span>
+          </div>
+          <h3 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:23px;color:#0D1119;letter-spacing:-.01em;text-align:center">شراء مرة واحدة</h3>
+          <p style="margin:12px 0 0;font-size:14.5px;line-height:1.9;color:#5F6779;font-weight:300;text-align:center">لا توجد اشتراكات شهرية للمنتج الذي اشتريته. ادخل إليه وارجع لتدريبك وقت ما تحتاج.</p>
+          <div style="margin-top:24px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;background:rgba(255,255,255,.8);border:1px solid #E9EBF7;font-size:13.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:#5A63E8">lock_open</span>وصول دائم لمنتجاتك</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;background:rgba(255,255,255,.8);border:1px solid #E9EBF7;font-size:13.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:#5A63E8">history</span>سجل تدريبك محفوظ</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:14px;background:rgba(255,255,255,.8);border:1px solid #E9EBF7;font-size:13.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:#5A63E8">devices</span>يعمل على الجوال والحاسب</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="journey" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0;text-align:center">
+    <div style="max-width:1240px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">route</span>
+        <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">كيف تعمل المنصة؟</span>
+      </div>
+      <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;max-width:760px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">رحلة استعدادك في أربع خطوات</h2>
+      <p data-reveal="" data-reveal-delay="110" style="margin:20px auto 0;max-width:620px;font-size:clamp(15px,1.1vw,17px);line-height:1.85;color:#5A6175;font-weight:300">من أول درس إلى مراجعة مؤشراتك بعد المحاكاة.</p>
+
+      <div style="margin-top:52px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;text-align:right">
+
+        <div data-reveal="" style="padding:22px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+          <div style="padding:16px;border-radius:16px;background:linear-gradient(170deg,#F4F6FF,#FAFAFF);border:1px solid #EDEFF9">
+            <div style="padding:12px;border-radius:11px;background:#fff;border:1px solid #EEF0F7">
+              <div style="font-size:10.5px;color:#8A91A2">الوحدة 1 · التأسيس</div>
+              <div style="margin-top:9px;display:flex;flex-direction:column;gap:6px">
+                <span style="height:8px;border-radius:99px;background:#E7EBFA;width:90%"></span>
+                <span style="height:8px;border-radius:99px;background:#EFF1F8;width:70%"></span>
+                <span style="height:8px;border-radius:99px;background:#EFF1F8;width:80%"></span>
+              </div>
+              <div style="margin-top:12px;display:flex;align-items:center;gap:7px;font-size:10.5px;color:#5A63E8"><span style="font-family:'Material Symbols Rounded';font-size:14px">play_circle</span>ابدأ الدرس الأول</div>
+            </div>
+          </div>
+          <div style="margin-top:18px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:13px;color:#8E95FF;letter-spacing:.06em">01</div>
+          <h3 style="margin:7px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">ابدأ بالتأسيس</h3>
+          <p style="margin:9px 0 0;font-size:14px;line-height:1.8;color:#616878;font-weight:300">تعلم المهارات الأساسية من خلال الدورات.</p>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="80" style="padding:22px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+          <div style="padding:16px;border-radius:16px;background:linear-gradient(170deg,#F4F6FF,#FAFAFF);border:1px solid #EDEFF9">
+            <div style="padding:12px;border-radius:11px;background:#fff;border:1px solid #EEF0F7">
+              <div style="font-size:10.5px;color:#8A91A2">تمرين بعد الدرس</div>
+              <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+                <span style="display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:9px;background:#F7F9FE;border:1px solid #EEF1F9;font-size:10.5px;color:#5F6779">الخيار الأول</span>
+                <span style="display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:9px;background:linear-gradient(90deg,#EFF2FF,#F7F4FF);border:1px solid #DFE4FB;font-size:10.5px;color:#242B3B;font-weight:600">الخيار الثاني<span style="margin-right:auto;font-family:'Material Symbols Rounded';font-size:13px;color:#5A63E8">check_circle</span></span>
+                <span style="display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:9px;background:#F7F9FE;border:1px solid #EEF1F9;font-size:10.5px;color:#5F6779">الخيار الثالث</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:18px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:13px;color:#8E95FF;letter-spacing:.06em">02</div>
+          <h3 style="margin:7px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">طبّق على كل مهارة</h3>
+          <p style="margin:9px 0 0;font-size:14px;line-height:1.8;color:#616878;font-weight:300">اختبر فهمك بعد الدروس.</p>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="160" style="padding:22px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+          <div style="padding:16px;border-radius:16px;background:linear-gradient(170deg,#F4F6FF,#FAFAFF);border:1px solid #EDEFF9">
+            <div style="padding:12px;border-radius:11px;background:#fff;border:1px solid #EEF0F7">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="padding:3px 8px;border-radius:999px;background:#EEF2FF;color:#4453C8;font-size:9.5px;font-weight:600">القسم الكمي</span><span style="display:flex;align-items:center;gap:4px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:11px;color:#111623"><span style="font-family:'Material Symbols Rounded';font-size:12px;color:#7B5CF6">timer</span>18:05</span></div>
+              <div style="margin-top:12px;height:5px;border-radius:99px;background:#F1F3F9"><div style="width:44%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div>
+              <div style="margin-top:10px;display:grid;grid-template-columns:repeat(6,1fr);gap:4px">
+                <span style="aspect-ratio:1;border-radius:5px;background:#DDE2FA"></span><span style="aspect-ratio:1;border-radius:5px;background:#DDE2FA"></span><span style="aspect-ratio:1;border-radius:5px;background:#5A63E8"></span><span style="aspect-ratio:1;border-radius:5px;background:#F1F3F9"></span><span style="aspect-ratio:1;border-radius:5px;background:#F1F3F9"></span><span style="aspect-ratio:1;border-radius:5px;background:#F1F3F9"></span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:18px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:13px;color:#8E95FF;letter-spacing:.06em">03</div>
+          <h3 style="margin:7px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">انتقل للمحاكاة</h3>
+          <p style="margin:9px 0 0;font-size:14px;line-height:1.8;color:#616878;font-weight:300">اختبر نفسك في تجربة مؤقتة.</p>
+        </div>
+
+        <div data-reveal="" data-reveal-delay="240" style="padding:22px;background:#fff;border:1px solid #EAECF5;border-radius:24px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .35s ease,box-shadow .35s ease" style-hover="transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(38,45,90,.45)">
+          <div style="padding:16px;border-radius:16px;background:linear-gradient(170deg,#F4F6FF,#FAFAFF);border:1px solid #EDEFF9">
+            <div style="padding:12px;border-radius:11px;background:#fff;border:1px solid #EEF0F7;display:flex;align-items:center;gap:12px">
+              <div style="position:relative;width:56px;height:56px;flex:none">
+                <svg viewBox="0 0 120 120" style="width:56px;height:56px;transform:rotate(-90deg)">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#F0F2F8" stroke-width="15"></circle>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#7B5CF6" stroke-width="15" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="88"></circle>
+                </svg>
+                <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Alexandria',sans-serif;font-weight:700;font-size:12px;color:#0F1420">72%</span>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:10.5px;color:#8A91A2">مؤشر المحاولة</div>
+                <div style="margin-top:6px;height:6px;border-radius:99px;background:#F1F3F9"><div style="width:72%;height:100%;border-radius:99px;background:linear-gradient(90deg,#7B5CF6,#4E7BF8)"></div></div>
+                <div style="margin-top:7px;font-size:10px;color:#98A0B0">مؤشر تدريبي</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:18px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:13px;color:#8E95FF;letter-spacing:.06em">04</div>
+          <h3 style="margin:7px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;color:#0D1119;letter-spacing:-.01em">راجع مؤشراتك</h3>
+          <p style="margin:9px 0 0;font-size:14px;line-height:1.8;color:#616878;font-weight:300">اعرف أين تحتاج إلى مزيد من التدريب.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rights" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0">
+    <div data-reveal="" style="max-width:1240px;margin:0 auto;padding:clamp(28px,4vw,60px);background:linear-gradient(150deg,#F4F6FF 0%,#FAFAFF 40%,#FFF 100%);border:1px solid #E6E8F6;border-radius:30px;overflow:hidden;position:relative">
+      <div style="position:absolute;top:-120px;left:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(closest-side,rgba(123,92,246,.18),rgba(123,92,246,0))"></div>
+      <div style="position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(30px,4vw,60px);align-items:center">
+        <div>
+          <h2 style="margin:0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(26px,3.4vw,44px);line-height:1.28;letter-spacing:-.025em;color:#0B0E15">تدريب يعتمد على محتوى أصلي</h2>
+          <p style="margin:20px 0 0;max-width:520px;font-size:clamp(15px,1.15vw,17.5px);line-height:1.95;color:#5A6175;font-weight:300">المحتوى التدريبي داخل المنصة يجب أن يكون أصليًا أو مستخدمًا بحقوق موثقة، ولا تعتمد المنصة على الأسئلة المسربة أو تجميعات الاختبارات الرسمية.</p>
+        </div>
+        <div style="position:relative;min-height:300px;display:flex;align-items:center;justify-content:center">
+          <div style="position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(closest-side,rgba(94,84,246,.22),rgba(94,84,246,0));animation:glowPulse 7s ease-in-out infinite"></div>
+          <div style="position:relative;width:150px;height:170px;clip-path:polygon(50% 0,100% 18%,100% 62%,50% 100%,0 62%,0 18%);background:linear-gradient(160deg,#9DB0FF 0%,#7B5CF6 55%,#8A5AF0 100%);box-shadow:0 30px 56px -22px rgba(94,84,246,.75);display:flex;align-items:center;justify-content:center">
+            <span style="font-family:'Material Symbols Rounded';font-size:58px;color:#fff;font-weight:300">verified_user</span>
+          </div>
+          <div style="position:absolute;top:6%;right:2%;padding:12px 15px;background:#fff;border:1px solid #EAECF5;border-radius:14px;box-shadow:0 20px 40px -22px rgba(38,45,90,.45);animation:floatA 9s ease-in-out infinite;text-align:right">
+            <div style="font-size:10.5px;color:#8A91A2">حالة الحقوق</div>
+            <div style="margin-top:5px;display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#2F8259"><span style="font-family:'Material Symbols Rounded';font-size:15px">task_alt</span>موثقة</div>
+          </div>
+          <div style="position:absolute;bottom:8%;left:0;padding:12px 15px;background:#fff;border:1px solid #EAECF5;border-radius:14px;box-shadow:0 20px 40px -22px rgba(38,45,90,.45);animation:floatB 10s ease-in-out infinite;text-align:right">
+            <div style="font-size:10.5px;color:#8A91A2">مصدر السؤال</div>
+            <div style="margin-top:5px;font-size:12.5px;font-weight:600;color:#1B2130">تأليف خاص بالمنصة</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) 0;text-align:center">
+    <div style="max-width:900px;margin:0 auto">
+      <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+        <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">help</span>
+        <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">الأسئلة الشائعة</span>
+      </div>
+      <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">عندك سؤال؟</h2>
+
+      <div style="margin-top:44px;display:flex;flex-direction:column;gap:12px;text-align:right">
+        <div data-faq-row="" style="background:#fff;border:1px solid #EAECF5;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .3s ease,box-shadow .3s ease;overflow:hidden">
+          <div onClick="{{ toggleFaq }}" style="display:flex;align-items:center;gap:12px;padding:20px 22px;cursor:pointer;user-select:none">
+            <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);flex:none"></span>
+            <span style="flex:1;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(15px,1.3vw,18px);color:#141924">هل المنصة تابعة لجهة الاختبار الرسمية؟</span>
+            <span data-faq-icon="" style="font-family:'Material Symbols Rounded';font-size:22px;color:#8A91A2;transition:transform .35s ease">expand_more</span>
+          </div>
+          <div data-faq-body="" style="max-height:0;opacity:0;overflow:hidden;transition:max-height .45s cubic-bezier(.3,.8,.3,1),opacity .35s ease">
+            <div style="padding:0 42px 22px;font-size:15px;line-height:1.9;color:#5F6779;font-weight:300">لا، المنصة منصة تدريبية مستقلة لمساعدة الطلاب على الاستعداد والتدريب.</div>
+          </div>
+        </div>
+
+        <div data-faq-row="" style="background:#fff;border:1px solid #EAECF5;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .3s ease,box-shadow .3s ease;overflow:hidden">
+          <div onClick="{{ toggleFaq }}" style="display:flex;align-items:center;gap:12px;padding:20px 22px;cursor:pointer;user-select:none">
+            <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);flex:none"></span>
+            <span style="flex:1;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(15px,1.3vw,18px);color:#141924">هل النتيجة في المحاكي تعتبر درجتي في اختبار القدرات؟</span>
+            <span data-faq-icon="" style="font-family:'Material Symbols Rounded';font-size:22px;color:#8A91A2;transition:transform .35s ease">expand_more</span>
+          </div>
+          <div data-faq-body="" style="max-height:0;opacity:0;overflow:hidden;transition:max-height .45s cubic-bezier(.3,.8,.3,1),opacity .35s ease">
+            <div style="padding:0 42px 22px;font-size:15px;line-height:1.9;color:#5F6779;font-weight:300">لا. جميع النتائج ومؤشرات الأداء داخل المنصة تدريبية فقط.</div>
+          </div>
+        </div>
+
+        <div data-faq-row="" style="background:#fff;border:1px solid #EAECF5;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .3s ease,box-shadow .3s ease;overflow:hidden">
+          <div onClick="{{ toggleFaq }}" style="display:flex;align-items:center;gap:12px;padding:20px 22px;cursor:pointer;user-select:none">
+            <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);flex:none"></span>
+            <span style="flex:1;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(15px,1.3vw,18px);color:#141924">هل أحتاج اشتراكًا شهريًا؟</span>
+            <span data-faq-icon="" style="font-family:'Material Symbols Rounded';font-size:22px;color:#8A91A2;transition:transform .35s ease">expand_more</span>
+          </div>
+          <div data-faq-body="" style="max-height:0;opacity:0;overflow:hidden;transition:max-height .45s cubic-bezier(.3,.8,.3,1),opacity .35s ease">
+            <div style="padding:0 42px 22px;font-size:15px;line-height:1.9;color:#5F6779;font-weight:300">لا. المنتجات تُشترى بشكل منفصل، وعند شراء المنتج تحصل على وصول دائم إليه.</div>
+          </div>
+        </div>
+
+        <div data-faq-row="" style="background:#fff;border:1px solid #EAECF5;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .3s ease,box-shadow .3s ease;overflow:hidden">
+          <div onClick="{{ toggleFaq }}" style="display:flex;align-items:center;gap:12px;padding:20px 22px;cursor:pointer;user-select:none">
+            <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);flex:none"></span>
+            <span style="flex:1;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(15px,1.3vw,18px);color:#141924">ما الفرق بين الدورة والمحاكي؟</span>
+            <span data-faq-icon="" style="font-family:'Material Symbols Rounded';font-size:22px;color:#8A91A2;transition:transform .35s ease">expand_more</span>
+          </div>
+          <div data-faq-body="" style="max-height:0;opacity:0;overflow:hidden;transition:max-height .45s cubic-bezier(.3,.8,.3,1),opacity .35s ease">
+            <div style="padding:0 42px 22px;font-size:15px;line-height:1.9;color:#5F6779;font-weight:300">الدورة تساعدك تتعلم وتتدرب على المهارات، بينما المحاكي يساعدك تختبر مستواك في تجربة مؤقتة ومقسمة.</div>
+          </div>
+        </div>
+
+        <div data-faq-row="" style="background:#fff;border:1px solid #EAECF5;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .3s ease,box-shadow .3s ease;overflow:hidden">
+          <div onClick="{{ toggleFaq }}" style="display:flex;align-items:center;gap:12px;padding:20px 22px;cursor:pointer;user-select:none">
+            <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);flex:none"></span>
+            <span style="flex:1;font-family:'Alexandria',sans-serif;font-weight:600;font-size:clamp(15px,1.3vw,18px);color:#141924">هل أقدر أرجع للدروس بعد إنهائها؟</span>
+            <span data-faq-icon="" style="font-family:'Material Symbols Rounded';font-size:22px;color:#8A91A2;transition:transform .35s ease">expand_more</span>
+          </div>
+          <div data-faq-body="" style="max-height:0;opacity:0;overflow:hidden;transition:max-height .45s cubic-bezier(.3,.8,.3,1),opacity .35s ease">
+            <div style="padding:0 42px 22px;font-size:15px;line-height:1.9;color:#5F6779;font-weight:300">نعم، المنتج الذي اشتريته يظل متاحًا لك.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <sc-if value="{{ showEducationalContent }}" hint-placeholder-val="{{ true }}">
+    <section id="blog" style="scroll-margin-top:96px;position:relative;padding:clamp(80px,9vw,130px) clamp(16px,3vw,40px) clamp(70px,8vw,120px);text-align:center">
+      <div style="max-width:1240px;margin:0 auto">
+        <div data-reveal="" style="display:inline-flex;align-items:center;gap:9px;padding:5px 16px 5px 5px;border:1px solid #E7E9F4;background:#fff;border-radius:999px;box-shadow:0 1px 3px rgba(16,24,40,.05)">
+          <span style="width:25px;height:25px;border-radius:999px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:15px">article</span>
+          <span style="font-size:14px;color:#2C3345;font-weight:500;white-space:nowrap">محتوى يساعدك</span>
+        </div>
+        <h2 data-reveal="" data-reveal-delay="60" style="margin:24px auto 0;max-width:760px;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(28px,4vw,52px);line-height:1.24;letter-spacing:-.025em;color:#0B0E15">استعداد أفضل يبدأ بفهم أفضل</h2>
+
+        <div style="margin-top:48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:22px;text-align:right">
+          <div data-reveal="" style="cursor:pointer;transition:transform .35s ease" style-hover="transform:translateY(-5px)">
+            <div style="position:relative;border-radius:20px;overflow:hidden;border:1px solid #E9EBF5;background:linear-gradient(150deg,#25284A 0%,#3A3470 55%,#4B3A86 100%);aspect-ratio:16/10">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:34px 34px"></div>
+              <div style="position:absolute;top:-50px;right:-30px;width:220px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(140,150,255,.5),rgba(140,150,255,0))"></div>
+              <div style="position:absolute;inset:auto 18px 18px 18px;padding:14px;border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 18px 34px -20px rgba(8,10,30,.7)">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:#8A91A2"><span>خطة التدريب الأسبوعية</span><span>5 أيام</span></div>
+                <div style="margin-top:10px;display:flex;align-items:flex-end;gap:6px;height:44px">
+                  <span style="flex:1;height:40%;border-radius:4px 4px 0 0;background:#DDE2FA"></span><span style="flex:1;height:62%;border-radius:4px 4px 0 0;background:#C6CEFB"></span><span style="flex:1;height:52%;border-radius:4px 4px 0 0;background:#DDE2FA"></span><span style="flex:1;height:82%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#7B5CF6,#4E7BF8)"></span><span style="flex:1;height:58%;border-radius:4px 4px 0 0;background:#C6CEFB"></span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:18px;font-size:12.5px;color:#8A91A2">دليل تدريبي</div>
+            <h3 style="margin:8px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;line-height:1.6;color:#0D1119;letter-spacing:-.01em">كيف توزع وقتك أثناء التدريب على القدرات؟</h3>
+          </div>
+
+          <div data-reveal="" data-reveal-delay="90" style="cursor:pointer;transition:transform .35s ease" style-hover="transform:translateY(-5px)">
+            <div style="position:relative;border-radius:20px;overflow:hidden;border:1px solid #E9EBF5;background:linear-gradient(150deg,#1F2340 0%,#33356B 50%,#41407E 100%);aspect-ratio:16/10">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:34px 34px"></div>
+              <div style="position:absolute;bottom:-60px;left:-40px;width:240px;height:240px;border-radius:50%;background:radial-gradient(closest-side,rgba(123,92,246,.55),rgba(123,92,246,0))"></div>
+              <div style="position:absolute;inset:auto 18px 18px 18px;padding:14px;border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 18px 34px -20px rgba(8,10,30,.7);display:flex;align-items:center;gap:12px">
+                <span style="width:36px;height:36px;border-radius:11px;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:19px">timer</span>
+                <div style="flex:1"><div style="font-size:10.5px;color:#8A91A2">جاهزية المحاكاة</div><div style="margin-top:6px;height:6px;border-radius:99px;background:#F1F3F9"><div style="width:78%;height:100%;border-radius:99px;background:linear-gradient(90deg,#4E7BF8,#7B5CF6)"></div></div></div>
+                <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:13px;color:#111623">78%</span>
+              </div>
+            </div>
+            <div style="margin-top:18px;font-size:12.5px;color:#8A91A2">خطوات الاستعداد</div>
+            <h3 style="margin:8px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;line-height:1.6;color:#0D1119;letter-spacing:-.01em">متى تنتقل من التأسيس إلى المحاكاة؟</h3>
+          </div>
+
+          <div data-reveal="" data-reveal-delay="180" style="cursor:pointer;transition:transform .35s ease" style-hover="transform:translateY(-5px)">
+            <div style="position:relative;border-radius:20px;overflow:hidden;border:1px solid #E9EBF5;background:linear-gradient(150deg,#232647 0%,#3B3474 55%,#553C8C 100%);aspect-ratio:16/10">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:34px 34px"></div>
+              <div style="position:absolute;top:-40px;left:-30px;width:200px;height:200px;border-radius:50%;background:radial-gradient(closest-side,rgba(160,140,255,.5),rgba(160,140,255,0))"></div>
+              <div style="position:absolute;inset:auto 18px 18px 18px;padding:14px;border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 18px 34px -20px rgba(8,10,30,.7)">
+                <div style="font-size:10.5px;color:#8A91A2">مراجعة المحاولة</div>
+                <div style="margin-top:9px;display:flex;flex-direction:column;gap:6px">
+                  <span style="display:flex;align-items:center;gap:7px;font-size:10.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:13px;color:#3E9A6D">check_circle</span>أسئلة أجبت عنها بثقة</span>
+                  <span style="display:flex;align-items:center;gap:7px;font-size:10.5px;color:#3B4252"><span style="font-family:'Material Symbols Rounded';font-size:13px;color:#D9843F">error</span>أسئلة تحتاج تدريبًا إضافيًا</span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:18px;font-size:12.5px;color:#8A91A2">تحليل الأداء</div>
+            <h3 style="margin:8px 0 0;font-family:'Alexandria',sans-serif;font-weight:600;font-size:19px;line-height:1.6;color:#0D1119;letter-spacing:-.01em">كيف تستفيد من أخطائك بعد كل محاولة؟</h3>
+          </div>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <section style="position:relative;padding:clamp(80px,9vw,140px) clamp(16px,3vw,40px);text-align:center;overflow:hidden;background:linear-gradient(180deg,#FFF 0%,#EEF0FF 30%,#DFE3FF 70%,#F4F5FE 100%)">
+    <div style="position:absolute;top:-160px;right:8%;width:620px;height:620px;border-radius:50%;background:radial-gradient(closest-side,rgba(140,150,255,.55),rgba(140,150,255,0))"></div>
+    <div style="position:absolute;bottom:-220px;left:6%;width:560px;height:560px;border-radius:50%;background:radial-gradient(closest-side,rgba(171,145,255,.5),rgba(171,145,255,0))"></div>
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(120,130,190,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(120,130,190,.09) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(closest-side,#000 30%,transparent 75%);-webkit-mask-image:radial-gradient(closest-side,#000 30%,transparent 75%)"></div>
+    <div style="position:relative;max-width:820px;margin:0 auto">
+      <h2 data-reveal="" style="margin:0;font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(30px,4.6vw,60px);line-height:1.2;letter-spacing:-.03em;color:#0B0E15">جاهز تبدأ استعدادك؟</h2>
+      <p data-reveal="" data-reveal-delay="80" style="margin:22px auto 0;max-width:620px;font-size:clamp(15px,1.2vw,18px);line-height:1.9;color:#4E5568;font-weight:300">ابدأ بخطوة بسيطة اليوم، وخلي تقدمك واضح من أول درس إلى آخر محاكاة.</p>
+      <div data-reveal="" data-reveal-delay="150" style="margin-top:36px;display:flex;flex-direction:column;align-items:center;gap:16px">
+        <a href="#products" style="padding:18px 44px;border-radius:999px;font-size:17px;font-weight:600;color:#fff;white-space:nowrap;background:linear-gradient(95deg,#4E7BF8 0%,#7B5CF6 100%);box-shadow:0 18px 38px -14px rgba(94,84,246,.75);text-decoration:none" style-hover="color:#fff;box-shadow:0 24px 46px -14px rgba(94,84,246,.9)">ابدأ الآن</a>
+        <a href="#courses" style="font-size:14.5px;color:#4A5162;text-decoration:none;border-bottom:1px solid rgba(74,81,98,.25);padding-bottom:2px" style-hover="color:#1B2130">استكشف الدورات والمحاكيات</a>
+      </div>
+    </div>
+  </section>
+
+  <footer style="position:relative;padding:clamp(60px,7vw,90px) clamp(16px,3vw,40px) 0;background:#fff;border-top:1px solid #F0F1F8;overflow:hidden">
+    <div style="max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:clamp(30px,4vw,60px);text-align:right">
+      <div style="flex:1 1 320px;min-width:0">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="width:42px;height:42px;border-radius:13px;background:linear-gradient(140deg,#6E8BFF 0%,#7B5CF6 55%,#8A5AF0 100%);box-shadow:0 6px 16px rgba(103,92,246,.32);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px">ع</span>
+          <span style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:19px;color:#0E1117;letter-spacing:-.01em;white-space:nowrap">بناء العهد الجديد</span>
+        </div>
+        <p style="margin:18px 0 0;max-width:360px;font-size:14.5px;line-height:1.9;color:#616878;font-weight:300">منصة تدريب عربية تساعد طلاب وطالبات المرحلة الثانوية في السعودية على الاستعداد لاختبار القدرات العامة.</p>
+        <div style="margin-top:24px;display:flex;gap:10px">
+          <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#7B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:18px;cursor:pointer;transition:transform .3s ease" style-hover="transform:translateY(-3px)">mail</span>
+          <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#7BA0FF,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:18px;cursor:pointer;transition:transform .3s ease" style-hover="transform:translateY(-3px)">chat</span>
+          <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#8A5AF0,#5A63E8);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:18px;cursor:pointer;transition:transform .3s ease" style-hover="transform:translateY(-3px)">play_circle</span>
+          <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#6E8BFF,#8A5AF0);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Material Symbols Rounded';font-size:18px;cursor:pointer;transition:transform .3s ease" style-hover="transform:translateY(-3px)">public</span>
+        </div>
+      </div>
+      <div style="flex:0 1 170px">
+        <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:16px;color:#0E1117">المنصة</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:13px">
+          <a href="#courses" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">الدورات</a>
+          <a href="#sims" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">المحاكيات</a>
+          <a href="#products" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">تسجيل الدخول</a>
+        </div>
+      </div>
+      <div style="flex:0 1 170px">
+        <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:16px;color:#0E1117">المساعدة</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:13px">
+          <a href="#faq" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">الأسئلة الشائعة</a>
+          <a href="#faq" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">تواصل معنا</a>
+        </div>
+      </div>
+      <div style="flex:0 1 170px">
+        <div style="font-family:'Alexandria',sans-serif;font-weight:600;font-size:16px;color:#0E1117">السياسات</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:13px">
+          <a href="#rights" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">سياسة الخصوصية</a>
+          <a href="#rights" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">الشروط والأحكام</a>
+          <a href="#rights" style="font-size:14.5px;color:#616878;text-decoration:none" style-hover="color:#1B2130">حقوق المحتوى</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:1240px;margin:44px auto 0;padding:20px 22px;border-radius:18px;background:linear-gradient(90deg,#F7F8FE,#FBFAFF);border:1px solid #EEEFF8;display:flex;align-items:center;gap:12px;text-align:right">
+      <span style="font-family:'Material Symbols Rounded';font-size:20px;color:#8A91A2;flex:none">info</span>
+      <span style="font-size:13.5px;line-height:1.8;color:#5F6779">المنصة تدريبية مستقلة، وجميع نتائج المحاكاة مؤشرات تدريبية وليست درجات رسمية.</span>
+    </div>
+
+    <div style="position:relative;max-width:1240px;margin:0 auto;padding-top:36px;overflow:hidden">
+      <div style="font-family:'Alexandria',sans-serif;font-weight:700;font-size:clamp(40px,9vw,132px);line-height:1;letter-spacing:-.04em;color:#F1F3F9;white-space:nowrap;text-align:right;user-select:none">بناء العهد الجديد</div>
+      <div style="margin-top:18px;padding:20px 0 26px;border-top:1px solid #F2F3FA;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <span style="font-size:13px;color:#98A0B0">© 2026 بناء العهد الجديد — جميع الحقوق محفوظة.</span>
+        <span style="font-size:13px;color:#98A0B0">صُنعت في المملكة العربية السعودية</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;floatingCards&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;العرض&quot;},&quot;animateOnScroll&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;العرض&quot;},&quot;showEducationalContent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;العرض&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      floatingCards: this.props.floatingCards ?? true,
+      showEducationalContent: this.props.showEducationalContent ?? true,
+      toggleFaq: this.toggleFaq,
+      dismissPlay: this.dismissPlay
+    };
+  }
+  componentDidMount() {
+    this.setupReveal();
+    requestAnimationFrame(() => {
+      const first = document.querySelector('[data-faq-row]');
+      if (!first) return;
+      const body = first.querySelector('[data-faq-body]');
+      const icon = first.querySelector('[data-faq-icon]');
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.style.opacity = '1';
+      first.style.borderColor = '#D9DCFB';
+      first.style.boxShadow = '0 14px 30px -18px rgba(38,45,90,.35)';
+      if (icon) icon.style.transform = 'rotate(180deg)';
+    });
+  }
+  dismissPlay = (e) => {
+    const o = e.currentTarget;
+    o.style.opacity = '0';
+    o.style.pointerEvents = 'none';
+  };
+  setupReveal() {
+    const root = document;
+    const animate = this.props.animateOnScroll ?? true;
+    const bars = () => {
+      root.querySelectorAll('[data-bar]').forEach(b => { b.style.height = b.getAttribute('data-bar') + '%'; });
+      root.querySelectorAll('[data-ring]').forEach(r => {
+        const pct = parseFloat(r.getAttribute('data-ring')) / 100;
+        r.style.strokeDashoffset = String(314 * (1 - pct));
+      });
+    };
+    if (!animate) { bars(); return; }
+    const items = Array.from(root.querySelectorAll('[data-reveal]'));
+    const vh = window.innerHeight || 800;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const d = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
+        setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'none'; }, d);
+        io.unobserve(el);
+        if (el.querySelector('[data-bar],[data-ring]')) bars();
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+    items.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top > vh * 0.92) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(26px)';
+        el.style.transition = 'opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)';
+      }
+      io.observe(el);
+    });
+    setTimeout(bars, 400);
+  }
+  toggleFaq = (e) => {
+    const head = e.currentTarget;
+    const row = head.parentElement;
+    const body = row.querySelector('[data-faq-body]');
+    const icon = head.querySelector('[data-faq-icon]');
+    const open = body.style.maxHeight && body.style.maxHeight !== '0px';
+    const siblings = row.parentElement.querySelectorAll('[data-faq-row]');
+    siblings.forEach(s => {
+      const b = s.querySelector('[data-faq-body]');
+      const i = s.querySelector('[data-faq-icon]');
+      if (b !== body) { b.style.maxHeight = '0px'; b.style.opacity = '0'; s.style.borderColor = '#EAECF5'; s.style.boxShadow = '0 1px 2px rgba(16,24,40,.03)'; if (i) i.style.transform = 'rotate(0deg)'; }
+    });
+    if (open) {
+      body.style.maxHeight = '0px'; body.style.opacity = '0'; row.style.borderColor = '#EAECF5';
+      row.style.boxShadow = '0 1px 2px rgba(16,24,40,.03)';
+      if (icon) icon.style.transform = 'rotate(0deg)';
+    } else {
+      body.style.maxHeight = body.scrollHeight + 'px'; body.style.opacity = '1';
+      row.style.borderColor = '#D9DCFB'; row.style.boxShadow = '0 14px 30px -18px rgba(38,45,90,.35)';
+      if (icon) icon.style.transform = 'rotate(180deg)';
+    }
+  };
+}
+</script>
+</body>
+</html>

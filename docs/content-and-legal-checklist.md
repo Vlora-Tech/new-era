@@ -42,7 +42,7 @@ before launch, with provenance for each.
 
 Displayed on every simulator page, before every full attempt, and on every result:
 
-> منصة نيو إيرا منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو
+> منصة بناء العهد الجديد منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو
 > للمركز الوطني للقياس، ولا تمثل نتائجها نتيجة رسمية أو ضمانًا لدرجة الاختبار.
 
 Results are labelled `نتيجة تدريبية` or `مؤشر أداء تدريبي`. The product does not

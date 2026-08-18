@@ -185,8 +185,10 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <Card className="p-6">
-            <p className="text-ink-900 text-[28px] leading-none font-semibold">
+          {/* The one hero-weight shadow on the page: the panel being acted on. */}
+          <Card className="shadow-card-lg p-6">
+            {/* The price is a stat numeral: display face, 700, tabular. */}
+            <p className="text-ink-900 font-display text-[30px] leading-none font-bold tabular-nums">
               {formatHalalas(simulator.priceHalalas)}
             </p>
             <p className="text-ink-700 mt-3 text-sm leading-[1.8]">

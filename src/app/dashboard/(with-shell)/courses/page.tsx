@@ -38,9 +38,7 @@ export default async function DashboardCoursesPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <h1 className="text-ink-900 text-2xl font-semibold sm:text-3xl">
-          {COPY.dashboard.myCourses}
-        </h1>
+        <h1 className="text-ink-900 text-2xl font-bold sm:text-3xl">{COPY.dashboard.myCourses}</h1>
         <p className="text-ink-700">{COPY.dashboard.coursesSubtitle}</p>
       </header>
 

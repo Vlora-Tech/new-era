@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
 import { hasActiveEntitlement } from '@/services/access/entitlement';
 import { resolveAttemptClock } from '@/services/exams/attempt-clock';
 import {
+  FixedSelectionError,
   QuestionShortageError,
   selectAttemptQuestions,
   type SectionInput,
@@ -170,6 +171,7 @@ export async function createAttempt(input: CreateAttemptInput): Promise<CreateAt
           id: true,
           status: true,
           versionNumber: true,
+          selectionMode: true,
           totalQuestions: true,
           totalDurationSec: true,
           resultDisclaimer: true,
@@ -198,6 +200,14 @@ export async function createAttempt(input: CreateAttemptInput): Promise<CreateAt
                   percentage: true,
                   questionCount: true,
                 },
+              },
+              // Read for both modes rather than conditionally: a `FIXED`
+              // version's paper *is* this list, and a `BLUEPRINT` version has
+              // none, so the extra rows are zero in the case that does not want
+              // them.
+              fixedQuestions: {
+                orderBy: { position: 'asc' },
+                select: { questionId: true, position: true },
               },
             },
           },
@@ -246,6 +256,7 @@ export async function createAttempt(input: CreateAttemptInput): Promise<CreateAt
     position: section.position,
     questionCount: section.questionCount,
     blueprintRules: section.blueprintRules,
+    fixedQuestions: section.fixedQuestions,
   }));
 
   const settings: AttemptSettingsSnapshot = {
@@ -281,6 +292,7 @@ export async function createAttempt(input: CreateAttemptInput): Promise<CreateAt
         sections: sectionInputs,
         seed,
         defaultTrack: simulator.track,
+        selectionMode: version.selectionMode,
       });
 
       const totalQuestions = selection.reduce((sum, section) => sum + section.questions.length, 0);
@@ -327,10 +339,19 @@ export async function createAttempt(input: CreateAttemptInput): Promise<CreateAt
         // Delivered order is shuffled away from the blueprint's rule order:
         // otherwise every paper would open with four analogies in a row, which
         // tells the student which skill is being tested before they read it.
-        const ordered = shuffle(
-          sectionSelection.questions,
-          createRandom(deriveSeed(seed, sectionSelection.position)),
-        );
+        //
+        // A `FIXED` version is the exception and is left alone. Its order is not
+        // an artefact of rule grouping — an administrator arranged those
+        // questions deliberately, position by position, and reordering them
+        // would discard the only thing that distinguishes a fixed paper from a
+        // bag of questions.
+        const ordered =
+          version.selectionMode === 'FIXED'
+            ? sectionSelection.questions
+            : shuffle(
+                sectionSelection.questions,
+                createRandom(deriveSeed(seed, sectionSelection.position)),
+              );
 
         const prepared = await prepareAttemptQuestions(tx, {
           sourceQuestions: ordered.map((question) => ({
@@ -374,6 +395,21 @@ export async function createAttempt(input: CreateAttemptInput): Promise<CreateAt
         simulatorId,
         examVersionId: version.id,
         shortages: error.shortages,
+      });
+      throw new HttpError(409, COPY.exam.errors.questionShortage, 'question_shortage');
+    }
+
+    // The `FIXED` equivalent: the pinned list no longer resolves. Publication
+    // checks the same property, so arriving here means the bank changed under a
+    // live version. The student sees the same sentence — from their side both
+    // are "the exam could not be assembled" — while the log names the questions
+    // so an administrator can put the version right.
+    if (error instanceof FixedSelectionError) {
+      logger.error('attempt generation aborted: fixed list incomplete', {
+        userId,
+        simulatorId,
+        examVersionId: version.id,
+        problems: error.problems,
       });
       throw new HttpError(409, COPY.exam.errors.questionShortage, 'question_shortage');
     }

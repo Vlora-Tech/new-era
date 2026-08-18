@@ -32,7 +32,7 @@ async function seedSettings() {
     {
       key: 'exam.trackMapping',
       value: {
-        note: 'مصدر التصنيف: الدليل الإرشادي لاختبار القدرات العامة. تاريخ مراجعة المصدر من قِبل نيو إيرا: 2026-08-17.',
+        note: 'مصدر التصنيف: الدليل الإرشادي لاختبار القدرات العامة. تاريخ مراجعة المصدر من قِبل بناء العهد الجديد: 2026-08-17.',
         theoretical: ['المسار الشرعي', 'مسار إدارة الأعمال'],
         scientific: ['المسار العام', 'علوم الصحة والحياة', 'علوم الحاسب والهندسة'],
       },
@@ -113,7 +113,7 @@ async function main() {
     throw new Error('The development seed must not run against production.');
   }
 
-  console.log('Seeding نيو إيرا development data…');
+  console.log('Seeding بناء العهد الجديد development data…');
 
   await seedSettings();
   const admin = await seedAdmin();

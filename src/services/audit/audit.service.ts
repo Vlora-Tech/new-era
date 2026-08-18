@@ -28,6 +28,22 @@ import type { PrismaTransaction } from '@/lib/db';
  * The `payment.*` members mirror the strings `reconcile.service.ts` already
  * writes by hand, so the table has one spelling per event even though that file
  * predates this module and passes its own literals.
+ *
+ * The naming rule is `domain.verb`, dot-separated, with the verb in the past
+ * tense — the row records something that happened, not something requested. A
+ * verb of several words joins with an underscore (`workflow_changed`), and a
+ * domain of several words does the same (`lesson_quiz`, `exam_version`), so the
+ * dot never means anything but "domain, then verb". `payment.reconcile.*` is the
+ * one three-segment family and it predates the rule.
+ *
+ * A reorder is recorded once per operation on the *parent* — `module.reordered`
+ * against the course — rather than once per row that moved. Ten rows shifting by
+ * one position is one administrative decision, and ten rows of trail for it is
+ * how the table stops being readable.
+ *
+ * Every value here needs an Arabic label in `COPY.adminAudit.actionLabels`,
+ * which is keyed by these exact strings. An action added without one renders
+ * through `unknownAction` — correct, but useless to the person reading the log.
  */
 export const AUDIT_ACTIONS = {
   PRODUCT_CREATED: 'product.created',
@@ -53,6 +69,105 @@ export const AUDIT_ACTIONS = {
   PAYMENT_RECONCILE_MISMATCH: 'payment.reconcile.mismatch',
   PAYMENT_RECONCILE_NEEDS_REVIEW: 'payment.reconcile.needs_review',
   PAYMENT_RECONCILE_TRANSITION_REFUSED: 'payment.reconcile.transition_refused',
+
+  // ── Course content ──────────────────────────────────────────────────────
+  // A `Course` row is never created or deleted from the administration area:
+  // it exists one-to-one with its `Product`, so the catalogue's own
+  // `product.created` and `product.deleted` already record those two events.
+  // Only the course's settings are separately editable, hence a single verb.
+  COURSE_UPDATED: 'course.updated',
+
+  MODULE_CREATED: 'module.created',
+  MODULE_UPDATED: 'module.updated',
+  MODULE_DELETED: 'module.deleted',
+  MODULE_REORDERED: 'module.reordered',
+  MODULE_PUBLISHED: 'module.published',
+  MODULE_UNPUBLISHED: 'module.unpublished',
+  MODULE_ARCHIVED: 'module.archived',
+
+  LESSON_CREATED: 'lesson.created',
+  LESSON_UPDATED: 'lesson.updated',
+  LESSON_DELETED: 'lesson.deleted',
+  LESSON_REORDERED: 'lesson.reordered',
+  LESSON_PUBLISHED: 'lesson.published',
+  LESSON_UNPUBLISHED: 'lesson.unpublished',
+  LESSON_ARCHIVED: 'lesson.archived',
+
+  LESSON_QUIZ_CREATED: 'lesson_quiz.created',
+  LESSON_QUIZ_UPDATED: 'lesson_quiz.updated',
+  LESSON_QUIZ_DELETED: 'lesson_quiz.deleted',
+  // Adding or removing a bank question from a quiz. One action for both, with
+  // the direction in the metadata: they are the same decision seen twice, and
+  // splitting them buys a filter nobody wants at the cost of two spellings.
+  LESSON_QUIZ_QUESTIONS_CHANGED: 'lesson_quiz.questions_changed',
+  LESSON_QUIZ_REORDERED: 'lesson_quiz.reordered',
+
+  // Registering a Bunny video against the platform is not an upload: the bytes
+  // are uploaded in Bunny's dashboard and this records the identifier pointing
+  // at them. `registered` rather than `created` says so — the video existed
+  // before this row did, and deleting the row does not delete the video.
+  VIDEO_REGISTERED: 'video.registered',
+  VIDEO_UPDATED: 'video.updated',
+  VIDEO_DELETED: 'video.deleted',
+
+  // ── Exam simulators ─────────────────────────────────────────────────────
+  SIMULATOR_UPDATED: 'simulator.updated',
+
+  EXAM_VERSION_CREATED: 'exam_version.created',
+  EXAM_VERSION_UPDATED: 'exam_version.updated',
+  EXAM_VERSION_DUPLICATED: 'exam_version.duplicated',
+  EXAM_VERSION_DELETED: 'exam_version.deleted',
+  EXAM_VERSION_PUBLISHED: 'exam_version.published',
+  EXAM_VERSION_RETIRED: 'exam_version.retired',
+  // Publication and activation are two decisions and therefore two actions.
+  // Publishing freezes a version's structure; activating points the simulator
+  // at it, which is what actually changes what a student receives.
+  EXAM_VERSION_ACTIVATED: 'exam_version.activated',
+  EXAM_VERSION_DEACTIVATED: 'exam_version.deactivated',
+
+  EXAM_SECTION_CREATED: 'exam_section.created',
+  EXAM_SECTION_UPDATED: 'exam_section.updated',
+  EXAM_SECTION_DELETED: 'exam_section.deleted',
+  EXAM_SECTION_REORDERED: 'exam_section.reordered',
+  EXAM_SECTION_QUESTIONS_CHANGED: 'exam_section.questions_changed',
+
+  BLUEPRINT_RULE_CREATED: 'blueprint_rule.created',
+  BLUEPRINT_RULE_UPDATED: 'blueprint_rule.updated',
+  BLUEPRINT_RULE_DELETED: 'blueprint_rule.deleted',
+  BLUEPRINT_RULE_REORDERED: 'blueprint_rule.reordered',
+
+  // ── Student accounts ────────────────────────────────────────────────────
+  STUDENT_BLOCKED: 'student.blocked',
+  STUDENT_UNBLOCKED: 'student.unblocked',
+  // Bumping `sessionVersion` on its own, without blocking. Blocking bumps it
+  // too, and is recorded as `student.blocked` alone: two rows for one button
+  // would suggest two decisions were taken.
+  STUDENT_SESSIONS_REVOKED: 'student.sessions_revoked',
+  STUDENT_UPDATED: 'student.updated',
+  STUDENT_ROLE_CHANGED: 'student.role_changed',
+
+  // ── Orders and payments ─────────────────────────────────────────────────
+  // Administrator-initiated actions only. What the gateway then decides is
+  // recorded by `reconcile.service.ts` under `payment.reconcile.*`, so a refund
+  // leaves two rows: the request, and the outcome the provider returned.
+  ORDER_CANCELLED: 'order.cancelled',
+  ORDER_RECONCILE_REQUESTED: 'order.reconcile_requested',
+  PAYMENT_REFUND_REQUESTED: 'payment.refund_requested',
+  PAYMENT_REFUND_FAILED: 'payment.refund_failed',
+  PAYMENT_REVIEW_FLAGGED: 'payment.review_flagged',
+  PAYMENT_REVIEW_CLEARED: 'payment.review_cleared',
+
+  // ── Access ──────────────────────────────────────────────────────────────
+  // These mirror the three `EntitlementEventType` members. The event row is the
+  // authoritative access history; the audit row is the administrative record of
+  // who decided it, and both are written in the same transaction.
+  ENTITLEMENT_GRANTED: 'entitlement.granted',
+  ENTITLEMENT_REVOKED: 'entitlement.revoked',
+  ENTITLEMENT_REACTIVATED: 'entitlement.reactivated',
+
+  // ── Platform settings ───────────────────────────────────────────────────
+  // One action for the whole key/value store, with the key in `targetId`.
+  SETTING_UPDATED: 'setting.updated',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -60,16 +175,34 @@ export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
 /**
  * The model an action was performed on, spelled as the Prisma model name so a
  * row can be joined back to its subject without a lookup table.
+ *
+ * The target is the record that changed, which is not always the record the
+ * screen was showing. Reordering lessons targets the `CourseModule` they belong
+ * to, because the ordering is a property of the container; editing one of them
+ * targets the `Lesson`. `SiteSetting` is the one model keyed by a string rather
+ * than a uuid, so its `targetId` carries the setting key.
+ *
+ * Every member needs an Arabic name in `COPY.adminAudit.targetTypeLabels`.
  */
 export type AuditTargetType =
   | 'Product'
   | 'Question'
   | 'QuestionStimulus'
   | 'MediaAsset'
+  | 'Course'
+  | 'CourseModule'
+  | 'Lesson'
+  | 'LessonQuiz'
+  | 'VideoAsset'
+  | 'ExamSimulator'
+  | 'ExamVersion'
+  | 'ExamSection'
+  | 'ExamBlueprintRule'
+  | 'ExamAttempt'
   | 'Order'
+  | 'PaymentAttempt'
   | 'User'
   | 'Entitlement'
-  | 'ExamVersion'
   | 'SiteSetting';
 
 /**

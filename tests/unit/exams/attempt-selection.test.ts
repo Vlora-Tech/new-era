@@ -64,7 +64,14 @@ function rule(overrides: Partial<BlueprintRuleInput> & { domain: $Enums.Question
 }
 
 function section(id: string, position: number, questionCount: number, rules: BlueprintRuleInput[]) {
-  return { id, position, questionCount, blueprintRules: rules } satisfies SectionInput;
+  // A blueprint section pins nothing; `fixedQuestions` is the other mode's list.
+  return {
+    id,
+    position,
+    questionCount,
+    blueprintRules: rules,
+    fixedQuestions: [],
+  } satisfies SectionInput;
 }
 
 describe('generateSelection', () => {

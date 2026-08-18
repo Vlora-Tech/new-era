@@ -22,12 +22,12 @@ const OFFICIAL_GUIDE_URL =
 const SOURCE_RETRIEVED_AT = new Date('2026-08-17T00:00:00.000Z');
 
 const SOURCE_NOTE = [
-  'تاريخ المراجعة أعلاه هو تاريخ اطّلاع نيو إيرا على المصدر، وليس تاريخ إصداره أو تحديثه من الجهة الرسمية.',
-  'المصدر يحدد إجمالي مدة الاختبار بساعتين وخمس دقائق. أما توزيع المدة بالتساوي على الأقسام (٢٥ دقيقة لكل قسم) فهو إعداد افتراضي من نيو إيرا مشتق من الإجمالي، وليس قاعدة رسمية، ويمكن للمشرف تعديله في أي نسخة.',
+  'تاريخ المراجعة أعلاه هو تاريخ اطّلاع بناء العهد الجديد على المصدر، وليس تاريخ إصداره أو تحديثه من الجهة الرسمية.',
+  'المصدر يحدد إجمالي مدة الاختبار بساعتين وخمس دقائق. أما توزيع المدة بالتساوي على الأقسام (٢٥ دقيقة لكل قسم) فهو إعداد افتراضي من بناء العهد الجديد مشتق من الإجمالي، وليس قاعدة رسمية، ويمكن للمشرف تعديله في أي نسخة.',
 ].join(' ');
 
 const RESULT_DISCLAIMER =
-  'منصة نيو إيرا منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو للمركز الوطني للقياس، ولا تمثل نتائجها نتيجة رسمية أو ضمانًا لدرجة الاختبار.';
+  'منصة بناء العهد الجديد منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو للمركز الوطني للقياس، ولا تمثل نتائجها نتيجة رسمية أو ضمانًا لدرجة الاختبار.';
 
 const SECTION_COUNT = 5;
 const QUESTIONS_PER_SECTION = 24;
@@ -76,7 +76,7 @@ async function ensureQuestion(
       workflow: 'PUBLISHED',
       currentVersion: 1,
       shuffleOptions: question.shuffleOptions ?? true,
-      authorOrLicensor: 'نيو إيرا',
+      authorOrLicensor: 'بناء العهد الجديد',
       provenanceNote,
       rightsDeclaration: 'ORIGINAL',
       createdById: options.authorId,
@@ -152,7 +152,7 @@ async function seedQuestionBank(
           content: {
             blocks: [{ type: 'paragraph', children: [{ type: 'text', text: passage.body }] }],
           } as unknown as Prisma.InputJsonValue,
-          authorOrLicensor: 'نيو إيرا',
+          authorOrLicensor: 'بناء العهد الجديد',
           provenanceNote: `${SAMPLE_CONTENT_LABEL} — مرجع داخلي: ${passage.externalKey}`,
           rightsDeclaration: 'ORIGINAL',
         },

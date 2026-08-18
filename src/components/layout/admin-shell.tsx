@@ -88,17 +88,28 @@ function AdminNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            // The active item is carried by `aria-current` and by weight, not by
-            // colour alone.
+            // The active item is carried by `aria-current`, by weight and by a
+            // drawn bar — never by colour alone.
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'rounded-control flex min-h-11 items-center gap-3 px-3 py-2 text-sm',
+              'rounded-control relative flex min-h-11 items-center gap-3 py-2 ps-4 pe-3 text-sm',
               'transition-colors duration-150',
               active
-                ? 'bg-brand-100 text-brand-700 font-medium'
+                ? 'bg-brand-100 text-brand-700 font-semibold'
                 : 'text-ink-700 hover:bg-surface-muted hover:text-ink-900',
             )}
           >
+            {/*
+              A 3px marker on the rail's own reading edge — the right edge under
+              `dir="rtl"`. `inset-y-2` keeps it clear of the pill's 8px corners,
+              so it reads as a tab marker rather than as a broken border.
+            */}
+            {active ? (
+              <span
+                aria-hidden="true"
+                className="bg-brand-700 absolute inset-y-2 start-0 w-[3px] rounded-full"
+              />
+            ) : null}
             <Icon className="size-5 shrink-0" aria-hidden="true" />
             <span className="truncate">{item.label}</span>
           </Link>
@@ -164,7 +175,14 @@ function AdminMobileNav({ pathname }: { pathname: string }) {
           <Dialog.Description className="sr-only">{COPY.admin.title}</Dialog.Description>
 
           <div className="border-line-200 flex h-16 items-center justify-between gap-2 border-b px-3">
-            <BrandWordmarkLink className="px-1" />
+            {/* The same lockup and chip the desktop rail carries, so the drawer
+                reads as that rail moved rather than as a different object. */}
+            <div className="flex min-w-0 items-center gap-2">
+              <BrandWordmarkLink className="px-1" compact />
+              <span className="bg-brand-100 text-brand-700 truncate rounded-full px-2.5 py-1 text-xs font-semibold">
+                {COPY.admin.title}
+              </span>
+            </div>
             <Dialog.Close asChild>
               <button
                 type="button"
@@ -263,8 +281,14 @@ export function AdminShell({
         )}
       >
         <div className="border-line-200 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <BrandWordmarkLink />
-          <span className="text-ink-600 truncate text-sm">{COPY.admin.title}</span>
+          <BrandWordmarkLink compact />
+          {/*
+            A chip rather than a second run of muted text: it separates the tool
+            from the brand instead of reading as a continuation of the wordmark.
+          */}
+          <span className="bg-brand-100 text-brand-700 truncate rounded-full px-2.5 py-1 text-xs font-semibold">
+            {COPY.admin.title}
+          </span>
         </div>
         <div className="flex-1 overflow-y-auto">
           <AdminNav pathname={pathname} />
@@ -275,29 +299,47 @@ export function AdminShell({
         <header
           className={cn(
             'sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3',
-            'border-line-200 bg-surface border-b px-3 sm:px-6',
+            // Translucent with a blur, so content scrolling under the bar reads
+            // as beneath it rather than clipped by it. No scroll listener.
+            'border-line-200/70 bg-surface/85 border-b px-3 backdrop-blur-xl sm:px-6',
           )}
         >
           <AdminMobileNav pathname={pathname} />
 
           {/*
             A locator, not a heading: the page below owns the only `h1`, so this
-            line stays small and muted rather than competing with it.
+            line stays small rather than competing with it. The current section
+            gets the brand hue and its own icon, which makes the bar answer
+            "where am I" at a glance instead of after a read.
           */}
-          <p className="text-ink-700 min-w-0 flex-1 truncate text-sm font-medium">
+          <p className="text-brand-700 flex min-w-0 flex-1 items-center gap-2 truncate text-sm font-semibold">
             <span className="sr-only">{COPY.adminPages.currentSection}: </span>
+            {current ? <current.icon className="size-4 shrink-0" aria-hidden="true" /> : null}
             {current?.label ?? COPY.admin.title}
           </p>
 
-          <div className="hidden min-w-0 text-end sm:block">
-            <span className="sr-only">{COPY.admin.signedInAs}: </span>
-            <span className="text-ink-900 block truncate text-sm font-medium">{user.name}</span>
+          <div className="hidden min-w-0 items-center gap-3 sm:flex">
+            <div className="min-w-0 text-end">
+              <span className="sr-only">{COPY.admin.signedInAs}: </span>
+              <span className="text-ink-900 block truncate text-sm font-medium">{user.name}</span>
+              {/*
+                The address is Latin inside an Arabic layout; isolating it stops a
+                leading digit or symbol from reordering the line around it.
+              */}
+              <span className="text-ink-600 block truncate text-xs">
+                <bdi dir="ltr">{user.email}</bdi>
+              </span>
+            </div>
             {/*
-              The address is Latin inside an Arabic layout; isolating it stops a
-              leading digit or symbol from reordering the line around it.
+              The signed-in initial. Decorative and `aria-hidden`: the name and
+              address sit next to it in text, so a screen reader that also
+              announced a bare letter would be reading the same fact twice.
             */}
-            <span className="text-ink-600 block truncate text-xs">
-              <bdi dir="ltr">{user.email}</bdi>
+            <span
+              aria-hidden="true"
+              className="bg-brand-100 text-brand-700 flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+            >
+              {[...user.name.trim()][0] ?? ''}
             </span>
           </div>
 

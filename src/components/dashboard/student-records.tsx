@@ -4,6 +4,7 @@ import type { $Enums } from '@prisma/client';
 import { GraduationCap, MonitorPlay } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { ProgressBar } from '@/components/ui/progress';
 import { Badge, Card, EmptyState, ErrorState } from '@/components/ui/surface';
 import { COPY } from '@/lib/copy';
 import { formatDate, formatHalalas, formatNumber, formatPercent } from '@/lib/format';
@@ -94,6 +95,11 @@ const PRODUCT_BASE_PATH: Record<$Enums.ProductType, string> = {
  * overview's stat tiles and section heads use. A student scanning the grid can
  * tell the two products apart before reading either title — and the type badge
  * still spells it out in words, so nothing depends on seeing the difference.
+ *
+ * The cap rule and the icon chip are both the hue's `fill` — the vivid solid
+ * `accent.ts` publishes for graphics — so the two marks on one card are the same
+ * blue rather than two neighbouring ones. The chip carries a white GLYPH, which
+ * clears the 3:1 graphics floor; nothing on either sets white text.
  */
 type ProductTone = {
   rule: string;
@@ -104,14 +110,14 @@ type ProductTone = {
 
 const PRODUCT_TONES: Record<$Enums.ProductType, ProductTone> = {
   COURSE: {
-    rule: 'bg-brand-700',
-    chip: 'bg-brand-700/12 text-brand-700',
+    rule: 'bg-brand-600',
+    chip: 'bg-brand-600 text-white',
     badge: 'brand',
     icon: GraduationCap,
   },
   EXAM_SIMULATOR: {
-    rule: 'bg-accent-teal',
-    chip: 'bg-accent-teal/12 text-accent-teal',
+    rule: 'bg-accent-teal-fill',
+    chip: 'bg-accent-teal-fill text-white',
     badge: 'teal',
     icon: MonitorPlay,
   },
@@ -123,12 +129,23 @@ export function OwnedProductList({
   emptyTitle,
   emptyDescription,
   emptyAction,
+  renderAction,
 }: {
   items: OwnedProduct[];
   failed?: boolean;
   emptyTitle: string;
   emptyDescription?: string;
   emptyAction?: ReactNode;
+  /**
+   * An extra control per card, beside «فتح».
+   *
+   * A slot rather than a `type === 'EXAM_SIMULATOR'` branch inside this
+   * component: what a simulator's primary action needs — the `ExamSimulator`
+   * id, which is not the product id — is not in `OwnedProduct` and has no
+   * business being added to it for one caller. The page that knows about
+   * simulators supplies the button; this component only decides where it sits.
+   */
+  renderAction?: (item: OwnedProduct) => ReactNode;
 }) {
   if (failed) return <ErrorState />;
   if (items.length === 0) {
@@ -142,8 +159,14 @@ export function OwnedProductList({
         const Icon = tone.icon;
 
         return (
-          <li key={item.id}>
-            <Card interactive className="flex h-full flex-col overflow-hidden">
+          <li key={item.id} className="reveal">
+            {/*
+              Rests on `shadow-card` with no hover lift: the lift is the cue for
+              a card whose whole surface is a link, and this card's only link is
+              the button inside it — a card that rises but does not open would
+              promise a click it cannot honour.
+            */}
+            <Card className="flex h-full flex-col overflow-hidden">
               {/*
                 A 3px rule across the head of the card, in the product's own
                 hue — the same figure `RuledHead` opens a page with, so the
@@ -152,23 +175,41 @@ export function OwnedProductList({
               */}
               <span aria-hidden="true" className={cn('block h-[3px] w-full', tone.rule)} />
 
-              <div className="flex flex-1 flex-col gap-3 p-5">
-                <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-1 flex-col gap-4 p-5">
+                {/*
+                  Chip, then title, then the badges under it. The badges led the
+                  card before, which ranked the type and the access state — two
+                  labels every card in the grid repeats — above the one line that
+                  differs between cards.
+
+                  There is deliberately no progress bar here. `OwnedProduct`
+                  carries the entitlement and the product, and nothing about
+                  lessons completed; a bar would either be invented or need a
+                  query this component has no business adding.
+                */}
+                <div className="flex items-start gap-3">
                   <span
                     className={cn(
-                      'rounded-control inline-flex size-8 items-center justify-center',
+                      'rounded-control inline-flex size-10 shrink-0 items-center justify-center',
                       tone.chip,
                     )}
                   >
-                    <Icon className="size-4" aria-hidden="true" />
+                    <Icon className="size-5" aria-hidden="true" />
                   </span>
-                  <Badge variant={tone.badge}>
-                    {COPY.statusLabels.productType[item.product.type]}
-                  </Badge>
-                  <Badge variant="success">{COPY.statusLabels.entitlementStatus.ACTIVE}</Badge>
+
+                  <div className="flex min-w-0 flex-col gap-2">
+                    <h3 className="text-ink-900 text-lg font-semibold text-balance">
+                      {item.product.title}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={tone.badge}>
+                        {COPY.statusLabels.productType[item.product.type]}
+                      </Badge>
+                      <Badge variant="success">{COPY.statusLabels.entitlementStatus.ACTIVE}</Badge>
+                    </div>
+                  </div>
                 </div>
 
-                <h3 className="text-ink-900 text-lg font-semibold">{item.product.title}</h3>
                 <p className="text-ink-700 flex-1 text-sm leading-relaxed">
                   {item.product.shortDescription}
                 </p>
@@ -179,7 +220,13 @@ export function OwnedProductList({
                   </Detail>
                 </dl>
 
-                <div className="border-line-200 border-t pt-4">
+                {/*
+                  The supplied action leads, «فتح» follows: for a simulator the
+                  primary act is sitting the exam, and the product page is the
+                  reference beside it.
+                */}
+                <div className="border-line-200 flex flex-wrap gap-2 border-t pt-4">
+                  {renderAction?.(item)}
                   <Button asChild variant="secondary" size="sm">
                     <Link href={`${PRODUCT_BASE_PATH[item.product.type]}/${item.product.slug}`}>
                       {COPY.dashboard.openItem}
@@ -211,24 +258,29 @@ export type StudentAttempt = {
 /**
  * A graded attempt's score, as a bar.
  *
- * Green is the colour code's "readiness" hue, which is what a score is. The bar
- * is `aria-hidden` on purpose: the `<dl>` directly above it already states the
- * count, the total and the percentage in words and digits, so announcing the
- * same number a second time as a meter is noise rather than access. Nothing
- * here is carried by the bar alone.
+ * Green is the colour code's "readiness" hue, which is what a score is. The
+ * whole figure is `aria-hidden` on purpose: the `<dl>` directly above it already
+ * states the count, the total and the percentage in words and digits, so
+ * announcing the same number a second time as a meter is noise rather than
+ * access. Nothing here is carried by the bar alone.
+ *
+ * The track is the shared `ProgressBar` — same contract, and it grows from the
+ * inline start under `dir="rtl"` for free. The fill takes green's vivid `fill`
+ * because it is a graphic; the percentage beside it stays on the darker `ink`,
+ * because it is text and text has a 4.5:1 floor.
  */
 function ScoreMeter({ value }: { value: number }) {
   return (
     <div aria-hidden="true" className="flex items-center gap-3">
-      <div className="bg-accent-green-soft h-2 flex-1 overflow-hidden rounded-full">
-        <div
-          className="bg-accent-green h-full rounded-full"
-          // A percentage width, so the track's own width is the only thing this
-          // has to agree with at any breakpoint.
-          style={{ inlineSize: `${Math.round(value * 100)}%` }}
-        />
-      </div>
-      <span className="text-accent-green text-sm font-semibold">{formatPercent(value)}</span>
+      <ProgressBar
+        className="min-w-0 flex-1"
+        value={value * 100}
+        tone="bg-accent-green-fill"
+        track="bg-accent-green-soft"
+      />
+      <span className="text-accent-green font-display text-base font-bold tabular-nums">
+        {formatPercent(value)}
+      </span>
     </div>
   );
 }
@@ -261,10 +313,10 @@ export function AttemptList({
           attempt.correctCount !== null && attempt.totalQuestions > 0 ? attempt.correctCount : null;
 
         return (
-          <li key={attempt.id}>
+          <li key={attempt.id} className="reveal">
             <Card className="flex flex-col gap-3 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-ink-900 text-base font-semibold">
+                <h3 className="text-ink-900 text-lg font-semibold text-balance">
                   {attempt.simulator.product.title}
                 </h3>
                 <div className="flex flex-wrap items-center gap-2">
@@ -335,10 +387,14 @@ export function OrderList({
   return (
     <ul className="flex flex-col gap-4">
       {items.map((order) => (
-        <li key={order.id}>
+        <li key={order.id} className="reveal">
           <Card className="flex flex-col gap-3 p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-ink-900 text-base font-semibold">{order.productTitle}</h3>
+              {/* Same rank as an attempt row: the two lists are one card recipe,
+                  and only the colour code separates a result from a receipt. */}
+              <h3 className="text-ink-900 text-lg font-semibold text-balance">
+                {order.productTitle}
+              </h3>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">{COPY.statusLabels.productType[order.productType]}</Badge>
                 <OrderStatusBadge status={order.status} />

@@ -13,7 +13,7 @@ export const Label = React.forwardRef<HTMLLabelElement, React.ComponentPropsWith
     return (
       <label
         ref={ref}
-        className={cn('text-ink-900 block text-sm font-medium', className)}
+        className={cn('text-ink-900 block text-sm font-semibold', className)}
         {...props}
       >
         {children}
@@ -22,14 +22,22 @@ export const Label = React.forwardRef<HTMLLabelElement, React.ComponentPropsWith
   },
 );
 
+/**
+ * The 2026 control recipe (docs/design-system.md): a quiet hairline resting on
+ * `shadow-xs`, a stronger hairline on hover, and a brand border plus soft ring
+ * on focus. The ring is a box-shadow, so the `:focus` outline is explicitly
+ * kept as well — forced-colors mode strips box-shadows, and the outline is what
+ * keyboard focus falls back to there.
+ */
 const controlClasses = cn(
-  'block w-full rounded-control border border-line-500 bg-surface px-3 text-ink-900',
+  'block w-full rounded-control border border-line-200 bg-surface px-3.5 text-ink-900 shadow-xs',
   // 150ms ease-out is the site's only transition curve; controls use it too so a
   // field and a button do not settle at visibly different speeds.
-  'placeholder:text-ink-600 transition-colors duration-150 ease-out',
-  'focus:border-brand-500 focus:outline-2 focus:outline-offset-0 focus:outline-brand-500',
-  'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-600',
-  'aria-[invalid=true]:border-error aria-[invalid=true]:outline-error',
+  'placeholder:text-ink-600 transition-[color,background-color,border-color,box-shadow] duration-150 ease-out',
+  'hover:border-line-500',
+  'focus:border-brand-500 focus:shadow-(--neb-focus) focus:outline-2 focus:outline-offset-0 focus:outline-transparent',
+  'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-600 disabled:shadow-none',
+  'aria-[invalid=true]:border-error aria-[invalid=true]:focus:shadow-(--neb-focus-error)',
 );
 
 export const Input = React.forwardRef<HTMLInputElement, React.ComponentPropsWithoutRef<'input'>>(

@@ -1,4 +1,4 @@
-// نيو إيرا — relational data model.
+// بناء العهد الجديد — relational data model.
 //
 // Conventions applied throughout:
 //   * UUIDv7 primary keys: time-ordered, so b-tree inserts stay local, and

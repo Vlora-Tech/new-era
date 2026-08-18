@@ -86,7 +86,7 @@ function body(overrides: Record<string, unknown> = {}) {
     estimatedSeconds: 60,
     shuffleOptions: true,
     stimulusId: null,
-    authorOrLicensor: 'نيو إيرا',
+    authorOrLicensor: 'بناء العهد الجديد',
     provenanceNote: 'محتوى تجريبي من إعداد المنصة.',
     rightsDeclaration: 'ORIGINAL',
     ...overrides,

@@ -242,3 +242,124 @@ describe('createAttempt', () => {
     expect(attempt.isDryRun).toBe(true);
   });
 });
+
+/**
+ * The `FIXED` selection mode.
+ *
+ * These exist because the mode used to be half-built: the version editor offered
+ * it, `assertVersionPublishable` accepted it, and the engine had no branch for
+ * it — every student who pressed ابدأ on a published fixed exam got a 409
+ * instead of a paper, while the administration screen reported the version as
+ * healthy. Nothing here can pass unless the engine actually reads
+ * `ExamSectionQuestion`.
+ */
+describe('createAttempt for a FIXED version', () => {
+  /**
+   * Turn a fixture's blueprint version into a fixed one.
+   *
+   * Written straight to the tables rather than through the admin routes: those
+   * belong to the simulators suite, and what this file is about is what the
+   * engine does with the rows once they exist.
+   */
+  async function pinQuestions(input: {
+    versionId: string;
+    sectionId: string;
+    questionIds: readonly string[];
+  }) {
+    await prisma.examBlueprintRule.deleteMany({
+      where: { examSectionId: input.sectionId },
+    });
+    await prisma.examVersion.update({
+      where: { id: input.versionId },
+      data: { selectionMode: 'FIXED' },
+    });
+    await prisma.examSectionQuestion.createMany({
+      data: input.questionIds.map((questionId, index) => ({
+        examSectionId: input.sectionId,
+        questionId,
+        questionVersion: 1,
+        position: index + 1,
+      })),
+    });
+  }
+
+  it('delivers exactly the pinned questions, in the order they were pinned', async () => {
+    const fixture = await createExamFixture({
+      sections: 1,
+      questionsPerSection: 4,
+      bankPerDomain: 4,
+    });
+
+    // Four questions drawn from both domains, so the delivered order cannot
+    // match by accident from a domain-grouped blueprint draw.
+    const pinned = [
+      fixture.questionIds[0]!,
+      fixture.questionIds[5]!,
+      fixture.questionIds[1]!,
+      fixture.questionIds[4]!,
+    ];
+
+    await pinQuestions({
+      versionId: fixture.examVersionId,
+      sectionId: fixture.sectionIds[0]!,
+      questionIds: pinned,
+    });
+
+    const { attemptId, created } = await createAttempt({
+      userId: fixture.userId,
+      simulatorId: fixture.simulatorId,
+      mode: 'FULL_SIMULATION',
+      actorRole: 'STUDENT',
+    });
+    expect(created).toBe(true);
+
+    const paper = await loadAttemptPaper(attemptId);
+    expect(paper).toHaveLength(1);
+    // Not shuffled: an administrator arranged these positions deliberately, and
+    // reordering them would discard the only thing a fixed paper has.
+    expect(paper[0]!.questions.map((question) => question.questionId)).toEqual(pinned);
+    expect(paper[0]!.questions.map((question) => question.position)).toEqual([1, 2, 3, 4]);
+
+    // The snapshot is still a real copy, exactly as on the blueprint path.
+    expect(paper[0]!.questions[0]!.correctOptionKey).toBeTruthy();
+
+    const attempt = await prisma.examAttempt.findUniqueOrThrow({
+      where: { id: attemptId },
+      select: { totalQuestions: true },
+    });
+    expect(attempt.totalQuestions).toBe(4);
+  });
+
+  it('refuses when a pinned question has been retired, and leaves nothing behind', async () => {
+    const fixture = await createExamFixture({
+      sections: 1,
+      questionsPerSection: 4,
+      bankPerDomain: 4,
+    });
+
+    const pinned = fixture.questionIds.slice(0, 4);
+    await pinQuestions({
+      versionId: fixture.examVersionId,
+      sectionId: fixture.sectionIds[0]!,
+      questionIds: pinned,
+    });
+
+    // The bank moves under a published version: one item is withdrawn after it
+    // was pinned. Nineteen questions of twenty is a different exam.
+    await prisma.question.update({
+      where: { id: pinned[2]! },
+      data: { workflow: 'RETIRED' },
+    });
+
+    await expect(
+      createAttempt({
+        userId: fixture.userId,
+        simulatorId: fixture.simulatorId,
+        mode: 'FULL_SIMULATION',
+        actorRole: 'STUDENT',
+      }),
+    ).rejects.toMatchObject({ status: 409, code: 'question_shortage' });
+
+    expect(await prisma.examAttempt.count({ where: { userId: fixture.userId } })).toBe(0);
+  });
+});

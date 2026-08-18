@@ -43,8 +43,8 @@ import { cn } from '@/lib/utils';
  * movements of the method and stay neutral, which is what keeps the code a code.
  *
  * Colour is a third channel here, never the first: the active item is carried by
- * `aria-current`, by weight and by a filled ground, and it would still be
- * unambiguous in greyscale.
+ * `aria-current`, by weight, by a filled ground and by a drawn bar, and it would
+ * still be unambiguous in greyscale.
  */
 type NavTone = 'brand' | 'teal' | 'gold' | 'neutral';
 
@@ -97,6 +97,13 @@ const NAV_ITEMS: readonly NavItem[] = [
   },
 ];
 
+/** The four movements of the method, in the four hues that carry them. */
+const JOURNEY_STEPS = COPY.home.pathSteps.map((step, index) => ({
+  label: step.title,
+  dot:
+    ['bg-brand-700', 'bg-accent-teal', 'bg-accent-gold', 'bg-accent-green'][index] ?? 'bg-ink-600',
+}));
+
 /**
  * `/dashboard` is the parent of every other student route, so prefix matching
  * would leave the overview permanently highlighted. It matches exactly and
@@ -106,6 +113,35 @@ const NAV_ITEMS: readonly NavItem[] = [
 function isActive(pathname: string, href: string): boolean {
   if (href === ROUTES.dashboard) return pathname === ROUTES.dashboard;
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/**
+ * The method, at the foot of the rail.
+ *
+ * Four dots in the four hues of the colour code, in the order the method runs,
+ * against the four labels the marketing pages already use. It repeats no data
+ * and offers no link — it is there so the hues carried by the navigation above
+ * it, the stat strip and every section head mean something before the student
+ * has to infer it from context.
+ *
+ * Desktop only, and the last thing in the rail: on a phone the drawer is a
+ * navigation surface a student opens to get somewhere, and a legend they did
+ * not ask for would sit between them and the item they came to press.
+ */
+function MethodLegend() {
+  return (
+    <div className="border-line-200 bg-surface-muted/60 rounded-panel m-3 mt-auto shrink-0 border p-4">
+      <p className="text-ink-900 text-[13px] font-semibold">{COPY.dashboard.journeyTitle}</p>
+      <ul className="mt-3 flex flex-col gap-2">
+        {JOURNEY_STEPS.map((step) => (
+          <li key={step.label} className="text-ink-700 flex items-center gap-2.5 text-xs">
+            <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', step.dot)} />
+            {step.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function DashboardNav({ pathname }: { pathname: string }) {
@@ -120,17 +156,31 @@ function DashboardNav({ pathname }: { pathname: string }) {
           <Link
             key={item.href}
             href={item.href}
-            // The active item is carried by `aria-current` and by weight, not by
-            // colour alone.
+            // The active item is carried by `aria-current`, by weight and by a
+            // drawn bar — never by colour alone.
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'rounded-control flex min-h-11 items-center gap-3 px-3 py-2 text-sm',
+              'rounded-control relative flex min-h-11 items-center gap-3 py-2 ps-4 pe-3 text-sm',
               'transition-colors duration-150',
               active
-                ? cn(tone.active, 'font-medium')
+                ? cn(tone.active, 'font-semibold')
                 : 'text-ink-700 hover:bg-surface-muted hover:text-ink-900',
             )}
           >
+            {/*
+              A 3px marker on the rail's own reading edge — the right edge under
+              `dir="rtl"`. One brand marker whatever the item's tone: the tone is
+              already carried by the filled ground, and a second hue on the bar
+              would say nothing the ground does not. `inset-y-2` keeps it clear
+              of the pill's corners, so it reads as a tab marker rather than as
+              a broken border.
+            */}
+            {active ? (
+              <span
+                aria-hidden="true"
+                className="bg-brand-700 absolute inset-y-2 start-0 w-[3px] rounded-full"
+              />
+            ) : null}
             {/*
               The icon keeps its hue at rest while the label stays `ink-700`, so
               the rail reads as a coloured index rather than as six coloured
@@ -222,7 +272,14 @@ function DashboardMobileNav({ pathname }: { pathname: string }) {
           <Dialog.Description className="sr-only">{COPY.dashboard.title}</Dialog.Description>
 
           <div className="border-line-200 flex h-16 items-center justify-between gap-2 border-b px-3">
-            <BrandWordmarkLink className="px-1" />
+            {/* The same lockup and chip the desktop rail carries, so the drawer
+                reads as that rail moved rather than as a different object. */}
+            <div className="flex min-w-0 items-center gap-2">
+              <BrandWordmarkLink className="px-1" compact />
+              <span className="bg-brand-100 text-brand-700 truncate rounded-full px-2.5 py-1 text-xs font-semibold">
+                {COPY.dashboard.title}
+              </span>
+            </div>
             <Dialog.Close asChild>
               <button
                 type="button"
@@ -288,6 +345,7 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const current = NAV_ITEMS.find((item) => isActive(pathname, item.href));
 
   return (
     <div className="bg-canvas flex min-h-dvh">
@@ -306,31 +364,61 @@ export function DashboardShell({
         )}
       >
         <div className="border-line-200 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <BrandWordmarkLink />
-          <span className="text-ink-600 truncate text-sm">{COPY.dashboard.title}</span>
+          <BrandWordmarkLink compact />
+          {/*
+            A chip rather than a second run of muted text: it separates the tool
+            from the brand instead of reading as a continuation of the wordmark.
+          */}
+          <span className="bg-brand-100 text-brand-700 truncate rounded-full px-2.5 py-1 text-xs font-semibold">
+            {COPY.dashboard.title}
+          </span>
         </div>
         <div className="flex-1 overflow-y-auto">
           <DashboardNav pathname={pathname} />
         </div>
+        <MethodLegend />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header
           className={cn(
             'sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3',
-            'border-line-200 bg-surface border-b px-3 sm:px-6',
+            // Translucent with a blur, so content scrolling under the bar reads
+            // as beneath it rather than clipped by it. No scroll listener.
+            'border-line-200/70 bg-surface/85 border-b px-3 backdrop-blur-xl sm:px-6',
           )}
         >
           <DashboardMobileNav pathname={pathname} />
 
           {/*
-            A locator, not a heading: the page below owns the only `h1`, so the
-            name stays small rather than competing with it.
+            A locator, not a heading: the page below owns the only `h1`, so this
+            line stays small rather than competing with it. The current section
+            gets the brand hue and its own icon, which makes the bar answer
+            "where am I" at a glance instead of after a read.
           */}
-          <p className="text-ink-700 min-w-0 flex-1 truncate text-sm">
-            <span className="sr-only">{COPY.dashboard.signedInAs}: </span>
-            <span className="text-ink-900 font-medium">{userName}</span>
+          <p className="text-brand-700 flex min-w-0 flex-1 items-center gap-2 truncate text-sm font-semibold">
+            <span className="sr-only">{COPY.adminPages.currentSection}: </span>
+            {current ? <current.icon className="size-4 shrink-0" aria-hidden="true" /> : null}
+            {current?.label ?? COPY.dashboard.title}
           </p>
+
+          <div className="hidden min-w-0 items-center gap-3 sm:flex">
+            <p className="text-ink-700 min-w-0 truncate text-sm">
+              <span className="sr-only">{COPY.dashboard.signedInAs}: </span>
+              <span className="text-ink-900 font-medium">{userName}</span>
+            </p>
+            {/*
+              The signed-in initial. Decorative and `aria-hidden`: the name sits
+              beside it in text, so a screen reader that also announced a bare
+              letter would be reading the same fact twice.
+            */}
+            <span
+              aria-hidden="true"
+              className="bg-brand-100 text-brand-700 flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+            >
+              {[...userName.trim()][0] ?? ''}
+            </span>
+          </div>
 
           <LogoutButton />
         </header>

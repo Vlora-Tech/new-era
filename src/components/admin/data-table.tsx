@@ -87,7 +87,13 @@ export function DataTable<Row>({
       aria-label={caption}
       tabIndex={0}
       className={cn(
-        'rounded-panel border-line-200 bg-surface overflow-x-auto border',
+        // `overflow-x-auto` clips to the rounded corners like the recipe's
+        // `overflow-hidden` would, without disabling this region's scrolling.
+        // `relative` makes this box the containing block for the `sr-only`
+        // spans inside `headerHidden` cells: they are absolutely positioned, and
+        // an unpositioned scroll ancestor does not clip absolute descendants —
+        // they were escaping the region and dragging the page 113px wider.
+        'rounded-panel border-line-200 bg-surface shadow-card relative overflow-x-auto border',
         'focus-visible:outline-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2',
         className,
       )}
@@ -102,7 +108,7 @@ export function DataTable<Row>({
                 key={column.key}
                 scope="col"
                 className={cn(
-                  'text-ink-700 px-4 py-3 text-start text-xs font-medium whitespace-nowrap',
+                  'text-ink-600 px-4 py-3 text-start text-[13px] font-semibold whitespace-nowrap',
                   column.align === 'end' && 'text-end',
                   column.className,
                 )}
@@ -117,9 +123,12 @@ export function DataTable<Row>({
           </tr>
         </thead>
 
-        <tbody>
+        <tbody className="divide-line-200 divide-y">
           {rows.map((row, index) => (
-            <tr key={getRowKey(row, index)} className="border-line-200 border-b last:border-b-0">
+            <tr
+              key={getRowKey(row, index)}
+              className="hover:bg-brand-50/50 transition-colors duration-150"
+            >
               {columns.map((column) => {
                 const content = column.cell(row);
                 const cellClasses = cn(

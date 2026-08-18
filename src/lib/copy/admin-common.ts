@@ -162,4 +162,15 @@ export const ADMIN_COMMON_COPY = {
     /** For a control that exists as chrome before the capability behind it does. */
     unavailableHere: 'هذه الأداة غير متاحة في هذه الشاشة بعد.',
   },
+
+  /**
+   * Joining a handful of values into one cell or sentence.
+   *
+   * The Arabic comma (`،` U+060C) with a trailing space, not the Latin one — a
+   * `, ` inside Arabic text reads as a foreign mark and sits on the wrong side
+   * of the glyphs around it. It lives in the shared module rather than in a
+   * domain's own copy because a separator that differs between two screens is
+   * a difference nobody chose.
+   */
+  listSeparator: '، ',
 } as const;

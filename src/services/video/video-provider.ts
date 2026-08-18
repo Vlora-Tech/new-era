@@ -36,8 +36,15 @@ export interface VideoProviderAdapter {
   lookupVideo(videoGuid: string): Promise<VideoLookup | null>;
 }
 
-/** Bunny video identifiers are UUIDs; anything else is a typo, not a video. */
-export const BUNNY_GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/*
+ * Re-exported, not defined here.
+ *
+ * The pattern now lives in `@/lib/video-guid` because the administration form
+ * that validates a pasted identifier is a client component, and this module is
+ * `server-only`. Keeping the name available here preserves every existing
+ * import while there is still exactly one definition.
+ */
+export { BUNNY_GUID_PATTERN } from '@/lib/video-guid';
 
 const MIN_TTL_SECONDS = 300;
 const MAX_TTL_SECONDS = 4 * 60 * 60;

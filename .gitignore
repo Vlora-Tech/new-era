@@ -37,6 +37,9 @@ yarn-error.log*
 # local media storage (development fixtures only, never production-safe)
 /.storage
 
+# local scratch notes that hold development credentials
+*.local.md
+
 # playwright
 /test-results
 /playwright-report
