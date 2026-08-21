@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Timer } from 'lucide-react';
 
 import { ProductGrid, type CatalogProduct } from '@/components/marketing/product-grid';
 import { Container, PageHead } from '@/components/ui/surface';
@@ -59,8 +58,6 @@ export default async function SimulatorsPage() {
           products={products}
           basePath="/simulators"
           typeLabel={COPY.statusLabels.productType.EXAM_SIMULATOR}
-          typeVariant="teal"
-          icon={Timer}
           emptyTitle="لا توجد محاكيات منشورة بعد."
           emptyDescription="سيظهر هنا كل ما يُنشر من محاكيات."
           failed={failed}

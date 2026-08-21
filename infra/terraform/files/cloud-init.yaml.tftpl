@@ -1,0 +1,261 @@
+#cloud-config
+# Amazon Linux 2023, arm64. Everything the box needs, declared once — so a
+# rebuilt instance comes back identical rather than as whatever it drifted into.
+
+package_update: true
+
+packages:
+  - docker
+  - amazon-cloudwatch-agent
+
+write_files:
+  # ── Caddy ────────────────────────────────────────────────────────────────
+  # Two upstreams and `lb_policy first` is what makes deploys zero-downtime
+  # without ever reloading Caddy. Active health checks mark a dead port
+  # unhealthy within seconds, so `first` always lands on whichever container is
+  # actually serving. A deploy just starts the other port and stops the old one;
+  # Caddy follows on its own.
+  - path: /etc/caddy/Caddyfile
+    permissions: '0644'
+    content: |
+%{ if domain_name != "" ~}
+      ${domain_name} {
+%{ else ~}
+      # No domain configured, so no certificate is possible — there is no way to
+      # obtain a public TLS certificate for a bare IP. Plain HTTP, for testing
+      # only. Set `domain_name`, point an A record at the Elastic IP, and
+      # re-apply before this carries real students.
+      :80 {
+%{ endif ~}
+        encode zstd gzip
+
+        reverse_proxy localhost:${app_port_blue} localhost:${app_port_green} {
+          lb_policy first
+          health_uri /api/health
+          health_interval 5s
+          health_timeout 3s
+          # Preserve the caller's scheme and host so the application builds
+          # correct absolute URLs behind the proxy.
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-Host {host}
+        }
+
+        header {
+          # HSTS only where TLS actually exists; sending it over plain HTTP
+          # would pin a browser to HTTPS the server cannot yet serve.
+%{ if domain_name != "" ~}
+          Strict-Transport-Security "max-age=31536000; includeSubDomains"
+%{ endif ~}
+          X-Content-Type-Options "nosniff"
+          Referrer-Policy "strict-origin-when-cross-origin"
+          -Server
+        }
+
+        log {
+          output file /var/log/caddy/access.log {
+            roll_size 50MiB
+            roll_keep 5
+          }
+        }
+      }
+
+  # ── Configuration fetch ──────────────────────────────────────────────────
+  # Reads the whole env path and writes an env file. Adding a variable is one
+  # parameter in Terraform and no change here, because names are taken from the
+  # parameter path rather than listed.
+  - path: /usr/local/bin/new-era-fetch-env
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      ENV_PATH="${env_path}"
+      OUT=/etc/new-era/app.env
+      TMP="$(mktemp)"
+
+      # 600 before anything is written: the file holds the database password,
+      # and a world-readable moment is still a leak.
+      chmod 600 "$TMP"
+
+      aws ssm get-parameters-by-path \
+        --path "$ENV_PATH" \
+        --with-decryption \
+        --recursive \
+        --region "${region}" \
+        --query 'Parameters[].[Name,Value]' \
+        --output text \
+      | while IFS=$'\t' read -r name value; do
+          printf '%s=%s\n' "$${name##*/}" "$value"
+        done > "$TMP"
+
+      if [ ! -s "$TMP" ]; then
+        echo "new-era: refusing to write an empty env file" >&2
+        rm -f "$TMP"
+        exit 1
+      fi
+
+      install -m 600 -o root -g root "$TMP" "$OUT"
+      rm -f "$TMP"
+
+  # ── Deploy ───────────────────────────────────────────────────────────────
+  - path: /usr/local/bin/new-era-deploy
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      # Blue/green on one box. Start the idle colour, wait for it to report
+      # healthy, then stop the old one. Caddy's health checks move traffic on
+      # their own, so no reload and no dropped request.
+      #
+      # Usage: new-era-deploy <image-tag>
+      set -euo pipefail
+
+      TAG="$${1:-${app_image_tag}}"
+      REPO="${ecr_repository_url}"
+      REGION="${region}"
+      BLUE=${app_port_blue}
+      GREEN=${app_port_green}
+
+      aws ecr get-login-password --region "$REGION" \
+        | docker login --username AWS --password-stdin "$${REPO%%/*}"
+
+      docker pull "$REPO:$TAG"
+
+      # Whichever colour is not currently running is the target.
+      if docker ps --format '{{.Names}}' | grep -qx new-era-blue; then
+        OLD=blue;  NEW=green; NEW_PORT=$GREEN
+      else
+        OLD=green; NEW=blue;  NEW_PORT=$BLUE
+      fi
+
+      echo "new-era: refreshing configuration"
+      /usr/local/bin/new-era-fetch-env
+
+      echo "new-era: starting $NEW on $NEW_PORT"
+      docker rm -f "new-era-$NEW" >/dev/null 2>&1 || true
+      docker run -d \
+        --name "new-era-$NEW" \
+        --restart unless-stopped \
+        --env-file /etc/new-era/app.env \
+        -e PORT="$NEW_PORT" \
+        -p "127.0.0.1:$NEW_PORT:$NEW_PORT" \
+        --log-driver awslogs \
+        --log-opt awslogs-region="$REGION" \
+        --log-opt awslogs-group="${log_group}" \
+        --log-opt awslogs-stream="app-$NEW" \
+        "$REPO:$TAG"
+
+      echo "new-era: waiting for health"
+      for i in $(seq 1 30); do
+        if curl -fsS "http://127.0.0.1:$NEW_PORT/api/health" >/dev/null 2>&1; then
+          echo "new-era: $NEW healthy after $${i}s"
+          # Only now is the old one expendable. Leaving it running on failure is
+          # deliberate: a bad deploy should leave the previous version serving.
+          docker rm -f "new-era-$OLD" >/dev/null 2>&1 || true
+          exit 0
+        fi
+        sleep 1
+      done
+
+      echo "new-era: $NEW never became healthy; leaving $OLD serving" >&2
+      docker logs --tail 50 "new-era-$NEW" >&2 || true
+      docker rm -f "new-era-$NEW" >/dev/null 2>&1 || true
+      exit 1
+
+  # ── Migrate ──────────────────────────────────────────────────────────────
+  - path: /usr/local/bin/new-era-migrate
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      # The controlled release step. Run this, confirm it exits 0, and only then
+      # deploy the new image. Never at container start: several instances
+      # migrating at once during a rollout is the failure the plan doc names.
+      set -euo pipefail
+
+      TAG="$${1:-${app_image_tag}}"
+      REPO="${ecr_repository_url}"
+      REGION="${region}"
+
+      # Read explicitly by name, from OUTSIDE the application's env path — the
+      # instance policy grants that path only, so this credential is not part of
+      # the running container's environment.
+      URL="$(aws ssm get-parameter \
+        --name "${migrate_parameter}" \
+        --with-decryption \
+        --region "$REGION" \
+        --query 'Parameter.Value' \
+        --output text)"
+
+      aws ecr get-login-password --region "$REGION" \
+        | docker login --username AWS --password-stdin "$${REPO%%/*}"
+
+      docker pull "$REPO:migrate-$TAG"
+      docker run --rm \
+        -e NODE_ENV=production \
+        -e DATABASE_URL="$URL" \
+        "$REPO:migrate-$TAG"
+
+  - path: /etc/systemd/system/new-era.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=بناء العهد الجديد
+      After=docker.service network-online.target
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      # On boot this brings whichever colour back up; it is the same script a
+      # release uses, so there is one code path rather than two that drift.
+      ExecStart=/usr/local/bin/new-era-deploy
+      TimeoutStartSec=600
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  - mkdir -p /etc/new-era /var/log/caddy
+  - chmod 700 /etc/new-era
+
+  - systemctl enable --now docker
+
+  # Caddy is not in the AL2023 repositories; the official static binary is.
+  - |
+    ARCH=arm64
+    curl -fsSL "https://github.com/caddyserver/caddy/releases/latest/download/caddy_linux_$${ARCH}.tar.gz" \
+      -o /tmp/caddy.tar.gz || \
+    curl -fsSL "https://caddyserver.com/api/download?os=linux&arch=$${ARCH}" -o /usr/local/bin/caddy
+    if [ -f /tmp/caddy.tar.gz ]; then tar -xzf /tmp/caddy.tar.gz -C /tmp caddy && mv /tmp/caddy /usr/local/bin/caddy; fi
+    chmod 0755 /usr/local/bin/caddy
+  - useradd --system --home /var/lib/caddy --create-home --shell /usr/sbin/nologin caddy || true
+  - chown -R caddy:caddy /var/log/caddy /var/lib/caddy
+  - |
+    cat >/etc/systemd/system/caddy.service <<'UNIT'
+    [Unit]
+    Description=Caddy
+    After=network-online.target
+    Wants=network-online.target
+
+    [Service]
+    User=caddy
+    Group=caddy
+    ExecStart=/usr/local/bin/caddy run --environ --config /etc/caddy/Caddyfile
+    ExecReload=/usr/local/bin/caddy reload --config /etc/caddy/Caddyfile --force
+    Restart=on-abnormal
+    # Binding 80 and 443 as a non-root user.
+    AmbientCapabilities=CAP_NET_BIND_SERVICE
+    NoNewPrivileges=true
+    PrivateTmp=true
+    ProtectSystem=full
+
+    [Install]
+    WantedBy=multi-user.target
+    UNIT
+  - systemctl daemon-reload
+  - systemctl enable --now caddy
+
+  # The application is NOT started here. The database has no schema until
+  # infra/sql/*.sql and the first migration have run, and a container crash-
+  # looping against an empty database on first boot is a confusing way to
+  # discover that. Start it with `new-era-deploy` once the database is ready.
+  - systemctl enable new-era.service

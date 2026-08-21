@@ -41,9 +41,18 @@ export function CountTile({
     // A `div` wrapper holding one `dt` and one `dd` is the only grouping the
     // spec allows inside a `dl`, so the icon lives inside the `dt` beside its
     // label rather than in a row of its own.
-    <div className={cn('rounded-panel border p-4', tone.soft, tone.hairline)}>
-      <dt className="flex items-start justify-between gap-3">
-        <span className="text-ink-700 text-[13px] leading-snug font-medium">{label}</span>
+    <div
+      className={cn('rounded-card flex flex-col gap-3.5 border p-[18px]', tone.soft, tone.hairline)}
+    >
+      {/*
+        Mark and label on one row, figure beneath.
+
+        They used to sit at opposite ends of the tile, which put the icon as far
+        from the words it qualifies as the tile allowed and left a gap of dead
+        space between them. Together they read as one caption, and the figure
+        gets the whole width under it.
+      */}
+      <dt className="flex items-center gap-2.5">
         <span
           aria-hidden="true"
           className={cn(
@@ -51,11 +60,12 @@ export function CountTile({
             tone.fill,
           )}
         >
-          <Icon className="size-4 text-white" />
+          <Icon className="size-[18px] text-white" />
         </span>
+        <span className="text-ink-700 text-[13px] leading-[1.5] font-medium">{label}</span>
       </dt>
       {/* `tabular-nums` so a column of counts stays a column as the values change. */}
-      <dd className="font-display text-ink-900 mt-3 text-[30px] leading-none font-bold tabular-nums">
+      <dd className="font-display text-ink-900 text-[30px] leading-none font-bold tabular-nums">
         {formatNumber(value)}
       </dd>
     </div>

@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareText,
   Package,
   ReceiptText,
   ScrollText,
@@ -51,20 +52,53 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
 };
 
-/** One outline family at one size; the icons are wayfinding, not decoration. */
-const NAV_ITEMS: readonly NavItem[] = [
-  { href: '/admin', label: COPY.admin.overview, icon: LayoutDashboard },
-  { href: '/admin/products', label: COPY.admin.products, icon: Package },
-  { href: '/admin/courses', label: COPY.admin.courses, icon: GraduationCap },
-  { href: '/admin/questions', label: COPY.admin.questionBank, icon: FileQuestion },
-  { href: '/admin/simulators', label: COPY.admin.simulators, icon: Timer },
-  { href: '/admin/students', label: COPY.admin.students, icon: Users },
-  { href: '/admin/orders', label: COPY.admin.orders, icon: ReceiptText },
-  { href: '/admin/entitlements', label: COPY.admin.entitlements, icon: KeyRound },
-  { href: '/admin/attempts', label: COPY.admin.attempts, icon: ClipboardList },
-  { href: '/admin/settings', label: COPY.admin.settings, icon: Settings },
-  { href: '/admin/audit-log', label: COPY.admin.auditLog, icon: ScrollText },
+type NavGroup = { label: string; items: readonly NavItem[] };
+
+/**
+ * Eleven items in three named groups.
+ *
+ * The order was always build → operate → govern; the groups only say so out
+ * loud. An undifferentiated list of eleven is scanned linearly every time,
+ * because nothing tells the reader which third of it their task lives in.
+ *
+ * One outline family at one size; the icons are wayfinding, not decoration.
+ */
+const NAV_GROUPS: readonly NavGroup[] = [
+  {
+    label: COPY.adminPages.railGroups.catalog,
+    items: [
+      { href: '/admin', label: COPY.admin.overview, icon: LayoutDashboard },
+      { href: '/admin/products', label: COPY.admin.products, icon: Package },
+      { href: '/admin/courses', label: COPY.admin.courses, icon: GraduationCap },
+      { href: '/admin/questions', label: COPY.admin.questionBank, icon: FileQuestion },
+      { href: '/admin/simulators', label: COPY.admin.simulators, icon: Timer },
+    ],
+  },
+  {
+    label: COPY.adminPages.railGroups.operations,
+    items: [
+      { href: '/admin/students', label: COPY.admin.students, icon: Users },
+      { href: '/admin/orders', label: COPY.admin.orders, icon: ReceiptText },
+      { href: '/admin/entitlements', label: COPY.admin.entitlements, icon: KeyRound },
+      { href: '/admin/attempts', label: COPY.admin.attempts, icon: ClipboardList },
+      {
+        href: '/admin/contact-messages',
+        label: COPY.admin.contactMessages,
+        icon: MessageSquareText,
+      },
+    ],
+  },
+  {
+    label: COPY.adminPages.railGroups.governance,
+    items: [
+      { href: '/admin/settings', label: COPY.admin.settings, icon: Settings },
+      { href: '/admin/audit-log', label: COPY.admin.auditLog, icon: ScrollText },
+    ],
+  },
 ];
+
+/** Flat, for the top bar's "where am I" lookup. */
+const NAV_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
 
 /**
  * `/admin` is the parent of every other admin route, so prefix matching would
@@ -78,43 +112,66 @@ function isActive(pathname: string, href: string): boolean {
 
 function AdminNav({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
-    <nav aria-label={COPY.adminPages.shellLabel} className="flex flex-col gap-1 p-3">
-      {NAV_ITEMS.map((item) => {
-        const active = isActive(pathname, item.href);
-        const Icon = item.icon;
+    <nav aria-label={COPY.adminPages.shellLabel} className="flex flex-col gap-3.5 p-3 pb-5">
+      {NAV_GROUPS.map((group) => (
+        /*
+          A labelled `<section>`, not a bare `<div>`. The group label is what
+          makes «الحكم» mean anything to a screen reader walking the rail, and a
+          visual-only label would leave the eleven links as flat as they were.
+        */
+        <section key={group.label} aria-label={group.label} className="flex flex-col gap-0.5">
+          <p className="text-ink-600 px-2.5 pt-2 pb-1.5 text-[11.5px] font-semibold">
+            {group.label}
+          </p>
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            // The active item is carried by `aria-current`, by weight and by a
-            // drawn bar — never by colour alone.
-            aria-current={active ? 'page' : undefined}
-            className={cn(
-              'rounded-control relative flex min-h-11 items-center gap-3 py-2 ps-4 pe-3 text-sm',
-              'transition-colors duration-150',
-              active
-                ? 'bg-brand-100 text-brand-700 font-semibold'
-                : 'text-ink-700 hover:bg-surface-muted hover:text-ink-900',
-            )}
-          >
-            {/*
-              A 3px marker on the rail's own reading edge — the right edge under
-              `dir="rtl"`. `inset-y-2` keeps it clear of the pill's 8px corners,
-              so it reads as a tab marker rather than as a broken border.
-            */}
-            {active ? (
-              <span
-                aria-hidden="true"
-                className="bg-brand-700 absolute inset-y-2 start-0 w-[3px] rounded-full"
-              />
-            ) : null}
-            <Icon className="size-5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{item.label}</span>
-          </Link>
-        );
-      })}
+          {group.items.map((item) => {
+            const active = isActive(pathname, item.href);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                // The active item is carried by `aria-current`, by weight and by
+                // a drawn bar — never by colour alone.
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'rounded-control relative flex min-h-11 items-center gap-3 px-3 py-2 text-sm',
+                  'transition-colors duration-150',
+                  active
+                    ? 'bg-brand-100 text-brand-700 font-semibold'
+                    : 'text-ink-700 hover:bg-brand-50 hover:text-ink-900',
+                )}
+              >
+                {/*
+                  A 3px marker on the rail's own reading edge — the right edge
+                  under `dir="rtl"`. `-start-3` puts it in the gutter the nav's
+                  own padding provides, so it lands on the rail's edge rather
+                  than on the pill's, which is what makes it a tab marker rather
+                  than a broken border.
+                */}
+                {active ? (
+                  <span
+                    aria-hidden="true"
+                    className="bg-brand-700 absolute inset-y-2 -start-3 w-[3px] rounded-full"
+                  />
+                ) : null}
+                {/*
+                  The icon takes the brand hue only while active. At rest it
+                  stays `ink-600`, so the rail reads as one quiet index rather
+                  than as eleven coloured lines.
+                */}
+                <Icon
+                  className={cn('size-5 shrink-0', active ? 'text-brand-700' : 'text-ink-600')}
+                  aria-hidden="true"
+                />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </section>
+      ))}
     </nav>
   );
 }
@@ -276,19 +333,27 @@ export function AdminShell({
       */}
       <aside
         className={cn(
-          'sticky top-0 hidden h-dvh w-66 shrink-0 flex-col',
+          'sticky top-0 hidden h-dvh w-68 shrink-0 flex-col',
           'border-line-200 bg-surface border-e lg:flex',
         )}
       >
-        <div className="border-line-200 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <BrandWordmarkLink compact />
-          {/*
-            A chip rather than a second run of muted text: it separates the tool
-            from the brand instead of reading as a continuation of the wordmark.
-          */}
-          <span className="bg-brand-100 text-brand-700 truncate rounded-full px-2.5 py-1 text-xs font-semibold">
-            {COPY.admin.title}
-          </span>
+        {/*
+          Name over chip, not name beside chip.
+
+          Stacking is what lets the chip sit under the wordmark it qualifies
+          instead of trailing it like a second word, and it buys the rail's
+          264→272px without the header wrapping. The height stays `h-16` so this
+          hairline lands on the top bar's, which a taller header would break by
+          a few pixels — the kind of offset that reads as a mistake rather than
+          as a decision.
+        */}
+        <div className="border-line-200 flex h-16 shrink-0 items-center border-b px-4">
+          <div className="flex min-w-0 flex-col items-start gap-1">
+            <BrandWordmarkLink compact />
+            <span className="bg-brand-100 text-brand-700 truncate rounded-full px-2 py-0.5 text-[11px] font-semibold">
+              {COPY.admin.title}
+            </span>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           <AdminNav pathname={pathname} />

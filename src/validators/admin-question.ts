@@ -56,6 +56,29 @@ export const rightsDeclarationSchema = z.enum(['ORIGINAL', 'LICENSED'], {
   message: 'إقرار الحقوق غير صحيح',
 });
 
+/**
+ * What the bank stores for a question while the classification editor is hidden.
+ *
+ * The client asked for a question bank an ordinary teacher can fill in: a stem,
+ * options, an answer. Skill, sub-skill, track, difficulty, tags and estimated
+ * time were removed from the editor (`question-form.tsx`), from the bank's list
+ * columns and filters, and from both result screens — the commented-out blocks
+ * in those files are the restore path.
+ *
+ * The columns stay `NOT NULL` in PostgreSQL, so a value still has to be written.
+ * These are placeholders, not classifications: nothing in the product reads them
+ * while the editor is hidden, and an existing question keeps whatever it already
+ * has, because the form still submits the values it was opened with.
+ *
+ * Restoring the editor is enough to make them meaningful again — no migration,
+ * and no question written in the meantime is lost.
+ */
+export const HIDDEN_CLASSIFICATION_DEFAULTS = {
+  domain: 'VERBAL_ANALOGY',
+  difficulty: 'MEDIUM',
+  track: 'BOTH',
+} as const;
+
 const optionalText = (max: number, tooLong: string) =>
   z
     .string()
@@ -92,9 +115,17 @@ const questionFields = {
   stem: z.string().trim().min(3, 'نص السؤال مطلوب').max(8_000, 'نص السؤال طويل جدًا'),
   options: questionOptionsSchema,
 
-  domain: questionDomainSchema,
-  difficulty: questionDifficultySchema,
-  track: questionTrackSchema,
+  /**
+   * Classification, no longer asked for by the editor.
+   *
+   * Defaulted rather than dropped: the columns are `NOT NULL`, a question that
+   * already carries a real classification keeps it (the form still submits what
+   * it was opened with), and the seeded blueprint simulator still reads these
+   * columns. See `HIDDEN_CLASSIFICATION_DEFAULTS` above.
+   */
+  domain: questionDomainSchema.default(HIDDEN_CLASSIFICATION_DEFAULTS.domain),
+  difficulty: questionDifficultySchema.default(HIDDEN_CLASSIFICATION_DEFAULTS.difficulty),
+  track: questionTrackSchema.default(HIDDEN_CLASSIFICATION_DEFAULTS.track),
   subskill: optionalText(120, 'اسم المهارة الفرعية طويل جدًا'),
 
   explanation: optionalText(8_000, 'الشرح طويل جدًا'),

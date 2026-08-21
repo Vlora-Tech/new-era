@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Play } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,13 @@ export function StartSimulatorButton({ simulatorId }: { simulatorId: string }) {
 
   return (
     <Button type="button" size="sm" loading={busy} onClick={() => void start()}>
+      {/*
+        A play glyph, from the design. It survives the rest of that mock being
+        declined: an arrow genuinely carries "start" without having to be taught,
+        which is the test this codebase applies before an icon joins a label.
+        The `loading` prop swaps in its own spinner, so the two never coexist.
+      */}
+      {busy ? null : <Play className="size-4" aria-hidden="true" />}
       {busy ? COPY.dashboard.startingSimulator : COPY.dashboard.startSimulator}
     </Button>
   );

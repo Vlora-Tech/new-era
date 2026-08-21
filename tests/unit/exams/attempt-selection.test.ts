@@ -13,8 +13,14 @@ import {
  * Selection, exercised without a database.
  *
  * `generateSelection` is deliberately pure: the pool comes in as an array, so
- * the blueprint arithmetic and the no-duplicates rule can be asserted directly
- * rather than inferred from what a generated attempt happened to contain.
+ * the draw and the no-duplicates rule can be asserted directly rather than
+ * inferred from what a generated attempt happened to contain.
+ *
+ * A blueprint section means "take this many questions from the bank" — the rule
+ * rows are stored and not read, because the bank no longer records the skill a
+ * rule would select on. The suite states that as its own case rather than
+ * leaving it to be inferred from an absence: a rule quietly starting to count
+ * again is exactly the regression that would be hard to see.
  */
 type PoolQuestion = {
   id: string;
@@ -63,7 +69,12 @@ function rule(overrides: Partial<BlueprintRuleInput> & { domain: $Enums.Question
   } satisfies BlueprintRuleInput;
 }
 
-function section(id: string, position: number, questionCount: number, rules: BlueprintRuleInput[]) {
+function section(
+  id: string,
+  position: number,
+  questionCount: number,
+  rules: BlueprintRuleInput[] = [],
+) {
   // A blueprint section pins nothing; `fixedQuestions` is the other mode's list.
   return {
     id,
@@ -75,45 +86,63 @@ function section(id: string, position: number, questionCount: number, rules: Blu
 }
 
 describe('generateSelection', () => {
-  it('honours the blueprint percentages exactly', () => {
-    const sections = [
-      section('s1', 1, 20, [
-        rule({ domain: 'ARITHMETIC', position: 1, percentage: 50 }),
-        rule({ domain: 'ALGEBRA', position: 2, percentage: 30 }),
-        rule({ domain: 'GEOMETRY', position: 3, percentage: 20 }),
-      ]),
-    ];
-
+  it('draws exactly the section question count from the bank', () => {
     const selection = generateSelection({
-      sections,
+      sections: [section('s1', 1, 20)],
       pool: pool([
         { domain: 'ARITHMETIC', count: 40 },
-        { domain: 'ALGEBRA', count: 40 },
-        { domain: 'GEOMETRY', count: 40 },
+        { domain: 'READING_COMPREHENSION', count: 40 },
       ]),
       seed: 1,
       defaultTrack: null,
     });
 
-    const byDomain = new Map<string, number>();
-    for (const question of selection[0]!.questions) {
-      byDomain.set(question.domain, (byDomain.get(question.domain) ?? 0) + 1);
-    }
-
     expect(selection[0]!.questions).toHaveLength(20);
-    expect(byDomain.get('ARITHMETIC')).toBe(10);
-    expect(byDomain.get('ALGEBRA')).toBe(6);
-    expect(byDomain.get('GEOMETRY')).toBe(4);
+    // Nothing selected it, so nothing claims to have.
+    for (const question of selection[0]!.questions) {
+      expect(question.ruleId).toBeNull();
+    }
+  });
+
+  it('ignores blueprint rules that are still stored', () => {
+    // Rules for a skill the bank holds none of. Under the per-rule draw this
+    // was a shortage; the section now takes its count off the whole bank, which
+    // is what stops a teacher's unclassified questions being invisible.
+    const sections = [
+      section('s1', 1, 6, [
+        rule({ domain: 'GEOMETRY', position: 1, percentage: 50, difficulty: 'HARD' }),
+        rule({ domain: 'DATA_ANALYSIS', position: 2, percentage: 50, subskill: 'جداول' }),
+      ]),
+    ];
+
+    const selection = generateSelection({
+      sections,
+      pool: pool([{ domain: 'VERBAL_ANALOGY', count: 10, difficulty: 'MEDIUM' }]),
+      seed: 4,
+      defaultTrack: null,
+    });
+
+    expect(selection[0]!.questions).toHaveLength(6);
+    for (const question of selection[0]!.questions) {
+      expect(question.domain).toBe('VERBAL_ANALOGY');
+    }
+  });
+
+  it('draws whatever the bank holds regardless of the simulator track', () => {
+    const selection = generateSelection({
+      sections: [section('s1', 1, 8)],
+      pool: pool([{ domain: 'ARITHMETIC', count: 8, track: 'THEORETICAL' }]),
+      seed: 9,
+      defaultTrack: 'SCIENTIFIC',
+    });
+
+    expect(selection[0]!.questions).toHaveLength(8);
   });
 
   it('never repeats a question across the whole attempt', () => {
     // Exactly enough questions for both sections: any repeat would leave a
     // section short, so this also proves the exclusion set spans sections.
-    const rules = [
-      rule({ domain: 'ARITHMETIC', position: 1, percentage: 50 }),
-      rule({ domain: 'ALGEBRA', position: 2, percentage: 50 }),
-    ];
-    const sections = [section('s1', 1, 10, rules), section('s2', 2, 10, rules)];
+    const sections = [section('s1', 1, 10), section('s2', 2, 10)];
 
     const selection = generateSelection({
       sections,
@@ -131,9 +160,7 @@ describe('generateSelection', () => {
   });
 
   it('is reproducible for a given seed and differs across seeds', () => {
-    const sections = [
-      section('s1', 1, 8, [rule({ domain: 'ARITHMETIC', position: 1, percentage: 100 })]),
-    ];
+    const sections = [section('s1', 1, 8)];
     const bank = pool([{ domain: 'ARITHMETIC', count: 60 }]);
 
     const first = generateSelection({ sections, pool: bank, seed: 5, defaultTrack: null });
@@ -144,72 +171,12 @@ describe('generateSelection', () => {
     expect(first[0]!.questions.map((q) => q.id)).not.toEqual(other[0]!.questions.map((q) => q.id));
   });
 
-  it('treats a BOTH question as valid for a single-track rule', () => {
-    const sections = [
-      section('s1', 1, 4, [rule({ domain: 'ARITHMETIC', position: 1, percentage: 100 })]),
-    ];
-
-    const selection = generateSelection({
-      sections,
-      pool: pool([
-        { domain: 'ARITHMETIC', count: 4, track: 'BOTH' },
-        { domain: 'ARITHMETIC', count: 4, track: 'THEORETICAL' },
-      ]),
-      seed: 9,
-      defaultTrack: 'SCIENTIFIC',
-    });
-
-    for (const question of selection[0]!.questions) {
-      expect(question.track).toBe('BOTH');
-    }
-  });
-
-  it('respects an explicit difficulty and subskill on a rule', () => {
-    const sections = [
-      section('s1', 1, 3, [
-        rule({
-          domain: 'ALGEBRA',
-          position: 1,
-          percentage: 100,
-          difficulty: 'HARD',
-          subskill: 'معادلات',
-        }),
-      ]),
-    ];
-
-    const selection = generateSelection({
-      sections,
-      pool: pool([
-        { domain: 'ALGEBRA', count: 5, difficulty: 'HARD', subskill: 'معادلات' },
-        { domain: 'ALGEBRA', count: 5, difficulty: 'EASY', subskill: 'معادلات' },
-        { domain: 'ALGEBRA', count: 5, difficulty: 'HARD', subskill: 'متباينات' },
-      ]),
-      seed: 2,
-      defaultTrack: null,
-    });
-
-    for (const question of selection[0]!.questions) {
-      expect(question.difficulty).toBe('HARD');
-      expect(question.subskill).toBe('معادلات');
-    }
-  });
-
   it('aborts rather than delivering a short section', () => {
-    const sections = [
-      section('s1', 1, 10, [
-        rule({ domain: 'ARITHMETIC', position: 1, percentage: 50 }),
-        rule({ domain: 'GEOMETRY', position: 2, percentage: 50 }),
-      ]),
-    ];
-
     let thrown: unknown;
     try {
       generateSelection({
-        sections,
-        pool: pool([
-          { domain: 'ARITHMETIC', count: 5 },
-          { domain: 'GEOMETRY', count: 2 },
-        ]),
+        sections: [section('s1', 1, 10)],
+        pool: pool([{ domain: 'ARITHMETIC', count: 7 }]),
         seed: 1,
         defaultTrack: null,
       });
@@ -221,25 +188,16 @@ describe('generateSelection', () => {
     const shortage = thrown as QuestionShortageError;
     expect(shortage.message).toMatch(/[؀-ۿ]/);
     expect(shortage.shortages).toEqual([
-      expect.objectContaining({ domain: 'GEOMETRY', required: 5, available: 2 }),
+      // No rule to blame: the section wanted ten and the bank held seven.
+      expect.objectContaining({ examSectionId: 's1', ruleId: null, required: 10, available: 7 }),
     ]);
   });
 
   it('reports every gap at once rather than only the first', () => {
-    const sections = [
-      section('s1', 1, 10, [
-        rule({ domain: 'ARITHMETIC', position: 1, percentage: 50 }),
-        rule({ domain: 'GEOMETRY', position: 2, percentage: 50 }),
-      ]),
-    ];
-
     try {
       generateSelection({
-        sections,
-        pool: pool([
-          { domain: 'ARITHMETIC', count: 1 },
-          { domain: 'GEOMETRY', count: 1 },
-        ]),
+        sections: [section('s1', 1, 4), section('s2', 2, 4)],
+        pool: pool([{ domain: 'ARITHMETIC', count: 2 }]),
         seed: 1,
         defaultTrack: null,
       });
@@ -249,26 +207,20 @@ describe('generateSelection', () => {
     }
   });
 
-  it('honours an explicit question count override', () => {
-    const sections = [
-      section('s1', 1, 6, [
-        rule({ domain: 'ARITHMETIC', position: 1, questionCount: 4 }),
-        rule({ domain: 'ALGEBRA', position: 2, percentage: 100 }),
-      ]),
-    ];
-
+  it('leaves the second section the questions the first did not take', () => {
+    // Ten in the bank, six then four: the second section can only be filled by
+    // what the first left, so this is the exclusion set doing arithmetic.
     const selection = generateSelection({
-      sections,
-      pool: pool([
-        { domain: 'ARITHMETIC', count: 10 },
-        { domain: 'ALGEBRA', count: 10 },
-      ]),
-      seed: 3,
+      sections: [section('s1', 1, 6), section('s2', 2, 4)],
+      pool: pool([{ domain: 'ARITHMETIC', count: 10 }]),
+      seed: 21,
       defaultTrack: null,
     });
 
-    const arithmetic = selection[0]!.questions.filter((q) => q.domain === 'ARITHMETIC');
-    expect(arithmetic).toHaveLength(4);
     expect(selection[0]!.questions).toHaveLength(6);
+    expect(selection[1]!.questions).toHaveLength(4);
+    expect(
+      new Set(selection.flatMap((entry) => entry.questions.map((question) => question.id))).size,
+    ).toBe(10);
   });
 });

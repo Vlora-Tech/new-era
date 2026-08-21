@@ -207,7 +207,7 @@ export default async function AdminSimulatorPage({
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
         <div className="flex flex-wrap items-start gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <h2 className="text-ink-900 text-lg font-semibold">
+            <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
               {COPY.adminSimulators.versions.title}
             </h2>
             <p className="text-ink-700 max-w-prose text-sm">

@@ -40,12 +40,23 @@ export function AdminPageHead({
         collapsing to a single stretched child. `ms` is the inline start, so the
         action sits on the left under `dir="rtl"` with no physical offset.
       */}
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-ink-900 min-w-0 text-2xl font-bold">{title}</h1>
-        {action ? <div className="ms-auto flex shrink-0 items-center gap-2">{action}</div> : null}
+      {/*
+        Title and description form one column, with the action beside the pair
+        rather than above the description. Aligning on `items-end` sits the
+        action on the description's baseline-ish edge, so a two-line description
+        does not leave the button floating opposite whitespace.
+      */}
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
+        <div className="flex min-w-64 flex-1 flex-col gap-1.5">
+          <h1 className="text-ink-900 font-display min-w-0 text-[29px] leading-[1.35] font-bold sm:text-[31px]">
+            {title}
+          </h1>
+          {description ? (
+            <p className="text-ink-700 max-w-[62ch] text-[15px] leading-[1.8]">{description}</p>
+          ) : null}
+        </div>
+        {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
       </div>
-
-      {description ? <p className="text-ink-700 max-w-prose">{description}</p> : null}
     </header>
   );
 }

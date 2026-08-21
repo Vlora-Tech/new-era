@@ -380,7 +380,7 @@ function RelatedSection({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <h2 className="text-ink-900 text-lg font-semibold">{title}</h2>
+        <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">{title}</h2>
         <p className="text-ink-700 max-w-prose text-sm">{description}</p>
       </div>
       {children}

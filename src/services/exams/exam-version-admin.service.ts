@@ -6,7 +6,9 @@ import { HttpError } from '@/lib/auth/guards';
 import { COPY } from '@/lib/copy';
 import { prisma, type PrismaTransaction } from '@/lib/db';
 import { parseRichText, richTextToPlain } from '@/lib/exam/content';
-import { AllocationError, allocateByLargestRemainder } from '@/lib/exam/largest-remainder';
+// `allocateByLargestRemainder` returns with the per-rule coverage pass below;
+// its module and its unit tests are untouched.
+import { AllocationError } from '@/lib/exam/largest-remainder';
 import { formatNumber } from '@/lib/format';
 import { logger } from '@/lib/logger';
 import {
@@ -829,13 +831,27 @@ export type CoverageSectionReport = {
 
 export type CoverageReport = {
   ok: boolean;
-  /** False for a `FIXED` version: there are no rules whose coverage could be measured. */
+  /** False for a `FIXED` version: there is nothing to draw, so nothing to cover. */
   applicable: boolean;
   sections: CoverageSectionReport[];
-  /** Every rule the bank cannot fill, in reading order. */
+  /**
+   * Every rule the bank cannot fill, in reading order.
+   *
+   * Always empty while blueprint rules are unapplied — a section draws from the
+   * whole bank, so a shortage belongs to the version, not to a rule. Kept on the
+   * type so the rule table restores without a shape change.
+   */
   shortfalls: CoverageRuleReport[];
+  /** Published, non-retired questions in the bank at `checkedAt`. */
+  bankSize: number;
+  /** What every section of this version adds up to. */
+  totalRequired: number;
+  /** `max(0, totalRequired - bankSize)`: how many questions are missing. */
+  shortfall: number;
   checkedAt: Date;
 };
+
+/* Restore with the per-rule coverage pass in `buildCoverageReport`.
 
 type CandidateQuestion = {
   id: string;
@@ -853,7 +869,7 @@ type CandidateQuestion = {
  * mitigated rather than removed: the probe runs below call the real
  * `generateSelection`, so if these two ever disagree the dry run still reports
  * the truth and this function is only ever wrong about *which* rule to blame.
- */
+ *
 function tracksMatching(requested: $Enums.QuestionTrack | null): $Enums.QuestionTrack[] | null {
   if (requested === null) return null;
   if (requested === 'BOTH') return ['SCIENTIFIC', 'THEORETICAL', 'BOTH'];
@@ -872,16 +888,16 @@ function matchesRule(
   const tracks = tracksMatching(rule.track ?? defaultTrack);
   return tracks === null || tracks.includes(question.track);
 }
+*/
 
 /**
  * Fixed probes for the dry run.
  *
- * Whether a rule can be filled is not always seed-independent: a broad rule and
- * a narrow one over the same domain compete for the same rows, and which of them
- * goes short depends on what the broad one happened to draw. One run would
- * therefore pass or fail by luck. Three fixed seeds is not a proof, but it turns
- * "sometimes fails in production" into "usually caught before publication", and
- * the deterministic per-rule counts below are what actually names the problem.
+ * Three seeds rather than one is a habit from when rules competed for the same
+ * rows and a draw could pass or fail by luck. A section now takes its count off
+ * the top of the whole bank, so the outcome no longer depends on the seed —
+ * the probes are kept because they run the *real* selection code, which is what
+ * makes this report a dry run rather than a second opinion.
  */
 const COVERAGE_PROBE_SEEDS = [1, 2_654_435_761, 987_654_321] as const;
 
@@ -908,19 +924,18 @@ function toSelectionInput(sections: readonly AdminExamSectionRow[]): SectionInpu
 }
 
 /**
- * Compare what the blueprint asks for against what the bank actually holds.
+ * Compare what this version needs against what the bank actually holds.
  *
- * Two passes, and both matter:
+ * Since a blueprint section means "take this many questions from the bank", the
+ * whole check is one subtraction — every section of the version competes for one
+ * pool, so what matters is the total, not any section alone. Two passes still:
  *
- *  1. **Per rule, deterministically.** Each rule's allocation is computed with
- *     the same largest-remainder function the exam engine uses, and the eligible
- *     pool is counted with the same eligibility rule (`currentVersion > 0` and
- *     not `RETIRED`). This is the pass that names a rule and a number, which is
- *     the only useful thing to tell somebody who has to go and write questions.
+ *  1. **The arithmetic.** Eligible questions (`currentVersion > 0` and not
+ *     `RETIRED`, the engine's own rule) against the sum of every section's
+ *     `questionCount`. This is the pass that produces a number to act on.
  *  2. **End to end, against the real algorithm.** `generateSelection` is run for
- *     a few fixed seeds. It applies the exclusion set across the whole version,
- *     so it catches the case each rule passes alone and two of them together
- *     cannot — which pass 1 is blind to by construction.
+ *     a few fixed seeds, so the report is a dry run of the code that will
+ *     actually assemble the paper rather than a restatement of it.
  *
  * The answer describes this moment. Publishing a question later fixes a
  * shortfall; retiring one creates a new one. The screen says so.
@@ -938,73 +953,40 @@ export async function buildCoverageReport(
   const checkedAt = new Date();
 
   if (version.selectionMode === 'FIXED') {
-    return { ok: true, applicable: false, sections: [], shortfalls: [], checkedAt };
+    return {
+      ok: true,
+      applicable: false,
+      sections: [],
+      shortfalls: [],
+      bankSize: 0,
+      totalRequired: 0,
+      shortfall: 0,
+      checkedAt,
+    };
   }
 
   const selectionInput = toSelectionInput(version.sections);
   const pool = await loadCandidatePool(client, selectionInput);
 
-  const sections: CoverageSectionReport[] = [];
-  const shortfalls: CoverageRuleReport[] = [];
+  const bankSize = pool.length;
+  const totalRequired = version.sections.reduce((sum, section) => sum + section.questionCount, 0);
+  const shortfall = Math.max(0, totalRequired - bankSize);
 
-  for (const section of version.sections) {
-    let counts: number[] = [];
-    let allocationError: string | null = null;
+  // Every section still gets a row: the panel lists what each one will draw, and
+  // that is the part an administrator can change. `rules` and `allocationError`
+  // stay on the shape and stay empty — see `CoverageReport`.
+  const sections: CoverageSectionReport[] = version.sections.map((section) => ({
+    sectionId: section.id,
+    title: section.title,
+    position: section.position,
+    questionCount: section.questionCount,
+    allocationError: null,
+    rules: [],
+  }));
 
-    try {
-      counts = allocateByLargestRemainder(
-        section.rules.map((rule) => ({
-          percentage: rule.percentage,
-          countOverride: rule.questionCount,
-          position: rule.position,
-        })),
-        section.questionCount,
-      ).counts;
-    } catch (error) {
-      // `AllocationError` already carries an Arabic sentence naming the
-      // arithmetic that failed; anything else is a fault and is re-thrown.
-      if (!(error instanceof AllocationError)) throw error;
-      allocationError = error.message;
-    }
-
-    const rules: CoverageRuleReport[] = section.rules.map((rule, index) => {
-      const required = counts[index] ?? 0;
-      const available = pool.filter((question) =>
-        matchesRule(question, rule, version.simulatorTrack),
-      ).length;
-
-      return {
-        ruleId: rule.id,
-        position: rule.position,
-        domain: rule.domain,
-        subskill: rule.subskill,
-        difficulty: rule.difficulty,
-        track: rule.track,
-        required,
-        available,
-        shortfall: Math.max(0, required - available),
-      };
-    });
-
-    for (const rule of rules) {
-      if (rule.shortfall > 0) shortfalls.push(rule);
-    }
-
-    sections.push({
-      sectionId: section.id,
-      title: section.title,
-      position: section.position,
-      questionCount: section.questionCount,
-      allocationError,
-      rules,
-    });
-  }
-
-  // Pass 2 — the real algorithm, so a cross-rule exhaustion cannot slip past.
-  const seen = new Set(shortfalls.map((rule) => rule.ruleId));
-  const byId = new Map(
-    sections.flatMap((section) => section.rules.map((rule) => [rule.ruleId, rule] as const)),
-  );
+  // Pass 2 — the real algorithm, so this stays a dry run of what will happen
+  // rather than a second implementation of it.
+  let probeFailed = false;
 
   for (const seed of COVERAGE_PROBE_SEEDS) {
     try {
@@ -1020,36 +1002,24 @@ export async function buildCoverageReport(
       });
     } catch (error) {
       if (error instanceof QuestionShortageError) {
-        for (const shortage of error.shortages) {
-          if (seen.has(shortage.ruleId)) continue;
-          seen.add(shortage.ruleId);
-
-          const known = byId.get(shortage.ruleId);
-          shortfalls.push({
-            ruleId: shortage.ruleId,
-            position: known?.position ?? 0,
-            domain: shortage.domain,
-            subskill: shortage.subskill,
-            difficulty: shortage.difficulty,
-            track: known?.track ?? null,
-            required: shortage.required,
-            available: shortage.available,
-            shortfall: Math.max(0, shortage.required - shortage.available),
-          });
-        }
+        probeFailed = true;
         continue;
       }
-      // An allocation failure is already reported per section above; anything
-      // else is a fault the caller should see.
+      // An allocation failure would be a fault now that nothing allocates;
+      // anything unexpected is the caller's to see.
       if (!(error instanceof AllocationError)) throw error;
+      probeFailed = true;
     }
   }
 
   return {
-    ok: shortfalls.length === 0 && sections.every((section) => section.allocationError === null),
+    ok: shortfall === 0 && !probeFailed,
     applicable: true,
     sections,
-    shortfalls,
+    shortfalls: [],
+    bankSize,
+    totalRequired,
+    shortfall,
     checkedAt,
   };
 }
@@ -1061,40 +1031,22 @@ export async function getCoverageReport(versionId: string): Promise<CoverageRepo
 }
 
 /**
- * Spell a shortfall out, so the refusal names the rule and the number.
+ * Spell the shortfall out, so the refusal carries the three numbers.
  *
- * Built from copy tokens and data rather than from a sentence template: the
- * domain and difficulty names come from the question bank's own labels, so a
- * rule reads here exactly as it reads on the screen that authored it.
+ * It used to name the rule that went short — a domain, a difficulty and a count.
+ * With sections drawing from the whole bank there is no rule to blame and only
+ * one thing to say: this is what the version needs, this is what the bank holds,
+ * write this many more. Built from copy tokens rather than a sentence template,
+ * so the refusal reads in the same words as the panel above it.
  */
 function describeShortfalls(report: CoverageReport): string {
   const coverage = COPY.adminSimulators.blueprint.coverage;
 
-  // Capped at five. A version whose bank is empty would otherwise produce a
-  // refusal longer than the screen, and the coverage panel lists them all.
-  const parts = report.shortfalls.slice(0, 5).map((rule) => {
-    const section = report.sections.find((entry) =>
-      entry.rules.some((candidate) => candidate.ruleId === rule.ruleId),
-    );
-    const title = section?.title ?? '';
-
-    const classification = [
-      COPY.adminQuestions.domainLabels[rule.domain],
-      rule.subskill,
-      rule.difficulty ? COPY.adminQuestions.difficultyLabels[rule.difficulty] : null,
-    ]
-      .filter((value): value is string => Boolean(value))
-      .join(' / ');
-
-    return [
-      title ? `${title} — ${classification}` : classification,
-      `${coverage.requiredLabel} ${formatNumber(rule.required)}`,
-      `${coverage.availableLabel} ${formatNumber(rule.available)}`,
-      `${coverage.shortfallLabel} ${formatNumber(rule.shortfall)}`,
-    ].join(COPY.adminCommon.listSeparator);
-  });
-
-  return parts.join(' · ');
+  return [
+    `${coverage.requiredLabel} ${formatNumber(report.totalRequired)}`,
+    `${coverage.bankSizeLabel} ${formatNumber(report.bankSize)}`,
+    `${coverage.shortfallLabel} ${formatNumber(report.shortfall)}`,
+  ].join(COPY.adminCommon.listSeparator);
 }
 
 /**
@@ -1188,17 +1140,25 @@ async function assertVersionPublishable(
     return;
   }
 
+  /* Restore with the blueprint rule editor.
+
+     A section without rules could not be generated when rules decided the draw,
+     so publishing one was refused. A section is now "take this many from the
+     bank", which needs no rules at all — and keeping this check would have made
+     every simplified version unpublishable.
+
   const withoutRules = version.sections.find((section) => section.rules.length === 0);
   if (withoutRules) {
     throw new HttpError(409, COPY.adminSimulators.errors.rulesRequiredToPublish, 'rules_required');
   }
+  */
 
   const report = await buildCoverageReport(version, tx);
 
   const broken = report.sections.find((section) => section.allocationError !== null);
   if (broken) {
-    // The allocation function's own Arabic sentence, which already says which
-    // arithmetic failed, prefixed by the rule this screen states.
+    // Unreachable while nothing allocates — `allocationError` is always null —
+    // and kept because it is the rule editor's refusal, not this path's.
     throw new HttpError(
       409,
       `${COPY.adminSimulators.errors.ruleAllocationMismatch} ${broken.allocationError ?? ''}`.trim(),
@@ -1652,6 +1612,13 @@ export async function addSectionQuestion(
       );
     }
 
+    /* Restore with the classification section in `question-form.tsx`.
+
+       A question's track is no longer something a person chose — the editor does
+       not ask, and every question written since carries the same placeholder. A
+       refusal an administrator cannot act on is worse than no refusal: there is
+       no field left on the question form for them to correct.
+
     const allowedTracks = tracksMatching(version.simulatorTrack);
     if (allowedTracks !== null && !allowedTracks.includes(question.track)) {
       throw new HttpError(
@@ -1660,6 +1627,7 @@ export async function addSectionQuestion(
         'question_track_mismatch',
       );
     }
+    */
 
     const existing = await tx.examSectionQuestion.findUnique({
       where: { examSectionId_questionId: { examSectionId: sectionId, questionId } },

@@ -8,7 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import type { $Enums } from '@prisma/client';
 
-import { BlueprintRuleEditor } from '@/components/admin/blueprint-rule-editor';
+import { AdminEditorDialog } from '@/components/admin/admin-editor-dialog';
+// `BlueprintRuleEditor` returns with the commented-out block in `SectionPanel`.
+// import { BlueprintRuleEditor } from '@/components/admin/blueprint-rule-editor';
 import { DataTable, type DataTableColumn } from '@/components/admin/data-table';
 import { Button } from '@/components/ui/button';
 import {
@@ -220,7 +222,9 @@ export function SimulatorSettingsForm({ simulator }: { simulator: AdminSimulator
     <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{SETTINGS.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {SETTINGS.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.description}</p>
         </div>
 
@@ -397,48 +401,49 @@ export function NewExamVersionForm({
     }
   }
 
-  if (!open) {
-    return (
+  return (
+    <>
       <Button type="button" onClick={() => setOpen(true)}>
         {VERSIONS.createAction}
       </Button>
-    );
-  }
-
-  return (
-    <Card className="flex flex-col gap-4 p-5 sm:p-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-ink-900 text-lg font-semibold">{VERSIONS.createTitle}</h2>
-        <p className="text-ink-700 max-w-prose text-sm">{VERSIONS.createDescription}</p>
-      </div>
-
-      <Field>
-        <Label htmlFor="clone-source">{VERSIONS.duplicateAction}</Label>
-        <Select
-          id="clone-source"
-          value={sourceId}
-          onChange={(event) => setSourceId(event.target.value)}
-          aria-describedby="clone-hint"
+      {open ? (
+        <AdminEditorDialog
+          title={VERSIONS.createTitle}
+          description={VERSIONS.createDescription}
+          size="sm"
+          onClose={() => !busy && setOpen(false)}
         >
-          <option value="">{COPY.adminCommon.form.unchosen}</option>
-          {versions.map((version) => (
-            <option key={version.id} value={version.id}>
-              {`${VERSIONS.columns.versionNumber} ${formatNumber(version.versionNumber)} — ${COPY.adminSimulators.statusLabels[version.status]}`}
-            </option>
-          ))}
-        </Select>
-        <FieldHint id="clone-hint">{VERSIONS.duplicateHint}</FieldHint>
-      </Field>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" loading={busy} onClick={create}>
-          {COPY.adminCommon.actions.create}
-        </Button>
-        <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-          {COPY.adminCommon.actions.cancel}
-        </Button>
-      </div>
-    </Card>
+          <div className="flex flex-col gap-5">
+            <Field>
+              <Label htmlFor="clone-source">{VERSIONS.duplicateAction}</Label>
+              <Select
+                id="clone-source"
+                value={sourceId}
+                onChange={(event) => setSourceId(event.target.value)}
+                aria-describedby="clone-hint"
+              >
+                <option value="">{COPY.adminCommon.form.unchosen}</option>
+                {versions.map((version) => (
+                  <option
+                    key={version.id}
+                    value={version.id}
+                  >{`${VERSIONS.columns.versionNumber} ${formatNumber(version.versionNumber)} — ${COPY.adminSimulators.statusLabels[version.status]}`}</option>
+                ))}
+              </Select>
+              <FieldHint id="clone-hint">{VERSIONS.duplicateHint}</FieldHint>
+            </Field>
+            <div className="border-line-200 flex flex-wrap items-center gap-3 border-t pt-4">
+              <Button type="button" loading={busy} onClick={create}>
+                {COPY.adminCommon.actions.create}
+              </Button>
+              <Button type="button" variant="ghost" disabled={busy} onClick={() => setOpen(false)}>
+                {COPY.adminCommon.actions.cancel}
+              </Button>
+            </div>
+          </div>
+        </AdminEditorDialog>
+      ) : null}
+    </>
   );
 }
 
@@ -691,7 +696,7 @@ function ExamVersionForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
-        <h2 className="text-ink-900 text-lg font-semibold">
+        <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
           {COPY.adminSimulators.sections.structure}
         </h2>
 
@@ -793,7 +798,9 @@ function ExamVersionForm({
 
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{source.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {source.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{source.description}</p>
         </div>
 
@@ -904,7 +911,9 @@ function ExamSectionsEditor({
     <Card className="flex flex-col gap-5 p-5 sm:p-6">
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{SECTIONS.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {SECTIONS.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{SECTIONS.description}</p>
         </div>
         {version.editable ? (
@@ -913,7 +922,7 @@ function ExamSectionsEditor({
             variant="secondary"
             size="sm"
             className="ms-auto"
-            onClick={() => setCreating((open) => !open)}
+            onClick={() => setCreating(true)}
           >
             {SECTIONS.createAction}
           </Button>
@@ -921,22 +930,27 @@ function ExamSectionsEditor({
       </div>
 
       {creating && version.editable ? (
-        <ExamSectionForm
+        <AdminEditorDialog
           title={SECTIONS.createTitle}
-          onSubmit={async (values) => {
-            const next = await send<AdminExamVersionDetail>(
-              `/api/admin/exam-versions/${version.id}/sections`,
-              'POST',
-              values,
-            );
-            if (!next) return false;
-            onChanged(next);
-            toast.success(SECTIONS.toast.created);
-            setCreating(false);
-            return true;
-          }}
-          onCancel={() => setCreating(false)}
-        />
+          size="md"
+          onClose={() => setCreating(false)}
+        >
+          <ExamSectionForm
+            onSubmit={async (values) => {
+              const next = await send<AdminExamVersionDetail>(
+                `/api/admin/exam-versions/${version.id}/sections`,
+                'POST',
+                values,
+              );
+              if (!next) return false;
+              onChanged(next);
+              toast.success(SECTIONS.toast.created);
+              setCreating(false);
+              return true;
+            }}
+            onCancel={() => setCreating(false)}
+          />
+        </AdminEditorDialog>
       ) : null}
 
       {version.sections.length === 0 ? (
@@ -1003,7 +1017,9 @@ function ExamSectionPanel({
         <span className="text-ink-600 text-xs">
           {`${SECTIONS.columns.position} ${formatNumber(section.position)}`}
         </span>
-        <h3 className="text-ink-900 min-w-0 font-semibold">{section.title}</h3>
+        <h3 className="text-ink-900 font-display min-w-0 text-base leading-[1.6] font-semibold">
+          {section.title}
+        </h3>
         <span className="text-ink-700 text-sm">{formatDurationWords(section.durationSec)}</span>
         <span className="text-ink-700 text-sm">
           {`${SECTIONS.columns.questionCount}: ${formatNumber(section.questionCount)}`}
@@ -1029,12 +1045,7 @@ function ExamSectionPanel({
             >
               {reorder.moveDown}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setEditing((open) => !open)}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={() => setEditing(true)}>
               {COPY.adminCommon.actions.edit}
             </Button>
             <Button
@@ -1061,28 +1072,41 @@ function ExamSectionPanel({
       <ConfirmNotice pending={pending} onCancel={() => setPending(null)} />
 
       {editing && version.editable ? (
-        <ExamSectionForm
-          title={SECTIONS.editTitle}
-          section={section}
-          onSubmit={async (values) => {
-            const next = await send<AdminExamVersionDetail>(
-              `/api/admin/exam-sections/${section.id}`,
-              'PATCH',
-              { op: 'settings', ...values },
-            );
-            if (!next) return false;
-            onChanged(next);
-            toast.success(SECTIONS.toast.updated);
-            setEditing(false);
-            return true;
-          }}
-          onCancel={() => setEditing(false)}
-        />
+        <AdminEditorDialog title={SECTIONS.editTitle} size="md" onClose={() => setEditing(false)}>
+          <ExamSectionForm
+            section={section}
+            onSubmit={async (values) => {
+              const next = await send<AdminExamVersionDetail>(
+                `/api/admin/exam-sections/${section.id}`,
+                'PATCH',
+                { op: 'settings', ...values },
+              );
+              if (!next) return false;
+              onChanged(next);
+              toast.success(SECTIONS.toast.updated);
+              setEditing(false);
+              return true;
+            }}
+            onCancel={() => setEditing(false)}
+          />
+        </AdminEditorDialog>
       ) : null}
 
       {version.selectionMode === 'FIXED' ? (
         <FixedQuestionList version={version} section={section} onChanged={onChanged} />
       ) : (
+        <BankDrawNote questionCount={section.questionCount} />
+      )}
+
+      {/* Restore with the classification section in `question-form.tsx`.
+
+          The rule editor is what made a section "21% استيعاب المقروء، صعب". The
+          bank no longer records which skill a question belongs to, so the rules
+          matched nothing an author wrote and the section drew nothing from them;
+          `attempt-selection.service.ts` stopped reading them. The rows and their
+          API are untouched, so this is one line and one import to bring back.
+
+      {version.selectionMode === 'FIXED' ? null : (
         <BlueprintRuleEditor
           sectionId={section.id}
           sectionQuestionCount={section.questionCount}
@@ -1091,18 +1115,18 @@ function ExamSectionPanel({
           onChanged={onChanged}
         />
       )}
+
+      */}
     </div>
   );
 }
 
 /** The section settings form, used for both create and edit. */
 function ExamSectionForm({
-  title,
   section,
   onSubmit,
   onCancel,
 }: {
-  title: string;
   section?: AdminExamSectionRow;
   onSubmit: (values: CreateExamSectionInput) => Promise<boolean>;
   onCancel: () => void;
@@ -1134,11 +1158,9 @@ function ExamSectionForm({
       onSubmit={handleSubmit(async (values) => {
         await onSubmit(values);
       })}
-      className="bg-surface-muted rounded-panel flex flex-col gap-4 p-4"
+      className="flex flex-col gap-5"
       noValidate
     >
-      <h4 className="text-ink-900 font-medium">{title}</h4>
-
       <Field>
         <Label htmlFor={`${prefix}-title`}>{fields.title.label}</Label>
         <Input id={`${prefix}-title`} aria-invalid={Boolean(errors.title)} {...register('title')} />
@@ -1210,6 +1232,34 @@ function ExamSectionForm({
   );
 }
 
+// ── Drawing from the bank ────────────────────────────────────────────────
+
+/**
+ * What a blueprint section does, in one sentence.
+ *
+ * This is where the rule table used to be. A section that draws from the bank
+ * has nothing to configure — the count is already on the section form above — so
+ * the panel's whole job is to say what will happen when a student presses ابدأ,
+ * and to say it where the thing that decides it can be edited.
+ *
+ * A `Notice`, not an `EmptyState`: nothing is missing here.
+ */
+function BankDrawNote({ questionCount }: { questionCount: number }) {
+  const draw = COPY.adminSimulators.blueprint.bankDraw;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h4 className="text-ink-900 font-medium">{draw.title}</h4>
+      <Notice tone="neutral" role="note">
+        {draw.description.replace(
+          '{count}',
+          `${formatNumber(questionCount)} ${draw.questionCountUnit}`,
+        )}
+      </Notice>
+    </div>
+  );
+}
+
 // ── Fixed question lists ─────────────────────────────────────────────────
 
 const FIXED = SECTIONS.fixedQuestions;
@@ -1273,6 +1323,11 @@ function FixedQuestionList({
         </Link>
       ),
     },
+    /* Restore with the classification section in `question-form.tsx`.
+
+       Hidden here for a sharper reason than tidiness: a question authored while
+       the classification editor is hidden carries placeholder values, and these
+       two columns would print them as though a person had chosen them.
     {
       key: 'domain',
       header: FIXED.columns.domain,
@@ -1283,6 +1338,7 @@ function FixedQuestionList({
       header: FIXED.columns.difficulty,
       cell: (row) => COPY.adminQuestions.difficultyLabels[row.difficulty],
     },
+    */
     {
       key: 'questionVersion',
       header: FIXED.columns.questionVersion,

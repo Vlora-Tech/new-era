@@ -125,7 +125,9 @@ export function EntitlementGrantForm({ products }: { products: readonly Grantabl
   return (
     <Card className="flex flex-col gap-5 p-5 sm:p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-ink-900 text-lg font-semibold">{GRANT.title}</h2>
+        <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+          {GRANT.title}
+        </h2>
         <p className="text-ink-700 max-w-prose text-sm">{GRANT.description}</p>
       </div>
 

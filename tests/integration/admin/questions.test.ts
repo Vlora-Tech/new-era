@@ -32,6 +32,7 @@ vi.mock('@/lib/auth/guards', async (importOriginal) => {
 });
 
 import { prisma } from '@/lib/db';
+import { releaseFixtureQuestions } from '../question-cleanup';
 import { prepareAttemptQuestions } from '@/services/exams/attempt-snapshot.service';
 import type {
   QuestionDetail,
@@ -143,12 +144,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Deepest edge first: a frozen version is `Restrict` against its question, so
-  // it has to go before the question can. Nothing here ever reached an attempt.
+  // Questions go through `releaseFixtureQuestions`: another worker's blueprint
+  // draw may have pulled one of them into an attempt, and that attempt keeps it.
   await prisma.auditLog.deleteMany({ where: { targetId: { in: createdQuestionIds } } });
-  await prisma.questionVersion.deleteMany({ where: { questionId: { in: createdQuestionIds } } });
-  await prisma.questionOption.deleteMany({ where: { questionId: { in: createdQuestionIds } } });
-  await prisma.question.deleteMany({ where: { id: { in: createdQuestionIds } } });
+  await releaseFixtureQuestions(createdQuestionIds);
   await prisma.auditLog.deleteMany({ where: { actorId: session.user.id } });
   await prisma.user.deleteMany({ where: { id: session.user.id } });
 });

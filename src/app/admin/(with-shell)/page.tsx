@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { FileQuestion, Package, ReceiptText, Users } from 'lucide-react';
+import { Activity, FileQuestion, Package, ReceiptText, Users } from 'lucide-react';
 
 import { AdminPageHead } from '@/components/admin/admin-page-head';
 import { CountTile } from '@/components/admin/count-tile';
@@ -9,7 +9,7 @@ import { Card, EmptyState, ErrorState } from '@/components/ui/surface';
 import type { Accent } from '@/lib/accent';
 import { COPY } from '@/lib/copy';
 import { prisma } from '@/lib/db';
-import { formatDateTime, formatNumber } from '@/lib/format';
+import { formatNumber, formatTime } from '@/lib/format';
 import { logger } from '@/lib/logger';
 import { listAuditLog, type AdminAuditRow } from '@/services/audit/audit-query.service';
 import { auditLogQuerySchema } from '@/validators/admin-audit';
@@ -213,9 +213,16 @@ export default async function AdminOverviewPage() {
             indicators or trends" — restated «أعداد حالية» and then denied two
             things nobody had claimed.
           */}
-          <h2 className="text-ink-900 text-lg font-semibold">{COPY.adminPages.counts.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {COPY.adminPages.counts.title}
+          </h2>
 
-          <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {/*
+            `auto-fill` against a 232px floor rather than fixed breakpoints: the
+            tiles are all one size, so the column count should follow the width
+            available rather than three hand-picked thresholds.
+          */}
+          <dl className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(232px,1fr))] gap-3.5">
             {counts.map((row) => (
               <CountTile
                 key={row.key}
@@ -231,99 +238,140 @@ export default async function AdminOverviewPage() {
         <ErrorState />
       )}
 
-      {/* ── What is waiting on somebody ── */}
-      {attention ? (
-        <Card className="p-5 sm:p-6">
-          <h2 className="text-ink-900 text-lg font-semibold">{COPY.adminPages.attention.title}</h2>
+      {/*
+        The queue and the trail, side by side.
 
-          {waiting.length === 0 ? (
-            /*
+        They were stacked full-width, which pushed the trail below the fold on
+        every laptop and gave both panels a measure far wider than their content
+        — a queue row is a count, a label and a button; an activity row is one
+        line. `auto-fit` against a 340px floor puts them in one column on a
+        narrow viewport without a breakpoint, and `items-start` stops the
+        shorter panel stretching to match the taller one.
+      */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] items-start gap-4">
+        {/* ── What is waiting on somebody ── */}
+        {attention ? (
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+              {COPY.adminPages.attention.title}
+            </h2>
+
+            {waiting.length === 0 ? (
+              /*
               An empty queue is a fact worth stating plainly, not a blank space.
               `EmptyState` and not `ErrorState`: nothing failed here — there is
               genuinely nothing waiting, which is the outcome to hope for.
             */
-            <div className="mt-5">
-              <EmptyState
-                title={COPY.adminPages.attention.allClearTitle}
-                description={COPY.adminPages.attention.allClearBody}
-              />
-            </div>
-          ) : (
-            <ul className="mt-5 flex flex-col gap-3">
-              {waiting.map((row) => (
-                <li
-                  key={row.key}
-                  className="rounded-panel border-line-200 bg-surface-muted flex flex-wrap items-center justify-between gap-3 border px-4 py-3"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    {/* The count leads: it is the reason the row is here. */}
-                    <span className="text-ink-900 font-display text-2xl font-bold tabular-nums">
-                      {formatNumber(row.value)}
-                    </span>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="text-ink-900 text-sm font-medium">{row.label}</span>
-                      <span className="text-ink-700 text-xs leading-snug">{row.note}</span>
+              <div className="mt-5">
+                <EmptyState
+                  title={COPY.adminPages.attention.allClearTitle}
+                  description={COPY.adminPages.attention.allClearBody}
+                />
+              </div>
+            ) : (
+              <ul className="mt-5 flex flex-col gap-3">
+                {waiting.map((row) => (
+                  <li
+                    key={row.key}
+                    className="rounded-panel border-line-200 bg-surface-muted flex flex-wrap items-center justify-between gap-3 border px-4 py-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      {/* The count leads: it is the reason the row is here. */}
+                      <span className="text-ink-900 font-display text-2xl font-bold tabular-nums">
+                        {formatNumber(row.value)}
+                      </span>
+                      <div className="flex min-w-0 flex-col">
+                        <span className="text-ink-900 text-sm font-medium">{row.label}</span>
+                        <span className="text-ink-700 text-xs leading-snug">{row.note}</span>
+                      </div>
                     </div>
-                  </div>
-                  <Button asChild variant="secondary" size="sm">
-                    <Link href={row.href}>{COPY.adminPages.attention.review}</Link>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      ) : (
-        <ErrorState />
-      )}
+                    <Button asChild variant="secondary" size="sm">
+                      <Link href={row.href}>{COPY.adminPages.attention.review}</Link>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        ) : (
+          <ErrorState />
+        )}
 
-      {/* ── The trail's most recent rows ── */}
-      {recent ? (
-        <Card className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-ink-900 text-lg font-semibold">{COPY.adminPages.recent.title}</h2>
-              <p className="text-ink-700 mt-1 max-w-prose text-sm">{COPY.adminPages.recent.note}</p>
+        {/* ── The trail's most recent rows ── */}
+        {recent ? (
+          <Card className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+                {COPY.adminPages.recent.title}
+              </h2>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/admin/audit-log">{COPY.adminPages.recent.viewAll}</Link>
+              </Button>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/admin/audit-log">{COPY.adminPages.recent.viewAll}</Link>
-            </Button>
-          </div>
 
-          {recent.length === 0 ? (
-            <div className="mt-5">
-              <EmptyState
-                title={COPY.adminPages.recent.emptyTitle}
-                description={COPY.adminPages.recent.emptyBody}
-              />
-            </div>
-          ) : (
-            <ul className="mt-5 flex flex-col">
-              {recent.map((row) => (
-                <li
-                  key={row.id}
-                  className="border-line-200 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b py-3 last:border-0"
-                >
-                  <span className="text-ink-900 text-sm">
-                    {COPY.adminAudit.actionLabels[
-                      row.action as keyof typeof COPY.adminAudit.actionLabels
-                    ] ?? row.action}
-                  </span>
-                  <span className="text-ink-700 flex flex-wrap items-baseline gap-x-3 text-xs">
-                    {/* An address is Latin: isolated so it cannot reorder the
-                        Arabic around it. `actorEmail` is a snapshot, so the
-                        trail stays readable after an account is removed. */}
-                    <span dir="ltr">{row.actorEmail ?? COPY.adminPages.recent.systemActor}</span>
-                    <span>{formatDateTime(row.createdAt)}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      ) : (
-        <ErrorState />
-      )}
+            {recent.length === 0 ? (
+              <div className="mt-5">
+                <EmptyState
+                  title={COPY.adminPages.recent.emptyTitle}
+                  description={COPY.adminPages.recent.emptyBody}
+                />
+              </div>
+            ) : (
+              <ul className="mt-3 flex flex-col">
+                {recent.map((row) => (
+                  /*
+                    Three ranks per row, where there used to be two competing
+                    ones. The action leads; who and what it touched drop to a
+                    muted second line; the clock is pinned to the inline end so
+                    the times form a column the eye can run down. The date is
+                    dropped from the row — six rows of "today" is a column of
+                    one repeated word — and the full stamp stays one click away
+                    on the audit screen.
+                  */
+                  <li
+                    key={row.id}
+                    className="border-line-200 flex items-start gap-3 border-t py-2.5 first:border-t-0"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="rounded-control bg-brand-50 text-brand-700 mt-0.5 flex size-7 shrink-0 items-center justify-center"
+                    >
+                      <Activity className="size-4" />
+                    </span>
+
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-ink-900 text-[13.5px] leading-[1.6] font-medium">
+                        {COPY.adminAudit.actionLabels[
+                          row.action as keyof typeof COPY.adminAudit.actionLabels
+                        ] ?? row.action}
+                      </span>
+                      {/*
+                        An address and an identifier are Latin: each is isolated
+                        so neither can reorder the Arabic around it.
+                        `actorEmail` is a snapshot, so the trail stays readable
+                        after an account is removed.
+                      */}
+                      <span className="text-ink-700 flex flex-wrap items-baseline gap-x-2 text-xs leading-[1.6]">
+                        <bdi dir="ltr">{row.actorEmail ?? COPY.adminPages.recent.systemActor}</bdi>
+                        <span aria-hidden="true">·</span>
+                        <bdi dir="ltr" className="max-w-[22ch] truncate">
+                          {row.targetId}
+                        </bdi>
+                      </span>
+                    </div>
+
+                    <span className="text-ink-700 mt-0.5 shrink-0 text-xs whitespace-nowrap">
+                      {formatTime(row.createdAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        ) : (
+          <ErrorState />
+        )}
+      </div>
     </div>
   );
 }

@@ -4,3 +4,9 @@ prisma/migrations
 public
 .storage
 package-lock.json
+
+# Design source, not code: the approved landing-page artboard and its exported
+# single-file build. Reformatting them would rewrite the record of what was
+# approved, and neither is ever imported.
+new-era-landing-page-to-be-replaced
+*.dc.html

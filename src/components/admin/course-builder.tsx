@@ -212,6 +212,78 @@ type PendingConfirm = {
 };
 
 /**
+ * Contextual editor shell for module and lesson authoring.
+ *
+ * These editors used to render after the course tree, which made an action near
+ * the top of a long course appear to do nothing and then forced the administrator
+ * to hunt for a form below every module. A portal keeps the course outline as
+ * context without moving it, while Radix supplies the focus trap, Escape close,
+ * scroll lock and focus restoration that an inline workaround cannot.
+ *
+ * On phones this becomes a bottom sheet with a generous viewport height. On
+ * larger screens it is centred and constrained; the lesson variant is wider
+ * because its fields form a real authoring workspace rather than a prompt.
+ */
+function EditorDialog({
+  title,
+  description,
+  size = 'md',
+  onClose,
+  children,
+}: {
+  title: string;
+  description?: string;
+  size?: 'sm' | 'md';
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Dialog.Root open onOpenChange={(open) => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="bg-ink-900/45 fixed inset-0 z-[60] backdrop-blur-[2px]" />
+        <Dialog.Content
+          className={cn(
+            'bg-surface shadow-overlay fixed z-[70] flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden border border-white/70',
+            'rounded-card inset-x-2 bottom-2 sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:w-[calc(100vw-3rem)] sm:-translate-x-1/2 sm:-translate-y-1/2',
+            size === 'sm' ? 'sm:max-w-lg' : 'sm:max-w-3xl',
+          )}
+          // Do not let a stray click beside a half-written lesson discard it.
+          // Escape, the close button and the explicit cancel action remain.
+          onPointerDownOutside={(event) => event.preventDefault()}
+        >
+          <header className="border-line-200/80 bg-surface/95 flex shrink-0 items-start gap-4 border-b px-5 py-4 sm:px-6 sm:py-5">
+            <div className="min-w-0 flex-1">
+              <Dialog.Title className="text-ink-900 text-h3">{title}</Dialog.Title>
+              {description ? (
+                <Dialog.Description className="text-ink-700 mt-1 text-sm leading-relaxed">
+                  {description}
+                </Dialog.Description>
+              ) : (
+                <Dialog.Description className="sr-only">{title}</Dialog.Description>
+              )}
+            </div>
+            <Dialog.Close asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="-me-2 -mt-1 shrink-0"
+                aria-label={COPY.common.close}
+                title={COPY.common.close}
+              >
+                <X className="size-5" aria-hidden="true" />
+              </Button>
+            </Dialog.Close>
+          </header>
+
+          <div className="min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6">{children}</div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+/**
  * One confirmation dialog for the whole screen.
  *
  * A single slot rather than a prompt per row: two open confirmations, each
@@ -347,7 +419,9 @@ function CourseSettingsForm({ course, onSaved }: { course: BuilderCourse; onSave
   return (
     <Card className="flex flex-col gap-5 p-5 sm:p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-ink-900 text-lg font-semibold">{SETTINGS.title}</h2>
+        <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+          {SETTINGS.title}
+        </h2>
         <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.description}</p>
       </div>
 
@@ -464,16 +538,7 @@ function ModuleTitleForm({
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-5">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-ink-900 text-base font-semibold">
-          {isEdit ? COPY.adminCourses.modules.editTitle : COPY.adminCourses.modules.createTitle}
-        </h3>
-        {isEdit ? null : (
-          <p className="text-ink-700 text-sm">{COPY.adminCourses.modules.createDescription}</p>
-        )}
-      </div>
-
+    <div className="flex flex-col gap-4">
       <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
         <Field>
           <Label htmlFor="module-title-field">{COPY.adminCourses.modules.fields.title.label}</Label>
@@ -499,7 +564,7 @@ function ModuleTitleForm({
           </Button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 }
 
@@ -525,10 +590,12 @@ type BankResult = {
   track: $Enums.QuestionTrack;
 };
 
+/* Restore with the classification section in `question-form.tsx`.
 const QUESTION_DOMAINS = Object.keys(COPY.adminQuestions.domainLabels) as $Enums.QuestionDomain[];
 const QUESTION_DIFFICULTIES = Object.keys(
   COPY.adminQuestions.difficultyLabels,
 ) as $Enums.QuestionDifficulty[];
+*/
 
 /**
  * The short quiz attached to one lesson.
@@ -774,7 +841,7 @@ function LessonQuizEditor({
               <Dialog.Title
                 ref={titleRef}
                 tabIndex={-1}
-                className="text-ink-900 text-lg font-semibold outline-none"
+                className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold outline-none"
               >
                 {exists ? QUIZ.editTitle : QUIZ.createTitle}
               </Dialog.Title>
@@ -838,6 +905,11 @@ function LessonQuizEditor({
                       <FieldHint>{QUIZ.questions.bank.searchHint}</FieldHint>
                     </Field>
 
+                    {/* Restore with the classification section in `question-form.tsx`.
+                        The `domain` and `difficulty` state behind these two stays
+                        where it is — the search still accepts both, so restoring
+                        the controls is restoring this block and nothing else.
+
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Field>
                         <Label htmlFor="quiz-bank-domain">
@@ -881,6 +953,8 @@ function LessonQuizEditor({
                         </Select>
                       </Field>
                     </div>
+
+                    */}
 
                     {term.trim() || domain || difficulty ? (
                       <div>
@@ -961,6 +1035,9 @@ function LessonQuizEditor({
                               <p className="text-ink-900 text-sm leading-relaxed">
                                 {item.stemExcerpt}
                               </p>
+                              {/* Restore with the classification section in
+                                  `question-form.tsx`.
+
                               <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <Badge variant="outline">
                                   {COPY.adminQuestions.domainLabels[item.domain]}
@@ -969,6 +1046,8 @@ function LessonQuizEditor({
                                   {COPY.adminQuestions.difficultyLabels[item.difficulty]}
                                 </span>
                               </div>
+
+                              */}
                             </div>
                             <Button
                               type="button"
@@ -1105,9 +1184,12 @@ function LessonQuizEditor({
                                 {row.stemExcerpt}
                               </p>
                               <div className="mt-1 flex flex-wrap items-center gap-2">
-                                <span className="text-ink-600 text-xs">
-                                  {COPY.adminQuestions.domainLabels[row.domain]}
-                                </span>
+                                {/* The skill label that stood here is commented
+                                    out with the classification section in
+                                    `question-form.tsx`. The review-state badge
+                                    below is not classification — it is the one
+                                    thing about a chosen question that can go
+                                    wrong after it was chosen. */}
                                 {row.workflow === 'PUBLISHED' ? null : (
                                   <Badge variant="warning">
                                     {QUIZ.questions.notPublishedBadge}
@@ -1756,7 +1838,9 @@ function ModuleCard({
           <span className="text-ink-600 text-xs" dir="ltr">
             {formatNumber(index + 1)}
           </span>
-          <h3 className="text-ink-900 min-w-0 text-base font-semibold">{module.title}</h3>
+          <h3 className="text-ink-900 font-display min-w-0 text-base leading-[1.6] font-semibold">
+            {module.title}
+          </h3>
           <ContentStatusBadge status={module.status} />
         </div>
 
@@ -1974,7 +2058,7 @@ export function CourseBuilder({
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex min-w-0 flex-col gap-1">
-            <h2 className="text-ink-900 text-lg font-semibold">
+            <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
               {COPY.adminCourses.modules.title}
             </h2>
             <p className="text-ink-700 max-w-prose text-sm">
@@ -1990,18 +2074,6 @@ export function CourseBuilder({
             </Button>
           </div>
         </div>
-
-        {moduleEditor ? (
-          <ModuleTitleForm
-            courseId={course.id}
-            module={moduleEditor.module}
-            onSaved={() => {
-              setModuleEditor(null);
-              refresh();
-            }}
-            onCancel={() => setModuleEditor(null)}
-          />
-        ) : null}
 
         {course.modules.length === 0 ? (
           <EmptyState
@@ -2034,23 +2106,58 @@ export function CourseBuilder({
         )}
       </section>
 
+      {moduleEditor ? (
+        <EditorDialog
+          title={
+            moduleEditor.module
+              ? COPY.adminCourses.modules.editTitle
+              : COPY.adminCourses.modules.createTitle
+          }
+          description={
+            moduleEditor.module ? undefined : COPY.adminCourses.modules.createDescription
+          }
+          size="sm"
+          onClose={() => setModuleEditor(null)}
+        >
+          <ModuleTitleForm
+            courseId={course.id}
+            module={moduleEditor.module}
+            onSaved={() => {
+              setModuleEditor(null);
+              refresh();
+            }}
+            onCancel={() => setModuleEditor(null)}
+          />
+        </EditorDialog>
+      ) : null}
+
       {lessonEditor ? (
-        <LessonForm
-          key={lessonEditor.lessonId ?? `new-${lessonEditor.moduleId}`}
-          moduleId={lessonEditor.moduleId}
-          lessonId={lessonEditor.lessonId}
-          modules={moduleOptionsForForm}
-          videoOptions={videoOptions}
-          videoEnabled={videoEnabled}
-          videoLibraryId={videoLibraryId}
-          videoCanConfirm={videoCanConfirm}
-          courseThresholdPercent={course.completionThresholdPercent}
-          onSaved={() => {
-            setLessonEditor(null);
-            refresh();
-          }}
-          onCancel={() => setLessonEditor(null)}
-        />
+        <EditorDialog
+          title={
+            lessonEditor.lessonId
+              ? COPY.adminCourses.lessons.editTitle
+              : COPY.adminCourses.lessons.createTitle
+          }
+          size="md"
+          onClose={() => setLessonEditor(null)}
+        >
+          <LessonForm
+            key={lessonEditor.lessonId ?? `new-${lessonEditor.moduleId}`}
+            moduleId={lessonEditor.moduleId}
+            lessonId={lessonEditor.lessonId}
+            modules={moduleOptionsForForm}
+            videoOptions={videoOptions}
+            videoEnabled={videoEnabled}
+            videoLibraryId={videoLibraryId}
+            videoCanConfirm={videoCanConfirm}
+            courseThresholdPercent={course.completionThresholdPercent}
+            onSaved={() => {
+              setLessonEditor(null);
+              refresh();
+            }}
+            onCancel={() => setLessonEditor(null)}
+          />
+        </EditorDialog>
       ) : null}
 
       {quizLesson ? (

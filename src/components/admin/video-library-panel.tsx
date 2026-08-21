@@ -104,7 +104,9 @@ export function VideoLibraryPanel({ rows, libraryId, canConfirm }: Props) {
   if (!libraryId) {
     return (
       <Card className="p-5 sm:p-6">
-        <h2 className="text-ink-900 text-lg font-semibold">{LIBRARY.title}</h2>
+        <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+          {LIBRARY.title}
+        </h2>
         <Notice tone="warning" className="mt-4">
           {LIBRARY.errors.notConfigured}
         </Notice>
@@ -120,7 +122,9 @@ export function VideoLibraryPanel({ rows, libraryId, canConfirm }: Props) {
      */
     <section id="video-library" className="scroll-mt-24">
       <Card className="p-5 sm:p-6">
-        <h2 className="text-ink-900 text-lg font-semibold">{LIBRARY.title}</h2>
+        <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+          {LIBRARY.title}
+        </h2>
         <p className="text-ink-700 mt-1 max-w-prose text-sm">{LIBRARY.description}</p>
 
         <div className="mt-5">

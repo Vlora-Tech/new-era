@@ -5,6 +5,7 @@ import {
   IconBell,
   IconCourses,
   IconForward,
+  IconLearn,
   IconPlay,
   IconQuiz,
   IconSearch,
@@ -40,10 +41,11 @@ const BAR_GROUPS = [
 ] as const;
 
 const STAT_TILES = [
-  { icon: IconCourses, label: MOCK.courseProgress, value: MOCK.courseProgressValue, tone: 'vivid' },
-  { icon: IconTimer, label: MOCK.lastAttempt, value: MOCK.lastAttemptValue, tone: 'teal' },
+  { icon: IconLearn, label: MOCK.courseProgress, value: MOCK.courseProgressValue, tone: 'soft' },
+  { icon: IconTimer, label: MOCK.lastAttempt, value: MOCK.lastAttemptValue, tone: 'soft' },
   { icon: IconQuiz, label: MOCK.answered, value: MOCK.answeredValue, tone: 'soft' },
-  { icon: IconVerified, label: MOCK.lessonsDone, value: MOCK.lessonsDoneValue, tone: 'green' },
+  /* The one tile in the drawing that leaves the blue — see `GlyphTile`. */
+  { icon: IconVerified, label: MOCK.lessonsDone, value: MOCK.lessonsDoneValue, tone: 'success' },
 ] as const;
 
 export function DashboardMockup() {
@@ -57,7 +59,7 @@ export function DashboardMockup() {
 
         <span className="border-line-200/70 bg-brand-50 hidden max-w-[360px] flex-1 items-center gap-2 rounded-full border px-3.5 py-2 sm:flex">
           <IconSearch className="text-ink-600 size-4 shrink-0" />
-          <span className="text-ink-600 truncate text-[13px]">{MOCK.searchPlaceholder}</span>
+          <span className="text-ink-500 truncate text-[13px]">{MOCK.searchPlaceholder}</span>
         </span>
 
         <span className="flex items-center gap-3">
@@ -167,7 +169,7 @@ export function DashboardMockup() {
               {MOCK.resumeTitle}
             </p>
             <div className="bg-surface-muted mt-2.5 h-[7px] overflow-hidden rounded-full">
-              <div className="bg-gradient-brand-deep h-full w-[34%] rounded-full" />
+              <div className="bg-gradient-meter h-full w-[34%] rounded-full" />
             </div>
           </div>
           <div className="flex items-center gap-3">

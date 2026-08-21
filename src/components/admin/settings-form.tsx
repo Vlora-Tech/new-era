@@ -204,7 +204,9 @@ export function SettingsForm({
       {/* ── Legal documents ── */}
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{SETTINGS.groups.legal.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {SETTINGS.groups.legal.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.groups.legal.description}</p>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.notices.legalVersionMeaning}</p>
         </div>
@@ -248,7 +250,9 @@ export function SettingsForm({
       {/* ── Contact details ── */}
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{SETTINGS.groups.contact.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {SETTINGS.groups.contact.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.groups.contact.description}</p>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.notices.contactIsPublic}</p>
         </div>
@@ -296,7 +300,9 @@ export function SettingsForm({
       {/* ── Track mapping ── */}
       <Card className="flex flex-col gap-5 p-5 sm:p-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{SETTINGS.groups.exam.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {SETTINGS.groups.exam.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.groups.exam.description}</p>
           <p className="text-ink-700 max-w-prose text-sm">{SETTINGS.notices.trackMappingSource}</p>
         </div>

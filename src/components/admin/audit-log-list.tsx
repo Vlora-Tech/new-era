@@ -162,7 +162,7 @@ export function AuditLogFilters({ query }: { query: AuditLogQuery }) {
     <form
       method="get"
       action="/admin/audit-log"
-      className="rounded-panel border-line-200 bg-surface flex flex-col gap-3 border p-4"
+      className="rounded-card border-line-200 bg-surface shadow-card flex flex-col gap-3 border p-4"
     >
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex min-w-64 flex-1 flex-col gap-1.5">

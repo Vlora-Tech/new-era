@@ -1,0 +1,51 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is git-ignored.
+
+region      = "us-east-1"
+project     = "new-era"
+environment = "production"
+
+# ── Domain ─────────────────────────────────────────────────────────────────
+# Leave both empty on the FIRST apply. Then point the domain's A record at the
+# `app_public_ip` output, set both here, and apply again.
+#
+# Caddy cannot obtain a Let's Encrypt certificate until the name resolves —
+# there is no public certificate for a bare IP. With domain_name empty it serves
+# plain HTTP so the stack is testable, which must not carry real students.
+#
+# app_url is load-bearing beyond cosmetics: origin-check.ts compares the
+# browser's Origin against it on every authenticated write.
+domain_name = "" # e.g. "platform.example.com"
+app_url     = "" # e.g. "https://platform.example.com"
+
+# ── Server ─────────────────────────────────────────────────────────────────
+# t4g.small (2 GiB) is the floor. t4g.micro at 1 GiB is a false economy: sharp
+# re-encodes uploads in memory, and an OOM kill mid-upload costs more than the
+# six dollars saved.
+instance_type  = "t4g.small"
+root_volume_gb = 20
+app_image_tag  = "latest" # a git SHA once you stop deploying `latest`
+
+# ── Database ───────────────────────────────────────────────────────────────
+# db.t4g.micro is the launch size. Resizing is a modify-in-place with a short
+# interruption, so this is reversible — watch the connection and CPU alarms.
+db_instance_class   = "db.t4g.micro"
+db_connection_limit = 5
+
+# Single-AZ: roughly half the cost, accepting downtime during an AZ failure or
+# minor-version maintenance. Trades availability, not durability. Flip to true
+# once real students depend on the platform.
+db_multi_az = false
+
+# ── Third party ────────────────────────────────────────────────────────────
+# "test" until Moyasar approves the account for live payments. The application
+# cross-checks this against the key prefix and refuses to start on a mismatch.
+moyasar_mode = "test"
+
+# Optional CDN in front of the media bucket. Blank is supported: public objects
+# stream through the application's own route instead.
+cdn_public_base_url = ""
+
+# ── Alarms ─────────────────────────────────────────────────────────────────
+# Somebody has to receive them. Left empty, the topic exists and notifies
+# nobody — which is worse than no alarms, because it looks covered.
+alarm_email = ""

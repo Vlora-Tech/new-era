@@ -17,7 +17,7 @@ import type {
   AdminAttemptDetail,
   AdminAttemptQuestionRow,
   AdminAttemptSectionRow,
-  AttemptBreakdownRow,
+  // `AttemptBreakdownRow` returns with `breakdownColumns` below.
 } from '@/services/exams/attempt-admin.service';
 
 /**
@@ -160,6 +160,7 @@ const questionColumns: readonly DataTableColumn<AdminAttemptQuestionRow>[] = [
     // wording is one click away and deliberately not what is printed here.
     cell: (row) => <span className="line-clamp-2 max-w-md">{row.stem}</span>,
   },
+  /* Restore with the classification section in `question-form.tsx`.
   {
     key: 'domain',
     header: ATTEMPTS.questions.columns.domain,
@@ -175,6 +176,7 @@ const questionColumns: readonly DataTableColumn<AdminAttemptQuestionRow>[] = [
     header: ATTEMPTS.questions.columns.difficulty,
     cell: (row) => COPY.adminQuestions.difficultyLabels[row.difficulty],
   },
+  */
   {
     key: 'questionVersion',
     header: ATTEMPTS.questions.columns.questionVersion,
@@ -236,6 +238,7 @@ const questionColumns: readonly DataTableColumn<AdminAttemptQuestionRow>[] = [
 
 // ── Breakdown tables ─────────────────────────────────────────────────────
 
+/* Restore with the two breakdown tables below.
 function breakdownColumns(
   headerLabel: string,
   label: (row: AttemptBreakdownRow) => string,
@@ -274,6 +277,7 @@ function breakdownColumns(
     },
   ];
 }
+*/
 
 // ── The record ───────────────────────────────────────────────────────────
 
@@ -499,6 +503,11 @@ export function AttemptDetail({ attempt }: { attempt: AdminAttemptDetail }) {
               </Notice>
             ) : null}
 
+            {/* Restore with the classification section in `question-form.tsx`.
+                The stored summary still carries both breakdowns — they are
+                computed at submission and frozen into the attempt — so these
+                tables fill themselves in again for records already written.
+
             <div className="flex flex-col gap-3">
               <h3 className="text-ink-900 text-base font-semibold">
                 {ATTEMPTS.results.domainsTitle}
@@ -542,6 +551,8 @@ export function AttemptDetail({ attempt }: { attempt: AdminAttemptDetail }) {
                 />
               </div>
             ) : null}
+
+            */}
           </div>
         ) : (
           // Not an error and not a zero: the numbers are computed at submission

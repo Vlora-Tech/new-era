@@ -53,6 +53,34 @@ const buttonVariants = cva(
          * change rather than a state change.
          */
         gradient: 'bg-gradient-brand text-white shadow-cta hover:shadow-glow active:translate-y-px',
+        /*
+         * Marketing only — the canvas's black pill.
+         *
+         * It is the header's "ابدأ الآن" and the resume control inside the
+         * drawn dashboard, and it exists because the bar already sits under a
+         * blue field: a blue button on blue weather is the one place the
+         * gradient pill stops reading as the primary action. Hover returns it
+         * to brand blue, so the colour code still ends at the brand.
+         *
+         * Like `gradient`, it does not belong on a signed-in surface.
+         */
+        ink: 'bg-ink-900 text-white shadow-xs hover:bg-brand-700 hover:shadow-card active:translate-y-px',
+        /*
+         * Inside a cover frame, and nowhere else.
+         *
+         * The product page's masthead is a cover plate, so the one control on
+         * it sits over navy: `primary` would be brand blue on blue, and `ink`
+         * would be black on near-black. White is the only ground with a
+         * contrast to spend there, and the ink is the field's own
+         * `cover-900` — 18.6:1 on white. Hover goes to `brand-100`, which is
+         * the canvas's own #dcedff to within a shade, so the control still
+         * resolves towards the brand rather than towards grey.
+         *
+         * The exemption is the frame, not the page: this variant is illegal on
+         * any surface that is not a cover.
+         */
+        cover:
+          'bg-white text-cover-900 shadow-card hover:bg-brand-100 active:translate-y-px active:shadow-xs',
       },
       /*
        * Radius is a separate axis from variant: the marketing pill and the app's
@@ -68,10 +96,20 @@ const buttonVariants = cva(
         sm: 'h-9 px-3 text-sm',
         md: 'h-11 px-4',
         lg: 'h-12 px-6 text-base',
-        // 52px. Reserved for the two places a control is the primary object in
-        // its own column rather than one control among several: the homepage
-        // hero and the closing band. Not a general-purpose "bigger button".
+        // 52px. Reserved for the places a control is the primary object in its
+        // own column rather than one control among several — today the closing
+        // band. Not a general-purpose "bigger button".
         xl: 'h-[3.25rem] px-8 text-base',
+        /*
+         * The homepage hero's pill, and nowhere else on the site.
+         *
+         * It is deliberately outside the height scale: the canvas sets it at
+         * 24px/76px padding around 22px type, which lands near 76px tall, and
+         * it is the only control on the site sized as a piece of the
+         * composition rather than as a control. `h-auto` rather than a fixed
+         * height so it grows with the type if the family is ever changed.
+         */
+        hero: 'h-auto px-10 py-5 text-lg font-bold sm:px-[76px] sm:py-6 sm:text-[22px]',
         icon: 'size-11',
       },
     },

@@ -14,25 +14,26 @@ product; this document only describes how the admin surface spends them.
 
 ## 1. What it is
 
-Eleven sections behind one shell, all server-rendered, all reading live rows.
+Twelve sections behind one shell, all server-rendered, all reading live rows.
 There is no analytics layer, no chart and no derived metric anywhere in it — the
 area is a **tool for operating the platform**, not a dashboard for looking at it.
 
-| #   | Section            | Route                 | Purpose                                                  |
-| --- | ------------------ | --------------------- | -------------------------------------------------------- |
-| 1   | نظرة عامة          | `/admin`              | State of the platform, and what is waiting on somebody   |
-| 2   | المنتجات           | `/admin/products`     | What is for sale: price, type, publication               |
-| 3   | الدورات            | `/admin/courses`      | Course content: modules, lessons, videos, lesson quizzes |
-| 4   | بنك الأسئلة        | `/admin/questions`    | Question authoring, review workflow, versions            |
-| 5   | محاكيات الاختبار   | `/admin/simulators`   | Exam versions, sections, timing, blueprint rules         |
-| 6   | الطلاب             | `/admin/students`     | Student accounts — read, block, reactivate               |
-| 7   | الطلبات والمدفوعات | `/admin/orders`       | Orders, payment attempts, refunds                        |
-| 8   | الصلاحيات والوصول  | `/admin/entitlements` | Granting and revoking product access                     |
-| 9   | المحاولات والنتائج | `/admin/attempts`     | Exam attempts and their training results                 |
-| 10  | الإعدادات          | `/admin/settings`     | Contact details, legal document versions                 |
-| 11  | سجل النشاط         | `/admin/audit-log`    | Append-only trail of every admin action                  |
+| #   | Section            | Route                     | Purpose                                                   |
+| --- | ------------------ | ------------------------- | --------------------------------------------------------- |
+| 1   | نظرة عامة          | `/admin`                  | State of the platform, and what is waiting on somebody    |
+| 2   | المنتجات           | `/admin/products`         | What is for sale: price, type, publication                |
+| 3   | الدورات            | `/admin/courses`          | Course content: modules, lessons, videos, lesson quizzes  |
+| 4   | بنك الأسئلة        | `/admin/questions`        | Question authoring, review workflow, versions             |
+| 5   | محاكيات الاختبار   | `/admin/simulators`       | Exam versions, sections, timing, blueprint rules          |
+| 6   | الطلاب             | `/admin/students`         | Student accounts — read, block, reactivate                |
+| 7   | الطلبات والمدفوعات | `/admin/orders`           | Orders, payment attempts, refunds                         |
+| 8   | الصلاحيات والوصول  | `/admin/entitlements`     | Granting and revoking product access                      |
+| 9   | المحاولات والنتائج | `/admin/attempts`         | Exam attempts and their training results                  |
+| 10  | رسائل التواصل      | `/admin/contact-messages` | Read-only messages submitted from the public contact page |
+| 11  | الإعدادات          | `/admin/settings`         | Contact details, legal document versions                  |
+| 12  | سجل النشاط         | `/admin/audit-log`        | Append-only trail of every admin action                   |
 
-Sections 2–5 build the catalogue; 6–9 operate it; 10–11 govern it. The rail is
+Sections 2–5 build the catalogue; 6–10 operate it; 11–12 govern it. The rail is
 ordered in that sequence and the order is meaningful — it runs from "what we
 sell" through "who bought it" to "what we changed".
 
@@ -65,12 +66,16 @@ mirrored by hand.
                         canvas: #f6f9fc
 ```
 
-**The rail** (`src/components/layout/admin-shell.tsx`). 264px, white, sticky
-full-height, hairline on its inline end. The header carries the compact wordmark
+**The rail** (`src/components/layout/admin-shell.tsx`). 272px, white, sticky
+full-height, hairline on its inline end. The eleven items sit in three labelled
+groups — الكتالوج / التشغيل / الحكم — each a `<section aria-label>`, so the
+build → operate → govern order is stated rather than merely implied. The header carries the compact wordmark
 plus a `لوحة التحكم` chip in `brand-100`/`brand-700` — a chip and not a second
 line of muted text, so the tool reads as separate from the brand rather than as a
-continuation of the wordmark. Eleven items, one icon family at one size, 44px
-minimum row height.
+continuation of the wordmark. One icon family at one size, 44px minimum row
+height. An item's icon takes the brand hue only while active; at rest it stays
+`ink-600`, so the rail reads as one quiet index rather than eleven coloured
+lines.
 
 The active item is carried by **four signals, never colour alone**:
 `aria-current`, `font-semibold`, a `brand-100` ground, and a 3px `brand-700` bar
@@ -183,9 +188,11 @@ you which components it uses and where its states come from.
 
 Three independently-degrading panels, in decreasing order of urgency.
 
-**1. أعداد حالية** — eight `CountTile`s in a `1 → sm:2 → xl:4` grid. Each tile is
-a soft-ground panel with a hairline, a 13px label, a `size-8` filled icon chip
-carrying a white glyph, and a 30px display figure. The icon is the same mark the
+**1. أعداد حالية** — eight `CountTile`s in an `auto-fill` grid against a 232px
+floor, so the column count follows the width available rather than three
+hand-picked breakpoints. Each tile is a soft-ground panel with a hairline; the
+filled icon chip and the 13px label share one row as a single caption, with the
+30px display figure beneath them. The icon is the same mark the
 rail gives that section, which makes it wayfinding rather than ornament.
 
 Read in **one Prisma transaction**, so the eight numbers describe a single
@@ -204,6 +211,11 @@ queue. Rows with a zero count are filtered out; an empty queue renders
 **3. آخر النشاط** — six rows from the audit reader, using that screen's own
 default window. A glimpse of `/admin/audit-log`, not a second implementation of
 it.
+
+Panels 2 and 3 sit side by side in an `auto-fit` grid against a 340px floor,
+collapsing to one column on a narrow viewport without a breakpoint. Stacked
+full-width they pushed the trail below the fold on every laptop and gave both a
+measure far wider than their content.
 
 Each panel try/catches on its own: a failed audit read must not take the work
 queue down with it, because the three answer different questions.
@@ -283,6 +295,16 @@ Four decisions worth naming, each a place the obvious implementation is wrong:
 4. **One confirmation slot for the whole screen**, which takes focus and scrolls
    itself into view when it opens. Two open confirmations describing destructive
    actions on different targets is how the wrong one gets confirmed.
+
+Module and lesson authoring use **contextual editor dialogs**, not panels appended
+after the course tree. The trigger stays visually anchored to the unit being
+worked on, the outline does not jump, and focus returns to that trigger when the
+editor closes. A module title uses the compact dialog; a lesson uses the wider,
+internally scrolling authoring dialog. On a phone the same surface becomes a
+near-full-height bottom sheet. Clicking the backdrop does not discard a
+half-written lesson: dismissal remains explicit through Escape, the close button
+or إلغاء. Video registration may open as a nested dialog from the lesson field;
+Radix owns both focus traps and restores focus in the correct order.
 
 Within a builder table, dense rows follow three further rules, learned from the
 lesson table that once stood 300px per row:

@@ -521,7 +521,9 @@ export function CoveragePanel({
     <Card className="flex flex-col gap-4 p-5 sm:p-6">
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="text-ink-900 text-lg font-semibold">{coverage.title}</h2>
+          <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+            {coverage.title}
+          </h2>
           <p className="text-ink-700 max-w-prose text-sm">{coverage.description}</p>
         </div>
         <Button
@@ -557,6 +559,45 @@ export function CoveragePanel({
               {report.ok ? coverage.okBody : coverage.shortageBody}
             </span>
           </Notice>
+
+          {/* The version's arithmetic, which is now the whole check: every
+              section draws from one bank, so what decides the answer is the
+              total against what is published. */}
+          <dl className="text-ink-700 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <div className="flex gap-2">
+              <dt>{coverage.requiredLabel}</dt>
+              <dd className="text-ink-900 font-medium tabular-nums">
+                {formatNumber(report.totalRequired)}
+              </dd>
+            </div>
+            <div className="flex gap-2">
+              <dt>{coverage.bankSizeLabel}</dt>
+              <dd className="text-ink-900 font-medium tabular-nums">
+                {formatNumber(report.bankSize)}
+              </dd>
+            </div>
+            {report.shortfall > 0 ? (
+              <div className="flex gap-2">
+                <dt>{coverage.shortfallLabel}</dt>
+                <dd className="text-error font-medium tabular-nums">
+                  {formatNumber(report.shortfall)}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+
+          <ul className="text-ink-700 flex list-none flex-col gap-1 text-sm">
+            {report.sections.map((section) => (
+              <li key={section.sectionId} className="flex flex-wrap gap-x-4">
+                <span className="text-ink-900 font-medium">{section.title}</span>
+                <span>{`${coverage.sectionDrawLabel}: ${formatNumber(section.questionCount)}`}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Restore with the blueprint rule editor above: the per-rule
+              required/available/shortfall lines, and the allocation refusal that
+              belongs to a section whose percentages do not resolve.
 
           {report.sections.map((section) => (
             <div key={section.sectionId} className="flex flex-col gap-2">
@@ -595,6 +636,8 @@ export function CoveragePanel({
               </ul>
             </div>
           ))}
+
+          */}
 
           <p className="text-ink-600 text-xs">
             {`${COPY.adminCommon.table.updatedAt}: ${formatDateTime(report.checkedAt)}`}

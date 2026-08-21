@@ -2,7 +2,7 @@ import { COPY } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
 import { IconAutosave, IconForward, IconInfo, IconSelected, IconTimer } from '../icons';
-import { BrowserChrome } from '../parts';
+import { BrowserChrome, Chip, OptionRow } from '../parts';
 
 /**
  * Drawings of the exam workspace.
@@ -23,38 +23,6 @@ import { BrowserChrome } from '../parts';
  */
 const MOCK = COPY.landing.mock;
 
-function OptionRow({
-  letter,
-  label,
-  selected,
-}: {
-  letter: string;
-  label: string;
-  selected: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        'rounded-control flex items-center gap-3 border px-3.5 py-2.5 text-[13.5px]',
-        selected
-          ? 'border-brand-500 bg-brand-50 text-ink-900 font-semibold'
-          : 'border-line-200/70 bg-surface text-ink-700',
-      )}
-    >
-      <span
-        className={cn(
-          'flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold',
-          selected ? 'bg-brand-700 text-white' : 'bg-surface-muted text-ink-600',
-        )}
-      >
-        {letter}
-      </span>
-      <span className="flex-1">{label}</span>
-      {selected ? <IconSelected className="text-brand-700 size-4 shrink-0" /> : null}
-    </div>
-  );
-}
-
 /** The header strip every exam drawing shares: section name, clock, position. */
 function ExamHeader({
   section,
@@ -67,14 +35,12 @@ function ExamHeader({
 }) {
   return (
     <div className="border-line-200/60 flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
-      <span className="bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-[12.5px] font-semibold">
-        {section}
-      </span>
+      <Chip>{section}</Chip>
       <span className="text-ink-700 flex items-center gap-1.5 text-[13px] font-semibold">
         <IconTimer className="size-4" />
         <span className="tabular-nums">{clock}</span>
       </span>
-      <span className="text-ink-600 text-[12.5px]">{position}</span>
+      <span className="text-ink-500 text-[12.5px]">{position}</span>
     </div>
   );
 }
@@ -83,7 +49,7 @@ function ExamHeader({
 function ExamFooter({ savedLabel }: { savedLabel: string }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
-      <span className="text-accent-green flex items-center gap-1.5 text-[12.5px] font-medium">
+      <span className="text-success flex items-center gap-1.5 text-[12.5px] font-medium">
         <IconAutosave className="size-4" />
         {savedLabel}
       </span>
@@ -118,6 +84,7 @@ export function ExamQuestionMockup() {
               letter={MOCK.optionLetters[index]}
               label={option}
               selected={index === 1}
+              icon={IconSelected}
             />
           ))}
         </div>
@@ -140,7 +107,7 @@ export function ExamQuestionMockup() {
 export function SimulatorScreenMockup() {
   return (
     <div className="rounded-card border-line-200/70 bg-surface overflow-hidden border">
-      <BrowserChrome />
+      <BrowserChrome title={MOCK.demoWindowTitle} />
 
       <ExamHeader
         section={MOCK.verbalSection}
@@ -162,12 +129,13 @@ export function SimulatorScreenMockup() {
                 letter={MOCK.optionLetters[index]}
                 label={option}
                 selected={index === 1}
+                icon={IconSelected}
               />
             ))}
           </div>
 
           <div className="border-line-200/60 mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3.5">
-            <span className="text-accent-green flex items-center gap-1.5 text-[12.5px] font-medium">
+            <span className="text-success flex items-center gap-1.5 text-[12.5px] font-medium">
               <IconAutosave className="size-4" />
               {MOCK.answerSavedAuto}
             </span>
@@ -192,9 +160,9 @@ export function SimulatorScreenMockup() {
                 key={index}
                 className={cn(
                   'rounded-[6px] py-1 text-center text-[11px] font-medium tabular-nums',
-                  index < 17 && 'bg-brand-600 text-white',
+                  index < 17 && 'bg-brand-700 text-white',
                   index === 17 && 'bg-brand-100 text-brand-700 ring-brand-500 ring-2',
-                  index > 17 && 'bg-surface text-ink-600 border-line-200 border',
+                  index > 17 && 'bg-surface text-ink-500 border-line-200 border',
                 )}
               >
                 {index + 1}
@@ -203,7 +171,7 @@ export function SimulatorScreenMockup() {
           </div>
 
           <p className="text-ink-600 mt-3 flex items-center gap-1.5 text-[11.5px]">
-            <span className="bg-brand-600 size-2.5 shrink-0 rounded-[3px]" />
+            <span className="bg-brand-700 size-2.5 shrink-0 rounded-[3px]" />
             {MOCK.answeredLegend}
           </p>
 

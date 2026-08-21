@@ -82,8 +82,14 @@ export function DetailPanel({
     <Card className={cn('flex flex-col gap-4 p-5 sm:p-6', className)}>
       {title || description ? (
         <div className="flex flex-col gap-1">
-          {title ? <h2 className="text-ink-900 text-lg font-semibold">{title}</h2> : null}
-          {description ? <p className="text-ink-700 max-w-prose text-sm">{description}</p> : null}
+          {title ? (
+            <h2 className="text-ink-900 font-display text-[20px] leading-[1.5] font-bold">
+              {title}
+            </h2>
+          ) : null}
+          {description ? (
+            <p className="text-ink-700 max-w-prose text-sm leading-[1.75]">{description}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -99,7 +105,9 @@ export function DetailPanel({
                 item.span === 'full' && 'sm:col-span-full',
               )}
             >
-              <dt className="text-ink-600 text-xs font-medium">{item.label}</dt>
+              <dt className="text-ink-600 text-[12.5px] leading-[1.65] font-semibold">
+                {item.label}
+              </dt>
               {/*
                 `min-w-0` and `break-words`: a uuid or a long address is one
                 unbreakable token, and without them it pushes its grid column
@@ -115,7 +123,7 @@ export function DetailPanel({
                 the Arabic around it — while the block stays in the page's
                 direction and stays aligned under its label.
               */}
-              <dd className="text-ink-900 min-w-0 text-start text-sm font-medium break-words">
+              <dd className="text-ink-900 min-w-0 text-start text-[14.5px] leading-[1.7] font-medium break-words">
                 {item.dir === 'ltr' ? (
                   <span dir="ltr">{item.value ?? COPY.common.notAvailable}</span>
                 ) : (

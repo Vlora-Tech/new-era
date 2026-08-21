@@ -24,8 +24,19 @@ import type { QuestionListQuery } from '@/validators/admin-question';
  *
  * Filtering and paging happen in PostgreSQL, not here. 264 rows today; the query
  * has to stay the same shape at ten thousand.
+ *
+ * The skill, difficulty and track filters and columns are commented out with the
+ * classification editor in `question-form.tsx` — see the note at the head of that
+ * file. What is left is what identifies a question to the person looking for it:
+ * its text, its review state, its version, who wrote it, when it last changed.
+ *
+ * The query string is deliberately left alone. `questionListQuerySchema` still
+ * accepts `?domain=…`, the service still filters on it, and a bookmarked or
+ * shared URL from before this change still resolves — the controls are gone, not
+ * the capability.
  */
 
+/* Restore with the classification section in `question-form.tsx`.
 const DOMAINS = Object.keys(COPY.adminQuestions.domainLabels) as Array<
   keyof typeof COPY.adminQuestions.domainLabels
 >;
@@ -35,6 +46,7 @@ const DIFFICULTIES = Object.keys(COPY.adminQuestions.difficultyLabels) as Array<
 const TRACKS = Object.keys(COPY.adminQuestions.trackLabels) as Array<
   keyof typeof COPY.adminQuestions.trackLabels
 >;
+*/
 const WORKFLOWS = Object.keys(COPY.adminQuestions.workflowLabels) as Array<
   keyof typeof COPY.adminQuestions.workflowLabels
 >;
@@ -77,6 +89,8 @@ function FilterPanel({ query }: { query: QuestionListQuery }) {
             />
           </Field>
 
+          {/* Restore with the classification section in `question-form.tsx`.
+
           <Field>
             <Label htmlFor="filter-domain">{COPY.adminQuestions.filters.domain}</Label>
             <Select id="filter-domain" name="domain" defaultValue={query.domain ?? ''}>
@@ -112,6 +126,8 @@ function FilterPanel({ query }: { query: QuestionListQuery }) {
               ))}
             </Select>
           </Field>
+
+          */}
 
           <Field>
             <Label htmlFor="filter-workflow">{COPY.adminQuestions.filters.workflow}</Label>
@@ -211,6 +227,7 @@ const COLUMNS: readonly DataTableColumn<QuestionListItem>[] = [
       </Link>
     ),
   },
+  /* Restore with the classification section in `question-form.tsx`.
   {
     key: 'domain',
     header: COPY.adminQuestions.columns.domain,
@@ -226,6 +243,7 @@ const COLUMNS: readonly DataTableColumn<QuestionListItem>[] = [
     header: COPY.adminQuestions.columns.track,
     cell: (row) => COPY.adminQuestions.trackLabels[row.track],
   },
+  */
   {
     key: 'workflow',
     header: COPY.adminQuestions.columns.workflow,

@@ -21,7 +21,7 @@ import {
   Select,
   Textarea,
 } from '@/components/ui/field';
-import { Card, Notice } from '@/components/ui/surface';
+import { Notice } from '@/components/ui/surface';
 import { COPY } from '@/lib/copy';
 import { formatDurationWords, formatPercent } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -293,23 +293,19 @@ export function LessonForm({
 
   if (loadFailed) {
     return (
-      <Card className="flex flex-col gap-4 p-5 sm:p-6">
+      <div className="flex flex-col gap-4">
         <p className="text-ink-900 font-medium">{COPY.adminCourses.errors.lessonNotFound}</p>
         <div>
           <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
             {COPY.adminCommon.actions.cancel}
           </Button>
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="flex flex-col gap-5 p-5 sm:p-6">
-      <h3 className="text-ink-900 text-base font-semibold">
-        {isEdit ? COPY.adminCourses.lessons.editTitle : COPY.adminCourses.lessons.createTitle}
-      </h3>
-
+    <div className="flex flex-col gap-5">
       {loading ? (
         <p className="text-ink-700 text-sm">{COPY.common.loading}</p>
       ) : (
@@ -600,6 +596,6 @@ export function LessonForm({
           </Dialog.Portal>
         </Dialog.Root>
       ) : null}
-    </Card>
+    </div>
   );
 }

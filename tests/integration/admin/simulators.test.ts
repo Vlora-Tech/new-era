@@ -47,7 +47,10 @@ vi.mock('@/lib/auth/guards', async (importOriginal) => {
   };
 });
 
+import { COPY } from '@/lib/copy';
 import { prisma } from '@/lib/db';
+
+import { releaseFixtureQuestions } from '../question-cleanup';
 
 const ORIGIN = 'http://localhost:3000';
 
@@ -127,22 +130,69 @@ async function createPublishedQuestion(input: {
   subskill: string;
   track?: 'SCIENTIFIC' | 'THEORETICAL' | 'BOTH';
 }) {
-  const question = await prisma.question.create({
-    data: {
-      stem: { blocks: [{ type: 'paragraph', children: [{ type: 'text', text: 'نص سؤال' }] }] },
-      domain: input.domain,
-      difficulty: input.difficulty,
-      subskill: input.subskill,
-      track: input.track ?? 'BOTH',
-      workflow: 'PUBLISHED',
-      currentVersion: 1,
-      authorOrLicensor: 'نيو إيرا',
-      rightsDeclaration: 'ORIGINAL',
-    },
-    select: { id: true },
+  const stem = { blocks: [{ type: 'paragraph', children: [{ type: 'text', text: 'نص سؤال' }] }] };
+
+  // One transaction, because a blueprint section draws from the whole bank: a
+  // question committed as `PUBLISHED` before its snapshot exists is a question
+  // another worker can draw and then fail to deliver.
+  const question = await prisma.$transaction(async (tx) => {
+    const created = await tx.question.create({
+      data: {
+        stem,
+        domain: input.domain,
+        difficulty: input.difficulty,
+        subskill: input.subskill,
+        track: input.track ?? 'BOTH',
+        workflow: 'PUBLISHED',
+        currentVersion: 1,
+        authorOrLicensor: 'نيو إيرا',
+        rightsDeclaration: 'ORIGINAL',
+        options: {
+          create: [
+            { content: stem, position: 1, isCorrect: true },
+            { content: stem, position: 2, isCorrect: false },
+          ],
+        },
+      },
+      select: { id: true, options: { orderBy: { position: 'asc' }, select: { id: true } } },
+    });
+
+    // The frozen snapshot, which `currentVersion: 1` above is a promise that one
+    // exists. It used to be skipped here: nothing in this file delivers an
+    // attempt, and a blueprint rule scoped to this fixture's subskill was the
+    // only thing that could draw these rows. A blueprint section now draws from
+    // the whole bank, so a question published without its snapshot is a landmine
+    // for every other suite in the run — it is selected, then fails
+    // `prepareAttemptQuestions` with a `SnapshotIntegrityError`.
+    await tx.questionVersion.create({
+      data: {
+        questionId: created.id,
+        version: 1,
+        snapshot: {
+          stem,
+          options: created.options.map((option, index) => ({
+            key: option.id,
+            content: stem,
+            position: index + 1,
+          })),
+          correctOptionKey: created.options[0]!.id,
+          explanation: null,
+          hint: null,
+          classification: {
+            domain: input.domain,
+            subskill: input.subskill,
+            difficulty: input.difficulty,
+            track: input.track ?? 'BOTH',
+          },
+        },
+      },
+    });
+
+    return created;
   });
+
   createdQuestionIds.push(question.id);
-  return question;
+  return { id: question.id };
 }
 
 // ── Route helpers ────────────────────────────────────────────────────────
@@ -408,7 +458,7 @@ afterAll(async () => {
   await prisma.auditLog.deleteMany({ where: { actorId: { in: createdUserIds } } });
   await prisma.examSimulator.deleteMany({ where: { id: { in: simulatorIds } } });
   await prisma.product.deleteMany({ where: { id: { in: createdProductIds } } });
-  await prisma.question.deleteMany({ where: { id: { in: createdQuestionIds } } });
+  await releaseFixtureQuestions(createdQuestionIds);
   await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
 });
 
@@ -669,18 +719,40 @@ describe('POST /api/admin/exam-versions/[versionId]/status', () => {
    * perfect and impossible against the bank. Without this check the refusal
    * arrives when a student presses "ابدأ".
    */
-  it('refuses to publish a blueprint the bank cannot satisfy, naming the shortfall', async () => {
+  it('refuses to publish a version the bank cannot satisfy, naming the shortfall', async () => {
     await signInAs('ADMIN');
-    // Twelve hard geometry questions asked for, three published.
-    const { versionId } = await buildPublishableVersion({ bankSize: 3, required: 12 });
+
+    // A section draws from the whole bank, so the demand has to exceed the whole
+    // bank — this file's fixtures, the other workers', and anything left over.
+    // `questionCountSchema` caps a section at 500, so a test database holding
+    // 500 eligible questions cannot express a shortage at all; that is a stale
+    // database rather than a passing test, and it says so.
+    const eligible = await prisma.question.count({
+      where: { currentVersion: { gt: 0 }, workflow: { not: 'RETIRED' } },
+    });
+    // Ask for the largest section the schema allows rather than "one more than
+    // the bank": other workers publish questions while this runs, so the widest
+    // possible margin is the only stable one.
+    const required = 500;
+    if (eligible >= required) {
+      throw new Error(
+        `The test bank holds ${eligible} eligible questions and a section caps at ${required}, ` +
+          'so no version can out-ask it. Run `npm run db:reset-test`.',
+      );
+    }
+
+    const { versionId } = await buildPublishableVersion({ bankSize: 1, required });
 
     const { response, payload } = await versionAction(versionId, 'publish');
 
     expect(response.status).toBe(409);
     expect(payload.error?.code).toBe('question_shortage');
-    // The message names the rule and the numbers, not just "تعذّر النشر".
-    expect(payload.error?.message).toContain('الهندسة');
-    expect(payload.error?.message).toContain('صعب');
+    // The numbers, not just "تعذّر النشر": what was asked for, what the bank
+    // holds, and the difference.
+    expect(payload.error?.message).toContain(COPY.adminSimulators.blueprint.coverage.bankSizeLabel);
+    expect(payload.error?.message).toContain(
+      COPY.adminSimulators.blueprint.coverage.shortfallLabel,
+    );
 
     expect(
       (

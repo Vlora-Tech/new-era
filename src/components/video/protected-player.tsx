@@ -213,7 +213,7 @@ export function ProtectedPlayer({ lessonId, title }: { lessonId: string; title: 
 
   if (state.kind === 'loading') {
     return (
-      <div className="bg-surface-muted rounded-panel flex aspect-video w-full items-center justify-center">
+      <div className="bg-surface-muted rounded-card flex aspect-video w-full items-center justify-center">
         <p className="text-ink-700 text-sm">{COPY.common.loading}</p>
       </div>
     );
@@ -221,7 +221,7 @@ export function ProtectedPlayer({ lessonId, title }: { lessonId: string; title: 
 
   if (state.kind === 'denied') {
     return (
-      <div className="border-line-200 bg-surface rounded-panel flex aspect-video w-full flex-col items-center justify-center gap-3 border">
+      <div className="border-line-200 bg-surface rounded-card flex aspect-video w-full flex-col items-center justify-center gap-3 border">
         <Lock className="text-ink-600 size-7" aria-hidden="true" />
         <p className="text-ink-900 font-medium">لا تملك صلاحية مشاهدة هذا الدرس.</p>
         <Button asChild variant="secondary" size="sm">
@@ -235,7 +235,7 @@ export function ProtectedPlayer({ lessonId, title }: { lessonId: string; title: 
     return (
       <div
         role="alert"
-        className="border-error/30 bg-error-soft rounded-panel flex aspect-video w-full flex-col items-center justify-center gap-3 border"
+        className="border-error/30 bg-error-soft rounded-card flex aspect-video w-full flex-col items-center justify-center gap-3 border"
       >
         <AlertTriangle className="text-error size-7" aria-hidden="true" />
         <p className="text-ink-900 font-medium">{state.message}</p>
@@ -245,7 +245,7 @@ export function ProtectedPlayer({ lessonId, title }: { lessonId: string; title: 
 
   return (
     <figure className="flex flex-col gap-3">
-      <div className="border-line-500 rounded-panel relative aspect-video w-full overflow-hidden border bg-black">
+      <div className="rounded-card shadow-card-lg relative aspect-video w-full overflow-hidden bg-black">
         <iframe
           ref={iframeRef}
           src={state.grant.embedUrl}

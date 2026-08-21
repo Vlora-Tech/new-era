@@ -1,20 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { Button } from '@/components/ui/button';
-import {
-  Badge,
-  Card,
-  Container,
-  ErrorState,
-  Notice,
-  RuledHead,
-  Subhead,
-} from '@/components/ui/surface';
+import { PurchasePanel } from '@/components/marketing/purchase-panel';
+import { Badge, Container, ErrorState, Notice, RuledHead, Subhead } from '@/components/ui/surface';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { COPY } from '@/lib/copy';
-import { formatDate, formatDurationWords, formatHalalas, formatNumber } from '@/lib/format';
+import { formatDate, formatDurationWords, formatNumber } from '@/lib/format';
 import { getSimulatorDetail } from '@/services/catalog/product-detail';
 
 export const dynamic = 'force-dynamic';
@@ -184,31 +175,18 @@ export default async function SimulatorDetailPage({ params }: PageProps) {
           </Notice>
         </div>
 
+        {/*
+         * The side panel. Which panel — buy, start, or finish an unpaid order —
+         * is decided from the viewer's entitlement and orders on the server; see
+         * `PurchasePanel`.
+         */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          {/* The one hero-weight shadow on the page: the panel being acted on. */}
-          <Card className="shadow-card-lg p-6">
-            {/* The price is a stat numeral: display face, 700, tabular. */}
-            <p className="text-ink-900 font-display text-[30px] leading-none font-bold tabular-nums">
-              {formatHalalas(simulator.priceHalalas)}
-            </p>
-            <p className="text-ink-700 mt-3 text-sm leading-[1.8]">
-              شراء لمرة واحدة. لا اشتراك ولا تجديد تلقائي.
-            </p>
-
-            {simulator.hasAccess ? (
-              <Button asChild size="lg" className="mt-6 w-full">
-                <Link href="/dashboard/simulators">ابدأ المحاكاة</Link>
-              </Button>
-            ) : (
-              <Button asChild size="lg" className="mt-6 w-full">
-                <Link href={`/checkout/start?product=${simulator.slug}`}>احصل على المحاكي</Link>
-              </Button>
-            )}
-
-            <p className="text-ink-700 border-line-200 mt-6 border-t pt-5 text-sm leading-[1.85]">
-              النتائج مؤشرات أداء تدريبية تساعدك على تحديد ما يحتاج إلى تقوية، ولا تمثل درجة رسمية.
-            </p>
-          </Card>
+          <PurchasePanel
+            kind="simulator"
+            purchase={simulator.purchase}
+            priceHalalas={simulator.priceHalalas}
+            slug={simulator.slug}
+          />
         </aside>
       </div>
     </Container>

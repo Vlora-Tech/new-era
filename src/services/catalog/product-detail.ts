@@ -1,7 +1,8 @@
 import 'server-only';
 
+import type { CoverImage } from '@/components/marketing/course-cover';
 import { prisma } from '@/lib/db';
-import { hasActiveEntitlement } from '@/services/access/entitlement';
+import { mediaAssetUrl } from '@/services/media/media.service';
 
 /**
  * Public product detail.
@@ -11,6 +12,71 @@ import { hasActiveEntitlement } from '@/services/access/entitlement';
  * duration has not been set — it is reported as unknown rather than counted as
  * zero, so the page never quietly understates what a student is buying.
  */
+
+/**
+ * Where the viewer stands with respect to buying this product.
+ *
+ * A boolean `hasAccess` was not enough, and the page it fed showed why: it kept
+ * the price, «شراء لمرة واحدة» and the purchase list in front of somebody who
+ * had already paid, and merely relabelled the button. That reads as an invitation
+ * to buy the same thing twice.
+ *
+ * Three states, because three different readers arrive at this page:
+ *
+ *  - `owned` — an ACTIVE entitlement. Nothing about price or purchase belongs on
+ *    their screen; they want the way in.
+ *  - `pending-order` — an order exists for this product and has not been paid.
+ *    Offering a second «اشترِ» control here is how a student ends up with two
+ *    orders, and possibly two payments, for one course. They are given their own
+ *    order back instead.
+ *  - `available` — anyone else, signed in or not. This is the only state that
+ *    sees the buy panel.
+ *
+ * A revoked or refunded entitlement is deliberately `available`: access was
+ * withdrawn, and buying again is a legitimate thing to want to do.
+ */
+export type PurchaseState =
+  | { kind: 'owned'; grantedAt: Date | null }
+  | { kind: 'pending-order'; orderId: string; createdAt: Date }
+  | { kind: 'available' };
+
+const AVAILABLE: PurchaseState = { kind: 'available' };
+
+/**
+ * Decide the viewer's purchase state in one place.
+ *
+ * The entitlement is read first and short-circuits: someone who owns the
+ * product does not care that an old unpaid order is still lying about, and an
+ * order left `PENDING_PAYMENT` after a successful reconciliation would otherwise
+ * shadow the access they actually have.
+ */
+async function resolvePurchaseState(
+  viewerId: string | null,
+  productId: string,
+): Promise<PurchaseState> {
+  if (!viewerId) return AVAILABLE;
+
+  const entitlement = await prisma.entitlement.findUnique({
+    where: { userId_productId: { userId: viewerId, productId } },
+    select: { status: true, grantedAt: true },
+  });
+  if (entitlement?.status === 'ACTIVE') {
+    return { kind: 'owned', grantedAt: entitlement.grantedAt };
+  }
+
+  // Only PENDING_PAYMENT. A FAILED order has nothing to resume — the honest
+  // next step there is a fresh attempt, which is what the buy panel offers.
+  const pending = await prisma.order.findFirst({
+    where: { userId: viewerId, productId, status: 'PENDING_PAYMENT' },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, createdAt: true },
+  });
+
+  return pending
+    ? { kind: 'pending-order', orderId: pending.id, createdAt: pending.createdAt }
+    : AVAILABLE;
+}
+
 export type CourseDetail = {
   productId: string;
   slug: string;
@@ -20,6 +86,14 @@ export type CourseDetail = {
   priceHalalas: number;
   category: string | null;
   level: string | null;
+  /**
+   * The cover the administrator attached, or null for the composed brand field.
+   *
+   * The catalogue card and this page draw the same object at two sizes, so a
+   * product that has a cover carries it through from the grid to the masthead
+   * instead of the page inventing a second treatment.
+   */
+  cover: CoverImage | null;
   lessonCount: number;
   /** Null when at least one published lesson has no recorded duration. */
   totalDurationSec: number | null;
@@ -34,7 +108,24 @@ export type CourseDetail = {
       hasVideo: boolean;
     }>;
   }>;
+  /** True exactly when `purchase.kind === 'owned'`; kept for the curriculum's lock. */
   hasAccess: boolean;
+  purchase: PurchaseState;
+  /**
+   * Where an owner should be sent, and how far they have got.
+   *
+   * Null for anyone who does not own the course, and for an owner of a course
+   * with no published lesson to open. `resumeLessonId` is the first lesson they
+   * have not completed, falling back to the first lesson once they have
+   * finished — a finished course still has to be re-openable.
+   */
+  ownerProgress: {
+    completedCount: number;
+    totalCount: number;
+    resumeLessonId: string | null;
+    /** False once every lesson is complete, so the panel can say «راجع» instead. */
+    hasUnfinished: boolean;
+  } | null;
 };
 
 export async function getCourseDetail(
@@ -50,6 +141,15 @@ export async function getCourseDetail(
       shortDescription: true,
       longDescription: true,
       priceHalalas: true,
+      /*
+       * The cover, and only what draws it. `visibility` is selected because
+       * `mediaAssetUrl` needs it to decide between the public address and the
+       * authorising route — the same four columns, and the same reason, as the
+       * catalogue's own query in `(public)/courses/page.tsx`.
+       */
+      coverAsset: {
+        select: { id: true, objectKey: true, visibility: true, width: true, height: true },
+      },
       course: {
         select: {
           category: true,
@@ -98,6 +198,32 @@ export async function getCourseDetail(
     ? allLessons.reduce((sum, lesson) => sum + (lesson.durationSec ?? 0), 0)
     : null;
 
+  const purchase = await resolvePurchaseState(viewerId, product.id);
+
+  // Progress is read only for an owner. The catalogue page is public and mostly
+  // seen by people who do not own the course; querying their (empty) progress on
+  // every view would be a join nobody reads.
+  let ownerProgress: CourseDetail['ownerProgress'] = null;
+  if (purchase.kind === 'owned' && viewerId) {
+    const completedRows = await prisma.lessonProgress.findMany({
+      where: {
+        userId: viewerId,
+        completed: true,
+        lessonId: { in: allLessons.map((lesson) => lesson.id) },
+      },
+      select: { lessonId: true },
+    });
+    const completed = new Set(completedRows.map((row) => row.lessonId));
+    const next = allLessons.find((lesson) => !completed.has(lesson.id)) ?? null;
+
+    ownerProgress = {
+      completedCount: completed.size,
+      totalCount: allLessons.length,
+      resumeLessonId: next?.id ?? allLessons[0]?.id ?? null,
+      hasUnfinished: next !== null,
+    };
+  }
+
   return {
     productId: product.id,
     slug: product.slug,
@@ -107,10 +233,19 @@ export async function getCourseDetail(
     priceHalalas: product.priceHalalas,
     category: product.course.category,
     level: product.course.level,
+    cover: product.coverAsset
+      ? {
+          url: mediaAssetUrl(product.coverAsset),
+          width: product.coverAsset.width,
+          height: product.coverAsset.height,
+        }
+      : null,
     lessonCount: allLessons.length,
     totalDurationSec,
     modules,
-    hasAccess: viewerId ? await hasActiveEntitlement(viewerId, product.id) : false,
+    hasAccess: purchase.kind === 'owned',
+    purchase,
+    ownerProgress,
   };
 }
 
@@ -137,7 +272,9 @@ export type SimulatorDetail = {
     calculatorEnabled: boolean;
     scratchpadEnabled: boolean;
   } | null;
+  /** True exactly when `purchase.kind === 'owned'`. */
   hasAccess: boolean;
+  purchase: PurchaseState;
 };
 
 export async function getSimulatorDetail(
@@ -181,6 +318,7 @@ export async function getSimulatorDetail(
   if (!product?.examSimulator) return null;
 
   const version = product.examSimulator.activeExamVersion;
+  const purchase = await resolvePurchaseState(viewerId, product.id);
 
   return {
     productId: product.id,
@@ -208,6 +346,7 @@ export async function getSimulatorDetail(
           scratchpadEnabled: version.sections[0]?.scratchpadEnabled ?? false,
         }
       : null,
-    hasAccess: viewerId ? await hasActiveEntitlement(viewerId, product.id) : false,
+    hasAccess: purchase.kind === 'owned',
+    purchase,
   };
 }

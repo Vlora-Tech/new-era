@@ -35,6 +35,22 @@ guide changes, an administrator publishes a new version.
 
 ## Blueprints
 
+> **Blueprint rules are stored and not applied.** At the client's request the
+> question bank stopped asking authors for a skill, a sub-skill, a difficulty or
+> a track, so a rule naming one of those would select nothing an author writes —
+> a teacher could fill the bank and watch the simulator ignore every question.
+> A blueprint section therefore means one thing today: **take this many questions
+> from the published bank**, drawn at random from a stored seed, with no question
+> repeated anywhere in the attempt. The simulator's own track no longer narrows
+> the draw either.
+>
+> The rules, their editor, their API and this arithmetic are all intact. What
+> changed is one branch in `attempt-selection.service.ts` and the coverage report
+> in `exam-version-admin.service.ts`; the commented-out blocks in both are the
+> restore path, and they come back with the classification editor described at
+> the head of `src/components/admin/question-form.tsx`. The rest of this section
+> describes what those rules mean when they are applied again.
+
 Domain shares come from the published percentages, per track:
 
 | Domain          | Scientific | Theoretical |
@@ -74,16 +90,19 @@ The creation transaction:
    administrator dry run is the one exception, and is flagged as such so it never
    pollutes analytics.)
 2. Store a random seed, so the selection can be reproduced later.
-3. Select per section from the blueprint, with **no question repeated anywhere in
-   the attempt**.
+3. Select per section — each section's `questionCount` drawn from the published
+   bank — with **no question repeated anywhere in the attempt**.
 4. Shuffle questions, and options too — except where a question declares
    `shuffleOptions: false`, because some option sets carry a deliberate order.
 5. Write an immutable snapshot of every question.
 6. Write the section rows as `PENDING`.
 
-**If any rule cannot be filled, the whole transaction aborts.** The student is
+**If a section cannot be filled, the whole transaction aborts.** The student is
 told the attempt could not be prepared and no time is consumed. Quietly serving a
-short section would corrupt the one thing the product exists to provide.
+short section would corrupt the one thing the product exists to provide. The
+publication check runs the same code first, so the shortfall — what the version
+needs against what the bank holds — is normally an administrator's problem
+rather than a student's.
 
 Creation is idempotent. A partial unique index permits one live full-simulation
 attempt per student per version, so a double-click or a duplicated tab loses the
@@ -153,9 +172,20 @@ both produce the same scored outcome.
 ## Results
 
 Scoring runs on the server, from the snapshot, for both submission and expiry.
-It reports correct, incorrect and unanswered totals, accuracy by domain and
-subskill, and time per section — enough for a student to see where to put their
-effort next.
+It computes correct, incorrect and unanswered totals, accuracy by domain and
+subskill, and time per section.
+
+**What the student is shown is narrower than what is computed.** At the client's
+request the two skill breakdowns are commented out of the result screen: an
+attempt review shows the four totals, the accuracy figure, time per section, and
+then every question with the answer given, the correct one, and the explanation.
+The same two tables are commented out of the administration attempt record. The
+figures are still computed and still frozen into `AttemptResult`, so uncommenting
+the blocks in `src/components/exam/exam-results.tsx` and
+`src/components/admin/attempt-detail.tsx` brings them back for attempts already
+in the database — see the note at the head of
+`src/components/admin/question-form.tsx`, which is where the classification was
+removed from authoring.
 
 Per-question timings are client-reported and server-clamped, and are described as
 indicative. They are the one number here that cannot be measured exactly, and the

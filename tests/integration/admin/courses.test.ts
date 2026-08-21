@@ -45,6 +45,8 @@ vi.mock('@/lib/auth/guards', async (importOriginal) => {
 
 import { prisma } from '@/lib/db';
 
+import { releaseFixtureQuestions } from '../question-cleanup';
+
 const ORIGIN = 'http://localhost:3000';
 
 const createdUserIds: string[] = [];
@@ -101,23 +103,63 @@ async function createCourse() {
   return { productId: product.id, courseId: product.course!.id };
 }
 
-/** A published bank question, so a lesson quiz has something legal to reference. */
+/**
+ * A published bank question, so a lesson quiz has something legal to reference.
+ *
+ * It carries options and a frozen snapshot even though nothing in this file
+ * delivers it: a blueprint exam section draws from the whole bank, so a question
+ * marked `PUBLISHED` with `currentVersion: 1` and nothing behind it is a row
+ * another suite can select and then fail to assemble an attempt from. Both
+ * writes are one transaction for the same reason — the gap between them is
+ * visible to every other worker.
+ */
 async function createPublishedQuestion() {
-  const question = await prisma.question.create({
-    data: {
-      stem: { blocks: [{ type: 'paragraph', children: [{ type: 'text', text: 'سؤال اختباري' }] }] },
-      track: 'BOTH',
-      domain: 'ARITHMETIC',
-      difficulty: 'EASY',
-      workflow: 'PUBLISHED',
-      currentVersion: 1,
-      authorOrLicensor: 'المنصة',
-      publishedAt: new Date(),
-    },
-    select: { id: true },
+  const stem = {
+    blocks: [{ type: 'paragraph', children: [{ type: 'text', text: 'سؤال اختباري' }] }],
+  };
+
+  return prisma.$transaction(async (tx) => {
+    const question = await tx.question.create({
+      data: {
+        stem,
+        track: 'BOTH',
+        domain: 'ARITHMETIC',
+        difficulty: 'EASY',
+        workflow: 'PUBLISHED',
+        currentVersion: 1,
+        authorOrLicensor: 'المنصة',
+        publishedAt: new Date(),
+        options: {
+          create: [
+            { content: stem, position: 1, isCorrect: true },
+            { content: stem, position: 2, isCorrect: false },
+          ],
+        },
+      },
+      select: { id: true, options: { orderBy: { position: 'asc' }, select: { id: true } } },
+    });
+
+    await tx.questionVersion.create({
+      data: {
+        questionId: question.id,
+        version: 1,
+        snapshot: {
+          stem,
+          options: question.options.map((option, index) => ({
+            key: option.id,
+            content: stem,
+            position: index + 1,
+          })),
+          correctOptionKey: question.options[0]!.id,
+          explanation: null,
+          hint: null,
+        },
+      },
+    });
+
+    createdQuestionIds.push(question.id);
+    return question.id;
   });
-  createdQuestionIds.push(question.id);
-  return question.id;
 }
 
 async function createDraftQuestion() {
@@ -279,7 +321,7 @@ afterAll(async () => {
   await prisma.course.deleteMany({ where: { productId: { in: createdProductIds } } });
   await prisma.product.deleteMany({ where: { id: { in: createdProductIds } } });
   await prisma.questionOption.deleteMany({ where: { questionId: { in: createdQuestionIds } } });
-  await prisma.question.deleteMany({ where: { id: { in: createdQuestionIds } } });
+  await releaseFixtureQuestions(createdQuestionIds);
   await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });
 });
 

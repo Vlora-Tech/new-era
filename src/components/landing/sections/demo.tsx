@@ -5,10 +5,9 @@ import { useState } from 'react';
 import { COPY } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 
-import { IconDemo, IconPlay } from '../icons';
+import { IconPlay } from '../icons';
 import { SimulatorScreenMockup } from '../mockups/exam';
-import { Eyebrow, revealDelay, SpecimenLabel } from '../parts';
-import { Container } from '@/components/ui/surface';
+import { MarketingContainer, SectionIntro, SpecimenLabel } from '../parts';
 
 /**
  * The simulator preview.
@@ -27,34 +26,24 @@ import { Container } from '@/components/ui/surface';
  * The screen behind the overlay is inert artwork — `aria-hidden`, no controls,
  * nothing to reach. Revealing it changes nothing for assistive technology,
  * which is why the button's own label carries the whole meaning.
+ *
+ * This section does not use `SectionShell`: it needs its own `relative` box for
+ * the overlay, and the shell's container would nest one inside another.
  */
 const DEMO = COPY.landing.demo;
-const MOCK = COPY.landing.mock;
 
 export function Demo() {
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <section id="demo" className="relative scroll-mt-20 py-20 sm:py-24 lg:scroll-mt-24 lg:py-32">
-      <Container>
-        <div className="text-center">
-          <div className="reveal">
-            <Eyebrow icon={IconDemo}>{DEMO.eyebrow}</Eyebrow>
-          </div>
-          <h2 className="text-ink-900 text-h2 reveal mt-6" style={revealDelay(60)}>
-            {DEMO.title}
-          </h2>
-          <p
-            className="text-ink-700 text-lead measure-ar-lg reveal mx-auto mt-5"
-            style={revealDelay(110)}
-          >
-            {DEMO.lead}
-          </p>
-        </div>
+    <section
+      id="demo"
+      className="relative scroll-mt-20 pt-20 sm:pt-24 lg:scroll-mt-24 lg:pt-[130px]"
+    >
+      <MarketingContainer>
+        <SectionIntro title={DEMO.title} lead={DEMO.lead} />
 
-        <div className="reveal mt-14" style={revealDelay(160)}>
-          <p className="text-ink-600 mb-3 text-center text-[13px]">{MOCK.demoWindowTitle}</p>
-
+        <div className="reveal mt-13">
           <div className="rounded-plate shadow-plate border-line-200 bg-surface relative overflow-hidden border">
             <div aria-hidden="true">
               <SimulatorScreenMockup />
@@ -76,7 +65,7 @@ export function Demo() {
                 type="button"
                 onClick={() => setRevealed(true)}
                 aria-expanded={revealed}
-                className="bg-surface text-ink-900 shadow-card-lg focus-visible:outline-brand-500 flex items-center gap-3 rounded-full py-3 ps-3 pe-6 text-[15px] font-semibold transition-transform duration-200 ease-out hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-100"
+                className="bg-surface text-ink-900 shadow-card-lg focus-visible:outline-brand-700 flex items-center gap-3 rounded-full py-3 ps-3 pe-6 text-[15px] font-semibold transition-transform duration-200 ease-out hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-100"
               >
                 <span className="bg-gradient-brand flex size-10 items-center justify-center rounded-full text-white">
                   <IconPlay className="ms-0.5 size-4.5" aria-hidden="true" />
@@ -88,7 +77,7 @@ export function Demo() {
 
           <SpecimenLabel className="mt-4" />
         </div>
-      </Container>
+      </MarketingContainer>
     </section>
   );
 }

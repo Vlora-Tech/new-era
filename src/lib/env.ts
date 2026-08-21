@@ -48,6 +48,22 @@ const schema = z
     STORAGE_PROVIDER: z.enum(['local', 's3']).default('local'),
     STORAGE_LOCAL_ROOT: z.string().default('.storage'),
 
+    /*
+     * S3, required only when it is the selected provider.
+     *
+     * There is deliberately no access-key setting. The client uses the default
+     * AWS provider chain, which resolves to the container's IAM role — a
+     * short-lived, rotated credential. Adding a key here would invite pasting a
+     * long-lived one into an environment variable, which is precisely what the
+     * role exists to avoid.
+     */
+    S3_BUCKET: z.string().min(1).optional(),
+    S3_REGION: z.string().min(1).optional(),
+    /* A CDN origin in front of the bucket, e.g. `https://cdn.example.com`. When
+       absent, public objects stream through the application's own route instead,
+       so S3 is usable before CloudFront exists. */
+    S3_PUBLIC_BASE_URL: z.url().optional(),
+
     INTERNAL_JOBS_SECRET: z.string().min(32).optional(),
     ENABLE_EMBEDDED_SCHEDULER: booleanish.default(false),
   })
@@ -111,6 +127,28 @@ const schema = z
         path: ['STORAGE_PROVIDER'],
         message: 'Local filesystem storage is not production-safe. Configure an approved provider.',
       });
+    }
+
+    /*
+     * Selecting S3 without telling it where is a misconfiguration that would
+     * otherwise surface as a failed upload long after deploy, so it is refused
+     * at startup in every environment rather than only in production.
+     */
+    if (env.STORAGE_PROVIDER === 's3') {
+      if (!env.S3_BUCKET) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['S3_BUCKET'],
+          message: 'S3_BUCKET is required when STORAGE_PROVIDER is "s3".',
+        });
+      }
+      if (!env.S3_REGION) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['S3_REGION'],
+          message: 'S3_REGION is required when STORAGE_PROVIDER is "s3".',
+        });
+      }
     }
 
     if (isProduction && !env.INTERNAL_JOBS_SECRET) {

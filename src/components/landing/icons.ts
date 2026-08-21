@@ -28,35 +28,26 @@
  */
 export {
   // ── Section eyebrows ──────────────────────────────────────────────────────
-  Zap as IconBadge, // bolt          — hero badge
-  LayoutGrid as IconFeatures, // grid_view     — §features
-  TrendingUp as IconMethod, // insights      — §method, §why feature card
-  BookOpen as IconCourses, // menu_book     — §courses, resume tile
-  Timer as IconTimer, // timer         — §simulators, every exam clock
-  Award as IconWhy, // workspace_premium — §why
-  CirclePlay as IconDemo, // play_circle   — §demo, lesson rows
-  ShoppingBag as IconProducts, // shopping_bag  — §products
+  Timer as IconTimer, // timer         — §simulators eyebrow, every exam clock
+  ShoppingBag as IconProducts, // shopping_bag  — kept for the catalogue routes
   Route as IconJourney, // route         — §journey
-  CircleQuestionMark as IconFaq, // help          — §faq
+  GraduationCap as IconLearn, // school        — §products eyebrow, dashboard tile
 
-  // ── Method and why ────────────────────────────────────────────────────────
-  GraduationCap as IconLearn, // school
-  SquarePen as IconPractice, // edit_note
-  ShieldCheck as IconRights, // verified_user — §why card, §rights seal
-  Languages as IconArabic, // translate
-  BookmarkCheck as IconSaved, // bookmark_added
+  // ── The method's three movements (§benefits) ──────────────────────────────
+  BookOpenText as IconFoundation, // auto_stories  — «ابدأ بالتأسيس»
+  CircleCheckBig as IconVerified, // task_alt      — «طبّق مباشرة», stat tile
+  Gauge as IconUnderPressure, // speed         — «اختبر نفسك تحت ضغط الوقت»
+
+  // ── Content and status ────────────────────────────────────────────────────
+  BookOpen as IconCourses, // menu_book     — §courses, resume tile
+  CirclePlay as IconDemo, // play_circle   — §demo, lesson rows
+  ClipboardCheck as IconAttempt, // assignment_turned_in — a finished attempt
   ChartColumn as IconResults, // bar_chart
-
-  // ── Checks and status ─────────────────────────────────────────────────────
+  TrendingUp as IconImprovement, // trending_up   — "better than last time"
   CircleCheck as IconCheck, // check_circle  — every checklist
   Check as IconTick, // check         — module list
-  CircleCheckBig as IconVerified, // task_alt      — rights status, stat tile
   CloudCheck as IconAutosave, // cloud_done    — autosave chips
   Lock as IconLocked, // lock
-  LockOpen as IconUnlocked, // lock_open
-  History as IconHistory, // history
-  MonitorSmartphone as IconDevices, // devices
-  Infinity as IconPermanent, // all_inclusive
 
   // ── Product chrome inside the mockups ─────────────────────────────────────
   Play as IconPlay, // play_arrow
@@ -74,8 +65,6 @@ export {
   // ── Float chips ───────────────────────────────────────────────────────────
   Speech as IconVerbal, // record_voice_over
   Calculator as IconQuantitative, // calculate
-  RotateCcw as IconAttempts, // replay
-  TrendingUp as IconImprovement, // trending_up
 
   // ── Footer ────────────────────────────────────────────────────────────────
   Mail as IconMail, // mail

@@ -4,7 +4,8 @@ import { ArrowRight, Check, ListChecks, Minus, X } from 'lucide-react';
 
 import { RichTextView } from '@/components/exam/question-content';
 import { Button } from '@/components/ui/button';
-import { ProgressBar, ProgressRing } from '@/components/ui/progress';
+// `ProgressBar` returns with the commented-out skill breakdowns below.
+import { ProgressRing } from '@/components/ui/progress';
 import { Badge, Card, Notice } from '@/components/ui/surface';
 import { ROUTES } from '@/lib/constants';
 import { COPY } from '@/lib/copy';
@@ -17,11 +18,22 @@ import { cn } from '@/lib/utils';
  *
  * Presented as description, never as assessment. There is no overall grade, no
  * band, no comparison with other students and no projection onto the official
- * test — the page reports counts, per-skill accuracy and how long each section
- * actually ran, and says plainly that this is what it is.
+ * test — the page reports counts, accuracy and how long each section actually
+ * ran, and says plainly that this is what it is.
  *
  * The `نتيجة تدريبية` label sits at the top, before any number, so a screenshot
  * of this page cannot circulate as though it were a score report.
+ *
+ * The per-skill and per-sub-skill breakdowns are commented out below, with the
+ * classification editor in `src/components/admin/question-form.tsx`. A student
+ * reviewing an attempt gets the four counts, the accuracy ring, the section
+ * times and — question by question — what they answered, what was correct, and
+ * why. Two tables of skill percentages on top of that were reading as a
+ * diagnostic the platform is careful never to claim to be.
+ *
+ * `AttemptResultSummary` still carries `domains` and `subskills`: they are
+ * computed at submission and frozen into the attempt, so uncommenting the two
+ * sections brings them back for attempts already sitting in the database.
  */
 export function ExamResults({
   simulatorTitle,
@@ -105,6 +117,14 @@ export function ExamResults({
         </ProgressRing>
       </Card>
 
+      {/* Restore with the classification section in `admin/question-form.tsx`.
+
+        Both bars draw a ratio that is already in the payload — nothing here
+        computes a figure — and the sub-skill bar is the thinner of the two
+        because a sub-skill is a detail of a skill. Their inline notes were
+        lifted up here rather than left below: a `*` followed by a `/` inside
+        this block would end it early, and half a section would render.
+
       {summary && summary.domains.length > 0 ? (
         <section className="flex flex-col gap-3">
           <h2 className="text-ink-900 text-h3">{COPY.exam.domainsTitle}</h2>
@@ -121,7 +141,6 @@ export function ExamResults({
                     {formatPercent(domain.accuracy)}
                   </span>
                 </div>
-                {/* The ratio is already in the payload; nothing new is computed. */}
                 <ProgressBar value={domain.accuracy * 100} />
               </li>
             ))}
@@ -145,13 +164,14 @@ export function ExamResults({
                     {formatPercent(subskill.accuracy)}
                   </span>
                 </div>
-                {/* Thinner than the domain bar: a subskill is a detail of one. */}
                 <ProgressBar value={subskill.accuracy * 100} className="h-1.5" />
               </li>
             ))}
           </ul>
         </section>
       ) : null}
+
+      */}
 
       {summary && summary.sections.length > 0 ? (
         <section className="flex flex-col gap-3">
@@ -283,7 +303,8 @@ export function ExamResults({
   );
 }
 
-/** Arabic names for the publicly described skill areas. */
+/* Restore with the skill breakdowns above.
+/** Arabic names for the publicly described skill areas. *
 const DOMAIN_LABELS: Record<string, string> = {
   VERBAL_ANALOGY: 'التناظر اللفظي',
   SENTENCE_COMPLETION: 'إكمال الجمل',
@@ -294,6 +315,7 @@ const DOMAIN_LABELS: Record<string, string> = {
   ALGEBRA: 'الجبر',
   DATA_ANALYSIS: 'تفسير البيانات',
 };
+*/
 
 /**
  * Grounds and glyphs for the four totals. Every tile still carries its Arabic

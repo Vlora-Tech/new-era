@@ -1,0 +1,47 @@
+# Keep the build context small and, more importantly, keep secrets and local
+# state out of the image entirely.
+
+# ── Secrets. Never in an image. ──
+.env
+.env.*
+!.env.example
+CREDENTIALS.local.md
+
+# ── Installed and generated ──
+node_modules
+.next
+out
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# ── Local runtime state ──
+# Uploads written by the development disk adapter. Ephemeral by nature and
+# exactly what STORAGE_PROVIDER=local is refused in production for.
+.storage
+
+# ── Version control and tooling ──
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+.claude
+
+# ── Tests and their output ──
+tests
+test-results
+playwright-report
+screenshots
+playwright.config.ts
+vitest.config.mts
+
+# ── Docs and local orchestration ──
+docs
+*.md
+!AGENTS.md
+docker
+docker-compose.yml
+
+# ── Design canvases. Multi-megabyte HTML bundles with no runtime role. ──
+*.html
+new-era-landing-page-to-be-replaced

@@ -5,18 +5,15 @@ import { COPY } from '@/lib/copy';
 import { env } from '@/lib/env';
 
 import { localStorageProvider } from './local-provider';
+import { s3StorageProvider } from './s3-provider';
 import type { StorageProvider } from './storage-provider';
 
 /**
  * Resolve the storage adapter for the current configuration.
  *
- * Only the local adapter exists. `s3` parses as a valid `STORAGE_PROVIDER`
- * because the environment schema anticipates it, but there is deliberately no
- * implementation behind it: the brief requires the owner to approve a provider
- * *and a region* first, since a bucket implies both a cost and a data-residency
- * decision the privacy review has not settled. Selecting it therefore refuses
- * with the Arabic sentence that says so, rather than failing somewhere deeper
- * with a message about a missing credential.
+ * Two adapters now exist: local disk for development, and S3 for production.
+ * `env()` will not parse an `s3` selection without a bucket and a region, so by
+ * the time this returns the S3 adapter its configuration is already known good.
  *
  * The production gate below is the second, independent refusal of local disk in
  * production — `env()` will not even parse that combination. It reads
@@ -24,10 +21,14 @@ import type { StorageProvider } from './storage-provider';
  * the same check twice through the same code path. Local disk on typical hosting
  * is ephemeral: uploads would appear to work and then vanish on the next deploy,
  * which is worse than refusing them.
+ *
+ * The refusal is kept rather than deleted along with the old `s3` stub: it is
+ * what turns "somebody shipped with the development default" into one honest
+ * Arabic sentence instead of uploads that silently evaporate.
  */
 export function getStorageProvider(): StorageProvider {
   if (env().STORAGE_PROVIDER === 's3') {
-    throw new HttpError(503, COPY.adminMedia.errors.storageUnavailable, 'storage_unavailable');
+    return s3StorageProvider;
   }
 
   if (process.env.NODE_ENV === 'production') {

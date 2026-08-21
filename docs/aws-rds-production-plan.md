@@ -12,14 +12,21 @@
 An AWS account now exists. That is a precondition, not an approval — nothing has
 been created.
 
-| Decision            | Answer                                          | Consequence                                                                                                                                                             |
-| ------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Application hosting | **Inside AWS** (ECS Fargate or App Runner)      | The app sits in the same VPC as the database. RDS stays private with no public accessibility, and no tunnel or peering is needed. This is the simplest correct posture. |
-| Region              | **Deferred**, pending the data-residency advice | Blocks costing and provisioning. See below.                                                                                                                             |
-| Availability        | **Single-AZ to start**, upgrade later           | Roughly halves the instance cost. Accepts downtime during an AZ failure or maintenance. Recorded here as a deliberate launch-stage choice, not an oversight.            |
-| Environments        | **Production only for now**                     | One instance. Schema changes are proven locally and in CI against a clean database rather than against a staging copy.                                                  |
+| Decision            | Answer                                     | Consequence                                                                                                                                                                           |
+| ------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application hosting | **Inside AWS** (ECS Fargate or App Runner) | The app sits in the same VPC as the database. RDS stays private with no public accessibility, and no tunnel or peering is needed. This is the simplest correct posture.               |
+| Region              | ~~Deferred~~ → **us-east-1** (2026-08-22)  | Owner-decided, superseding the deferral below. Unblocks costing and provisioning; the PDPL question it was waiting on is _not_ answered. See [deployment.md](deployment.md) § Region. |
+| Availability        | **Single-AZ to start**, upgrade later      | Roughly halves the instance cost. Accepts downtime during an AZ failure or maintenance. Recorded here as a deliberate launch-stage choice, not an oversight.                          |
+| Environments        | **Production only for now**                | One instance. Schema changes are proven locally and in CI against a clean database rather than against a staging copy.                                                                |
 
-### Why the deferred region blocks everything else
+### Why the deferred region blocked everything else
+
+> **Superseded 2026-08-22.** The owner chose us-east-1 and provisioning is no
+> longer blocked. The reasoning below is kept because only half of it was
+> resolved: the region was _chosen_, but the PDPL data-residency question it was
+> waiting on remains open, and choosing before counsel answers is exactly the
+> risk this section describes. Recorded, not resolved — see
+> [deployment.md](deployment.md) § Region.
 
 Pricing varies by region, so no costed proposal can be produced without it. More
 importantly, the region determines where personal data physically resides, and

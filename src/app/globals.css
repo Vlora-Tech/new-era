@@ -12,93 +12,121 @@
  * Light only. There is deliberately no dark palette, no `prefers-color-scheme`
  * block, and no theme switch: the product ships one theme, and adding a second
  * set of tokens is what makes a "light-only" product slowly become dual-theme.
+ *
+ * ── Re-pointed 2026-08-21, from the approved homepage canvas ───────────────
+ *
+ * Owner-authorised. The whole brand ramp, the neutral ramp and the type scale
+ * were re-derived from «بناء العهد الجديد - الصفحة الرئيسية», and every value
+ * below carries the contrast ratio it was audited at, so the next reader does
+ * not have to re-derive it. The point of doing it HERE rather than in the
+ * landing components is that the administration area, the student dashboard,
+ * checkout and the exam workspace inherit the new identity without a single
+ * component edit — if one of those screens needed touching, this file was
+ * written wrong.
  */
 :root {
   color-scheme: light;
 
   /*
-   * Brand blue, as a full scale. 700 is the anchor inherited from the supplied
-   * token sheet and the only blue that carries white text at body sizes
-   * (~6.1:1); 500 is ~3.9:1 and is reserved for icons and large accents.
-   * `hover` and `800`, `active` and `900` are the same colours under two names,
-   * because half the codebase says one and half says the other.
+   * Brand blue, as a full scale, from the canvas.
+   *
+   * 700 (#0668c8, 5.49:1) is the anchor and the only blue that carries white
+   * text at body sizes. 500 (#2e96ee, 3.13:1) clears the 3:1 graphics floor and
+   * NOT the 4.5:1 text one — icons and large accents only, exactly the role it
+   * held in the previous ramp. `hover` and `800`, `active` and `900` are the
+   * same colours under two names, because half the codebase says one and half
+   * says the other.
    */
-  --neb-brand-50: #f2f8fc;
-  --neb-brand-100: #eaf4fa;
-  --neb-brand-200: #d5eaf6;
-  --neb-brand-300: #a9d4ec;
-  --neb-brand-400: #63aad8;
-  --neb-brand-500: #2686c8;
-  --neb-brand-600: #1a76b6;
-  --neb-brand-700: #1066a4;
-  --neb-brand-800: #0c568c;
-  --neb-brand-900: #08436f;
-  --neb-brand-950: #062e4d;
+  --neb-brand-50: #f2f8fd;
+  --neb-brand-100: #eaf4fd;
+  --neb-brand-200: #d3e7f8;
+  --neb-brand-300: #a9d4f4;
+  --neb-brand-400: #57adf4;
+  --neb-brand-500: #2e96ee; /* 3.13:1 — graphics only */
+  --neb-brand-600: #0a7fe0; /* 4.10:1 — large text only */
+  --neb-brand-700: #0668c8; /* 5.49:1 — the anchor */
+  --neb-brand-800: #0a5fb4; /* 6.35:1 */
+  --neb-brand-900: #054f9e; /* 8.02:1 */
+  --neb-brand-950: #062f63; /* 13.17:1 */
   --neb-brand-hover: var(--neb-brand-800);
   --neb-brand-active: var(--neb-brand-900);
 
   /*
-   * Cool cloud neutrals. The canvas was a warm paper grey (#f5f6f4) in the
-   * previous identity; the 2026 system cools it toward the brand's own axis so
-   * white surfaces read as sheets on sky rather than paper on paper. Ink and
-   * line values are unchanged — their contrast pairings are audited.
+   * Cool cloud neutrals, re-derived from the canvas. Darker and bluer than the
+   * ramp they replace, which is what lets white surfaces read as sheets on sky.
+   * Every ink below is stated with its ratio on white.
    */
-  --neb-text-primary: #0e1b26;
-  --neb-text-secondary: #4a5a66;
-  --neb-text-muted: #64727c;
-  --neb-border: #d7e0e5;
-  --neb-border-strong: #8798a3;
-  --neb-canvas: #f6f9fc;
-  --neb-surface-muted: #ecf1f5;
+  --neb-text-primary: #0b0e15; /* 19.30:1 */
+  --neb-text-secondary: #5a6175; /* 6.17:1 */
+  --neb-text-muted: #616878; /* 5.59:1 — the smallest ink allowed on real text */
+  --neb-border: #e3eaf3;
+  --neb-border-strong: #8a91a2; /* 3.16:1 — clears the 3:1 boundary floor */
+  --neb-canvas: #f7f9fc;
+  --neb-surface-muted: #f1f3f9;
   --neb-surface: #ffffff;
 
-  --neb-success: #247a4a;
-  --neb-warning: #8a5a0a;
-  --neb-error: #b33a3a;
+  /*
+   * THE FAINT INK, and the one token in this file that carries a restriction
+   * rather than a role.
+   *
+   * The canvas uses this grey for dozens of small labels. It is 3.16:1, which
+   * clears the graphics floor and fails the 4.5:1 body-text one, so it must
+   * never become `ink-600`. It is legal on NON-TEXT — hairlines, chart axes,
+   * disabled glyphs — and inside the `aria-hidden` drawings of the product,
+   * where the whole picture is an illustration. Real UI text, anywhere in the
+   * product, stays on `ink-600` and above. Reaching for `ink-500` on a live
+   * label is a contrast bug, not a style choice.
+   */
+  --neb-text-faint: #8a91a2; /* 3.16:1 — non-text and specimen chrome ONLY */
 
-  /* Very pale semantic grounds. Kept secondary to the brand blue. */
-  --neb-success-soft: #e9f3ed;
-  --neb-warning-soft: #f6f0e3;
-  --neb-error-soft: #f8eded;
+  /*
+   * Semantic. `success` keeps its audited ink: the canvas's own green is
+   * #3e9a6d at 3.47:1, which is a GRAPHICS value, so it lands on `-fill`
+   * alongside the coded hues' fills rather than replacing the text colour.
+   */
+  --neb-success: #247a4a; /* 5.31:1 */
+  --neb-success-fill: #3e9a6d; /* 3.47:1 — white glyphs, never white text */
+  --neb-warning: #8a5a0a; /* 5.92:1 */
+  --neb-error: #b33a3a; /* 5.86:1 */
+
+  /* Very pale semantic grounds, shifted onto the new cooler axis. */
+  --neb-success-soft: #e8f3ee;
+  --neb-warning-soft: #f4f0e7;
+  --neb-error-soft: #f7eded;
 
   /*
    * THE COLOUR CODE.
    *
-   * Four hues, and they are not decoration. On the public site they are the
-   * four movements of the method — افهم، تدرّب، اختبر نفسك، ادخل الاختبار بثقة.
-   * In the tools they are the four subject domains — products, questions,
-   * students, orders. One code, two vocabularies; `src/lib/accent.ts` is the
+   * Four hues, and they are not decoration. On the public site they were the
+   * four movements of the method; in the tools they are the four subject
+   * domains — products, questions, students, orders. `src/lib/accent.ts` is the
    * only place that turns a hue into classes. A fifth hue would make the set a
    * palette instead of a code, which is the line between a system and a rainbow.
    *
-   * Each hue ships exactly two values — one ink and one soft ground — and every
-   * ink clears 4.5:1 on white, on the canvas, on the blue field and on its own
-   * soft ground. `ink-700` is the smallest text permitted on any soft ground
-   * (about 5.5:1); `ink-600` is NOT, because it lands at 4.3–4.4:1.
+   * The 2026 canvas is monochrome blue, and the LANDING PAGE now follows it:
+   * the code is not used there any more. It is kept for the tools, where four
+   * domains genuinely need telling apart, with each soft ground re-tuned onto
+   * the new cooler axis so a gold chip beside a #0668c8 button does not read as
+   * a different generation. The inks are unchanged because they are audited and
+   * re-mixing them risks the pairings.
+   *
+   * Each hue ships THREE values: `ink` is the AA text colour, `soft` is the
+   * ground, `fill` is a VIVID solid for icon tiles, progress bars and status
+   * dots. Fills carry white GLYPHS, never white text: at 3.3–3.7:1 they clear
+   * the 3:1 graphics threshold but not the 4.5:1 text one.
    *
    * Actions are exempt. Every button stays brand blue whatever the hue of the
    * block it sits in: the code labels content, never controls.
    */
-  /*
-   * THREE values per hue, not two, and the split is what makes the interface
-   * read as energetic rather than muddy. `ink` is the AA text colour; `soft` is
-   * the ground; `fill` is a VIVID solid for icon tiles, progress bars and
-   * status dots. Before the split, `fill` was the same dark value as `ink`, so
-   * every icon chip on the site was a small brown or bottle-green square.
-   *
-   * Fills carry white GLYPHS, never white text: at 3.3–3.7:1 they clear the
-   * 3:1 graphics threshold but not the 4.5:1 text one. Gold and blue fills are
-   * dark enough for text as well.
-   */
-  --neb-accent-gold: #8a5a0a;
+  --neb-accent-gold: #8a5a0a; /* 5.92:1 on white, 5.20:1 on its soft */
   --neb-accent-gold-fill: #b45309;
-  --neb-accent-gold-soft: #faf1df;
-  --neb-accent-teal: #0d7188;
+  --neb-accent-gold-soft: #f7f1e6;
+  --neb-accent-teal: #0d7188; /* 5.62:1 on white, 4.88:1 on its soft */
   --neb-accent-teal-fill: #0891b2;
-  --neb-accent-teal-soft: #e2f1f4;
-  --neb-accent-green: #146c34;
+  --neb-accent-teal-soft: #e4f1f6;
+  --neb-accent-green: #146c34; /* 6.51:1 on white, 5.81:1 on its soft */
   --neb-accent-green-fill: #16a34a;
-  --neb-accent-green-soft: #e8f7ed;
+  --neb-accent-green-soft: #e8f5ef;
 
   /*
    * Coral, and it is deliberately the smallest hue in the system: celebration
@@ -106,9 +134,9 @@
    * and never fills an area larger than a chip, because an alarm colour used
    * for structure reads as an error.
    */
-  --neb-accent-coral: #b23f3a;
+  --neb-accent-coral: #b23f3a; /* 5.73:1 on white, 5.06:1 on its soft */
   --neb-accent-coral-fill: #e05a55;
-  --neb-accent-coral-soft: #fdeeec;
+  --neb-accent-coral-soft: #fbeeed;
 
   /*
    * A pale blue ground for full-width bands. White and the canvas are ~1.05:1
@@ -116,7 +144,48 @@
    * this gives a band a hue without leaving the light scale. There is
    * deliberately no dark counterpart: the product has no dark sections.
    */
-  --neb-canvas-blue: #eef6fb;
+  --neb-canvas-blue: #eef6fc;
+
+  /*
+   * THE COVER FIELD, and it is the one navy in a light-only product.
+   *
+   * These three are NOT part of the UI scale and never ground a section. They
+   * exist for the inside of a bounded cover frame — the catalogue card's cover
+   * and the product page's cover plate — where the same argument applies that
+   * lets a photograph be dark: it is imagery in a frame, not a dark theme. The
+   * rule that keeps it honest is that nothing outside `marketing/course-cover.tsx`
+   * may reach for them.
+   *
+   * They were already in the product, written as literal hexes in that file
+   * (and one dead `bg-navy-900` that resolved to nothing); this is the same
+   * field, named.
+   */
+  --neb-cover-900: #08192e;
+  --neb-cover-800: #0a2c50;
+  --neb-cover-700: #0b3d6e;
+
+  /*
+   * The confirmation glyph inside a cover frame, and the reason it is not
+   * `success` or `success-fill`: both are audited against WHITE. On the plate's
+   * navy they land near 2.5:1, which is below even the graphics floor. This is
+   * the canvas's own mint at 9.3:1 on `cover-800` and 7.9:1 on the worst case
+   * the glass panel can composite to. It is not a fifth hue in the colour code
+   * — it labels nothing, and it never appears outside a cover.
+   */
+  --neb-cover-mint: #9be0be;
+
+  /*
+   * The caution value inside a cover frame, and the same argument as the mint:
+   * `warning` (#8a5a0a) is audited against white and lands near 1.6:1 on the
+   * exam bar's navy, which is invisible rather than cautious. This is the
+   * canvas's amber at 7.1:1 on `cover-800`.
+   *
+   * It tints a ground, a border and a glyph — never a numeral. The exam timer
+   * keeps white figures in both states, because a warning that works by
+   * recolouring the digits is a warning nobody can read who cannot see the
+   * colour.
+   */
+  --neb-cover-amber: #f2a93b;
 
   /*
    * Shape. Three radii and a pill; nested corners never get tighter than their
@@ -127,7 +196,7 @@
   --neb-radius-panel: 14px;
   --neb-radius-card: 18px;
 
-  --neb-focus: 0 0 0 3px rgb(38 134 200 / 0.28);
+  --neb-focus: 0 0 0 3px rgb(6 104 200 / 0.28);
   --neb-focus-error: 0 0 0 3px rgb(179 58 58 / 0.24);
 
   /*
@@ -135,14 +204,18 @@
    * deliberately quiet: one step per surface, chosen from this scale, never
    * stacked. `overlay` remains reserved for genuinely overlaid surfaces
    * (modals, drawers, menus).
+   *
+   * The tints are the canvas's own rgba(16,24,40,.03/.04) and
+   * rgba(16,50,90,.3/.4), which is why these read slightly cooler than the
+   * values they replace.
    */
-  --neb-shadow-xs: 0 1px 2px rgb(8 40 66 / 0.06);
-  --neb-shadow-card: 0 1px 2px rgb(8 40 66 / 0.04), 0 8px 24px -12px rgb(8 40 66 / 0.12);
-  --neb-shadow-card-lg: 0 2px 4px rgb(8 40 66 / 0.05), 0 24px 48px -16px rgb(8 40 66 / 0.16);
-  --neb-shadow-overlay: 0 12px 32px rgb(22 35 45 / 0.14);
+  --neb-shadow-xs: 0 1px 2px rgb(16 24 40 / 0.04);
+  --neb-shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px -12px rgb(16 50 90 / 0.16);
+  --neb-shadow-card-lg: 0 2px 4px rgb(16 24 40 / 0.05), 0 26px 50px -28px rgb(16 50 90 / 0.4);
+  --neb-shadow-overlay: 0 12px 32px rgb(16 50 90 / 0.16);
   /* Brand-tinted, for the one primary action in a conversion band. Not a glow
      for general use: it puts brand blue on the page as light rather than ink. */
-  --neb-shadow-glow: 0 8px 28px -8px rgb(16 102 164 / 0.45);
+  --neb-shadow-glow: 0 8px 28px -8px rgb(6 104 200 / 0.45);
 
   /*
    * Motion. Three durations, one curve family. `micro` is a control reacting to
@@ -173,6 +246,8 @@
   --color-ink-900: var(--neb-text-primary);
   --color-ink-700: var(--neb-text-secondary);
   --color-ink-600: var(--neb-text-muted);
+  /* Non-text and `aria-hidden` specimen chrome only — see the token above. */
+  --color-ink-500: var(--neb-text-faint);
 
   --color-line-200: var(--neb-border);
   --color-line-500: var(--neb-border-strong);
@@ -182,6 +257,7 @@
   --color-surface-muted: var(--neb-surface-muted);
 
   --color-success: var(--neb-success);
+  --color-success-fill: var(--neb-success-fill);
   --color-warning: var(--neb-warning);
   --color-error: var(--neb-error);
   --color-success-soft: var(--neb-success-soft);
@@ -203,6 +279,13 @@
   --color-accent-coral-soft: var(--neb-accent-coral-soft);
 
   --color-canvas-blue: var(--neb-canvas-blue);
+
+  /* Inside a cover frame only — see the tokens above. */
+  --color-cover-900: var(--neb-cover-900);
+  --color-cover-800: var(--neb-cover-800);
+  --color-cover-700: var(--neb-cover-700);
+  --color-cover-mint: var(--neb-cover-mint);
+  --color-cover-amber: var(--neb-cover-amber);
 
   --radius-control: var(--neb-radius-control);
   --radius-panel: var(--neb-radius-panel);
@@ -263,8 +346,16 @@
   }
 
   /*
-   * Arabic must never be letter-spaced: the script is cursive, and tracking
-   * breaks the joins between letters.
+   * The default is UNTRACKED, and it stays that way for every heading that does
+   * not opt in.
+   *
+   * The rule this replaces was absolute — "Arabic must never be letter-spaced;
+   * the script is cursive, and tracking breaks the joins between letters" — and
+   * for body, UI and form text it still is. The 2026 canvas tracks its DISPLAY
+   * type negatively (−0.01em to −0.035em); that is owner-authorised and is
+   * carried by the `text-display`/`text-h1`/`text-h2`/`text-h3` utilities below,
+   * which sit in the utilities layer and therefore win over this declaration.
+   * Nothing else may set `letter-spacing` on Arabic.
    */
   h1,
   h2,
@@ -276,7 +367,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--neb-brand-500);
+    outline: 2px solid var(--neb-brand-700);
     outline-offset: 2px;
   }
 
@@ -312,7 +403,7 @@
 }
 
 /*
- * The mobile navigation panel's entrance, and the only keyframe on the site.
+ * The mobile navigation panel's entrance.
  *
  * The reduced-motion block above forces `animation-duration: 0.01ms` rather than
  * `animation: none`, which is the correct degradation here: the end state still
@@ -342,28 +433,10 @@
 }
 
 /*
- * The only type step above 34px on the site, and it belongs to the homepage
- * <h1> alone. Roughly 40px at 375, 49 at 768, 55 at 1024, 62 at 1280, 68 at
- * 1536 and above.
- *
- * The 68px ceiling is fold arithmetic, not taste: above it the hero's primary
- * action leaves the viewport on a 1280 × 720 laptop.
- */
-@utility text-display {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 1.9rem + 2.45vw, 4.25rem);
-  line-height: 1.16;
-  font-weight: 700;
-  /* Arabic is cursive; tracking breaks the joins between letters. */
-  letter-spacing: 0;
-  /* Clearance for the ا/ل ascenders under whatever rule sits above them. */
-  padding-block-start: 0.04em;
-}
-
-/*
  * Arabic measure. Line length was ad hoc across the marketing pages — `max-w-xl`
  * in one place, `max-w-prose` in another — which is why paragraphs of the same
- * rank read at different widths. These three are the only sanctioned measures.
+ * rank read at different widths. These are the only sanctioned measures; the
+ * last two are the canvas's own 620px lead and 760px head.
  */
 @utility measure-ar {
   max-inline-size: 33rem;
@@ -375,6 +448,14 @@
 
 @utility measure-ar-lg {
   max-inline-size: 46rem;
+}
+
+@utility measure-lead {
+  max-inline-size: 38.75rem;
+}
+
+@utility measure-head {
+  max-inline-size: 47.5rem;
 }
 
 @utility panel-in {
@@ -396,39 +477,100 @@
 
 /* ── Type scale ──────────────────────────────────────────────────────────────
  *
- * The survey found the same headline set as arbitrary values in a dozen files
- * (`text-[30px] leading-[1.28]` and friends), which is why two pages of equal
- * rank read at different sizes. These four utilities are the sanctioned steps
- * below `text-display`. Arabic needs air: nothing here drops under 1.3.
+ * Eight steps, all of them lifted from the approved canvas with its own clamps,
+ * line heights and tracking. They are the sanctioned sizes: an arbitrary
+ * `text-[30px] leading-[1.28]` anywhere in the product is a drift, and the
+ * reason two pages of equal rank used to read at different sizes.
+ *
+ * The display family is Alexandria at 600 or 700; the two lead steps are IBM
+ * Plex Sans Arabic at 300, which is the canvas's weight for anything set
+ * directly under a headline. Arabic needs air: nothing here drops under 1.2,
+ * and no lead drops under 1.85.
+ *
+ * The negative tracking is display-only and is authorised — see the base-layer
+ * note above. `text-h4` and the lead steps are untracked, because they are read
+ * as text rather than seen as a headline.
  */
+
+/*
+ * The homepage <h1>, and nothing else. Roughly 46px at 375, 55 at 768, 74 at
+ * 1024 and 104 from 1440 up.
+ *
+ * Line height is 1.34, not the 1.16 the previous scale used: at this size the
+ * heading always sets on two or three lines, and Arabic ascenders and descenders
+ * on adjacent lines collide well before Latin ones would.
+ *
+ * It is NOT the reason the clipped run keeps its descenders — leading cannot
+ * reach the paint box of an inline background, and an earlier note here claimed
+ * it could. That job belongs to the padding on `text-gradient-brand`, which is
+ * where to look if the low dots ever come back shaved.
+ */
+@utility text-display {
+  font-family: var(--font-display);
+  font-size: clamp(2.875rem, 1.6rem + 5.4vw, 6.5rem);
+  line-height: 1.34;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  padding-block-end: 0.18em;
+}
+
+/* The closing band's head — the one step below the hero. */
 @utility text-h1 {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 1.4rem + 2vw, 3.25rem);
-  line-height: 1.22;
+  font-size: clamp(1.875rem, 1.1rem + 3.3vw, 3.75rem);
+  line-height: 1.2;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.03em;
 }
 
+/* A section head standing alone above centred copy. */
 @utility text-h2 {
   font-family: var(--font-display);
-  font-size: clamp(1.625rem, 1.25rem + 1.3vw, 2.375rem);
-  line-height: 1.28;
+  font-size: clamp(1.75rem, 1.15rem + 2.6vw, 3.25rem);
+  line-height: 1.24;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.025em;
 }
 
+/* A section head inside a two-column block, where the measure is half a page. */
+@utility text-h2-tight {
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.25rem + 1.5vw, 2.5rem);
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* A card title. */
 @utility text-h3 {
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
-  line-height: 1.4;
-  font-weight: 700;
+  font-size: clamp(1.1875rem, 1.05rem + 0.6vw, 1.5rem);
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* A disclosure summary or a small panel title. Untracked: this is read, not seen. */
+@utility text-h4 {
+  font-family: var(--font-display);
+  font-size: clamp(0.9375rem, 0.85rem + 0.35vw, 1.125rem);
+  line-height: 1.5;
+  font-weight: 600;
   letter-spacing: 0;
 }
 
-/* The paragraph directly under a headline. Larger and airier than body. */
+/* The paragraph directly under a section head. */
 @utility text-lead {
-  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  font-size: clamp(0.9375rem, 0.89rem + 0.2vw, 1.0625rem);
   line-height: 1.85;
+  font-weight: 300;
+}
+
+/* The hero's and the closing band's lead — one step larger. */
+@utility text-lead-lg {
+  font-size: clamp(0.9375rem, 0.85rem + 0.35vw, 1.125rem);
+  line-height: 1.85;
+  font-weight: 300;
 }
 
 /* ── Motion ──────────────────────────────────────────────────────────────────
@@ -441,7 +583,7 @@
 @keyframes neb-reveal {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(26px);
   }
 
   to {
@@ -470,7 +612,33 @@
  * correct degradation, and the reason this needs no IntersectionObserver, no
  * hydration and no layout shift.
  *
- * `--reveal-delay` staggers a group; set it inline on each child.
+ * The canvas ships an IntersectionObserver for exactly this effect. It is
+ * deliberately NOT ported: it costs a client island, it leaves every section at
+ * `opacity: 0` until script runs, and this does the same job in CSS.
+ *
+ * ── There is deliberately no stagger here, and that is a bug fix ──────────
+ *
+ * Two things do not work, and both were tried:
+ *
+ *   `animation-delay` is IGNORED when `animation-timeline` is anything other
+ *   than `auto`. An inline `--reveal-delay` on a `reveal` element is dead style
+ *   — it reads as a stagger and does nothing.
+ *
+ *   Moving each sibling's `animation-range` further into the viewport does
+ *   stagger them, and it also strands content. A range like
+ *   `entry 24% cover 44%` can only complete if the reader can scroll far enough
+ *   to reach it, and near the END of the document there is no further to
+ *   scroll: the last rows of the FAQ and the journey stayed at `opacity: 0`
+ *   permanently. Content that never appears is not a worse animation, it is a
+ *   broken page.
+ *
+ * So every `reveal` shares one early, always-reachable range. Siblings at
+ * different heights still arrive in order, because they genuinely enter the
+ * viewport at different times; a row of equals arrives together, which is the
+ * cost, and it is much cheaper than the alternative.
+ *
+ * `--reveal-delay` still means what it always did, but only on `enter`, which
+ * runs on the document timeline and does honour a delay.
  */
 @utility reveal {
   @supports (animation-timeline: view()) {
@@ -496,6 +664,9 @@
  * The interaction contract for a card that is, or contains, a link. Hover
  * raises it half a step; the press returns it. Kept as one utility so a dozen
  * card components cannot drift to a dozen different lifts.
+ *
+ * The lift is the canvas's own −5px and its deep 26/50/−28 shadow, which is
+ * what `--neb-shadow-card-lg` now holds.
  */
 @utility lift {
   transition:
@@ -504,7 +675,7 @@
     border-color var(--neb-duration-component) var(--neb-ease);
 
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
     box-shadow: var(--neb-shadow-card-lg);
   }
 
@@ -521,14 +692,14 @@
  */
 @utility bg-brand-mesh {
   background-image:
-    radial-gradient(60% 55% at 88% 8%, rgb(38 134 200 / 0.13), transparent 70%),
-    radial-gradient(50% 50% at 8% 0%, rgb(8 145 178 / 0.1), transparent 70%);
+    radial-gradient(60% 55% at 88% 8%, rgb(46 150 238 / 0.13), transparent 70%),
+    radial-gradient(50% 50% at 8% 0%, rgb(6 104 200 / 0.1), transparent 70%);
 }
 
 @utility bg-grid-fade {
   background-image:
-    linear-gradient(to left, rgb(16 102 164 / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(16 102 164 / 0.07) 1px, transparent 1px);
+    linear-gradient(to left, rgb(6 104 200 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(6 104 200 / 0.07) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(75% 60% at 50% 0%, black, transparent 75%);
 }
@@ -540,23 +711,17 @@
  * surface, and none of it may be used on a signed-in screen: the app shell,
  * dashboard, admin, checkout and exam workspace stay flat.
  *
- * The whole set is built from two hues already in the system — brand blue
- * flowing into the teal accent. There is deliberately no third stop and no new
- * hue: the previous draft of this page ran indigo into violet, and adopting
- * that would have made the identity two identities.
+ * The canvas runs BLUE INTO BLUE — #2e96ee into #0668c8 into #0a4e86. The
+ * previous set ran brand blue into the teal accent; that is gone, and with it
+ * the last place the landing page used a second hue. The page is monochrome
+ * now, which is what the approved artboard draws.
  */
 :root {
-  --neb-gradient-brand: linear-gradient(
-    95deg,
-    var(--neb-brand-500) 0%,
-    var(--neb-accent-teal-fill) 100%
-  );
-  --neb-gradient-brand-deep: linear-gradient(
-    95deg,
-    var(--neb-brand-600) 0%,
-    var(--neb-accent-teal) 100%
-  );
-  --neb-gradient-tile: linear-gradient(140deg, var(--neb-brand-400), var(--neb-accent-teal-fill));
+  --neb-gradient-brand: linear-gradient(95deg, #2e96ee 0%, #0668c8 100%);
+  --neb-gradient-brand-deep: linear-gradient(95deg, #0a4e9b 0%, #062f63 100%);
+  --neb-gradient-heading: linear-gradient(95deg, #2e96ee 0%, #0668c8 50%, #0a4e86 100%);
+  --neb-gradient-meter: linear-gradient(90deg, #2e96ee 0%, #0668c8 100%);
+  --neb-gradient-tile: linear-gradient(140deg, #57adf4, #0668c8);
 
   /*
    * Marketing elevation. Deeper than the app scale because the objects these
@@ -565,13 +730,13 @@
    * does not replace: that one is for a control inside a conversion band, this
    * one is for the pill on the hero.
    */
-  --neb-shadow-cta: 0 14px 30px -6px rgb(16 102 164 / 0.34);
-  --neb-shadow-float: 0 18px 40px -16px rgb(8 40 66 / 0.3);
-  --neb-shadow-plate: 0 40px 80px -30px rgb(8 40 66 / 0.28), 0 2px 6px rgb(8 40 66 / 0.05);
+  --neb-shadow-cta: 0 18px 34px -10px rgb(6 104 200 / 0.42);
+  --neb-shadow-float: 0 18px 40px -16px rgb(16 50 90 / 0.3);
+  --neb-shadow-plate: 0 40px 80px -30px rgb(16 50 90 / 0.35), 0 2px 6px rgb(16 24 40 / 0.05);
 
   /* Larger than the app's 10/14/18 for the same reason the shadows are deeper. */
   --neb-radius-plate: 26px;
-  --neb-radius-shell: 28px;
+  --neb-radius-shell: 24px;
 }
 
 @theme inline {
@@ -591,6 +756,11 @@
   background-image: var(--neb-gradient-brand-deep);
 }
 
+/* The 90° run used by every progress fill and meter on the page. */
+@utility bg-gradient-meter {
+  background-image: var(--neb-gradient-meter);
+}
+
 @utility bg-gradient-tile {
   background-image: var(--neb-gradient-tile);
 }
@@ -605,24 +775,31 @@
   color: var(--neb-brand-700);
 
   @supports (background-clip: text) or (-webkit-background-clip: text) {
-    background-image: var(--neb-gradient-brand-deep);
+    background-image: var(--neb-gradient-heading);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-  }
-}
+    -webkit-text-fill-color: transparent;
 
-/*
- * The hero's ambient field — the same idea as `bg-brand-mesh` at the scale of a
- * full viewport, so the top of the page has weather rather than a flat white.
- * Three blobs, brand and teal, all well under 0.2 alpha; nothing here sits
- * behind body text at a strength that would touch its contrast.
- */
-@utility bg-hero-glow {
-  background-image:
-    radial-gradient(42% 34% at 78% 2%, rgb(38 134 200 / 0.18), transparent 72%),
-    radial-gradient(38% 32% at 16% 0%, rgb(8 145 178 / 0.16), transparent 72%),
-    radial-gradient(60% 26% at 50% 0%, rgb(105 180 224 / 0.16), transparent 78%);
+    /*
+     * The padding is what keeps the descenders whole, and it is not decoration.
+     *
+     * A clipped run is painted inside its PADDING BOX, and the block extent of
+     * an inline padding box comes from the font metrics, not from the leading:
+     * Alexandria declares 0.9675em of ascent and 0.2515em of descent, while the
+     * Arabic it is asked to set here inks 1.084em above the baseline and 0.300em
+     * below it. Everything outside that band is simply never painted, so the low
+     * dots of a final yaa arrive shaved flat and the hamza of a closing alif
+     * loses its cap. Nothing is clipping them; the gradient just stops.
+     *
+     * Which is why leading cannot fix it, and why the `text-display` scale is
+     * not the lever to reach for here. Vertical padding on an inline box grows
+     * the paint area WITHOUT touching the line box, so this buys the missing ink
+     * back at no cost to layout. The values are the measured overflows with
+     * roughly a quarter more for a heavier weight or a deeper glyph.
+     */
+    padding-block: 0.14em 0.09em;
+  }
 }
 
 /* ── Marketing motion ────────────────────────────────────────────────────────
@@ -668,11 +845,11 @@
 @keyframes neb-glow-pulse {
   0%,
   100% {
-    opacity: 0.5;
+    opacity: 0.55;
   }
 
   50% {
-    opacity: 0.85;
+    opacity: 0.9;
   }
 }
 
@@ -698,6 +875,152 @@
   @media (prefers-reduced-motion: no-preference) {
     animation: neb-glow-pulse 7s ease-in-out infinite;
   }
+}
+
+/* ── The aurora field ────────────────────────────────────────────────────────
+ *
+ * The weather behind the top of the landing page: five soft radial blobs on
+ * long, out-of-phase drifts, under a white scrim that fades them out before
+ * they reach any body text. It replaces `bg-hero-glow`, which was one static
+ * background on the hero section alone.
+ *
+ * Five separate elements rather than one multi-stop background, because each
+ * blob moves on its own timeline — that is what stops the field reading as a
+ * single sliding sheet. The negative `animation-delay` values are the canvas's,
+ * and are what make the blobs start mid-cycle instead of all together.
+ *
+ * Every blob is under 0.62 alpha, is `pointer-events-none` at the call site, and
+ * sits under the scrim, so none of this touches the contrast of any text.
+ */
+@keyframes neb-aurora-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate3d(-16%, 12%, 0) scale(1.22);
+  }
+
+  66% {
+    transform: translate3d(10%, -9%, 0) scale(0.86);
+  }
+}
+
+@keyframes neb-aurora-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+
+  40% {
+    transform: translate3d(20%, 15%, 0) scale(0.85);
+  }
+
+  70% {
+    transform: translate3d(-11%, -8%, 0) scale(1.26);
+  }
+}
+
+/*
+ * This blob is centred with `translateX(-50%)`, so every keyframe has to carry
+ * that translation forward: a `transform` that omitted it would snap the blob a
+ * full half-width to the right for the duration of the animation.
+ */
+@keyframes neb-aurora-c {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateX(-42%) translateY(18%) scale(1.2);
+  }
+}
+
+@keyframes neb-aurora-d {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.9);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translate3d(-30%, 22%, 0) scale(1.3);
+    opacity: 1;
+  }
+}
+
+@keyframes neb-aurora-e {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.14);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate3d(30%, -18%, 0) scale(0.85);
+    opacity: 0.5;
+  }
+}
+
+@utility aurora-a {
+  background-image: radial-gradient(closest-side, rgb(6 104 200 / 0.62), transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-aurora-a 8s ease-in-out -2s infinite;
+  }
+}
+
+@utility aurora-b {
+  background-image: radial-gradient(closest-side, rgb(23 86 190 / 0.55), transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-aurora-b 11s ease-in-out -11s infinite;
+  }
+}
+
+@utility aurora-c {
+  background-image: radial-gradient(closest-side, rgb(120 190 245 / 0.5), transparent);
+  /* The centring transform is this element's resting state, and the keyframes
+     carry it forward; without it the blob sits half a width off-centre wherever
+     the animation does not run. */
+  transform: translateX(-50%);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-aurora-c 13s ease-in-out -7s infinite;
+  }
+}
+
+@utility aurora-d {
+  background-image: radial-gradient(closest-side, rgb(10 78 134 / 0.3), transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-aurora-d 9s ease-in-out -19s infinite;
+  }
+}
+
+@utility aurora-e {
+  background-image: radial-gradient(closest-side, rgb(46 150 238 / 0.38), transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-aurora-e 12s ease-in-out -5s infinite;
+  }
+}
+
+/*
+ * The scrim over the field. It is what makes the aurora weather rather than
+ * decoration: the blobs are strong at the top of the page and gone by the time
+ * the first paragraph of body copy appears.
+ */
+@utility bg-aurora-scrim {
+  background-image: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0) 0%,
+    rgb(255 255 255 / 0.42) 34%,
+    rgb(255 255 255 / 0.86) 62%,
+    #fff 84%
+  );
 }
 
 /*
@@ -741,4 +1064,109 @@
       animation-range: entry 10% cover 40%;
     }
   }
+}
+
+/* ── The cover plate ─────────────────────────────────────────────────────────
+ *
+ * The product page's masthead is a cover at plate scale, and these are the two
+ * pieces the card-sized cover does not need: a directional scrim, and the two
+ * glows on a slow drift instead of standing still.
+ *
+ * Why this is allowed on a page that is not the landing page: the plate is a
+ * bounded frame, the same object `marketing/course-cover.tsx` already draws on
+ * every catalogue card, at a size where a static glow reads as a printed
+ * gradient rather than as light. It is not a dark section, and nothing outside
+ * a cover frame may use any of it. Recorded in docs/design-system.md
+ * § Catalogue detail.
+ *
+ * Gated at the source like every ambient keyframe in this file: these never
+ * start under `prefers-reduced-motion: reduce`, rather than being clamped by
+ * the global rule to 0.01ms — which for an infinite drift is a jitter, not a
+ * stillness.
+ */
+@keyframes neb-cover-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(-9%, 7%, 0) scale(1.18);
+  }
+}
+
+@keyframes neb-cover-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+
+  50% {
+    transform: translate3d(11%, -8%, 0) scale(0.9);
+  }
+}
+
+@utility cover-drift-a {
+  background-image: radial-gradient(closest-side, rgb(46 150 238 / 0.5), transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-cover-drift-a 16s ease-in-out infinite;
+  }
+}
+
+@utility cover-drift-b {
+  background-image: radial-gradient(closest-side, rgb(120 190 245 / 0.32), transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: neb-cover-drift-b 21s ease-in-out -6s infinite;
+  }
+}
+
+/*
+ * The grid inside a cover frame. Six percent white at a 44px pitch: texture
+ * under the badges, not a figure competing with them.
+ */
+@utility bg-cover-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/*
+ * The plate's scrim, in two strengths, and the difference between them is the
+ * whole reason this is not one utility.
+ *
+ * The angle is physical in both and does NOT mirror under `dir="rtl"` — that is
+ * deliberate, because it balances the drift glows above, which are placed
+ * physically for the same reason.
+ *
+ * `plate` is the canvas's own ramp, and it is correct over the DEFAULT field,
+ * whose luminance is known: the field is already navy, so 0.18 at the light end
+ * is shaping, not scrimming.
+ *
+ * `photo` is what an administrator's cover gets, and it starts at 0.72 because
+ * that is the arithmetic rather than a taste: white type needs the ground under
+ * it at L ≤ 0.12 to clear 4.5:1, a pure-white photograph composited under
+ * `rgb(4 16 32 / a)` reaches that at a ≈ 0.63, and 0.72 buys the margin that
+ * lets the small labels sit at `white/70` instead of solid white. The canvas
+ * never had to solve this, because the artboard draws no photograph — its plate
+ * IS the default field.
+ */
+@utility bg-cover-scrim-plate {
+  background-image: linear-gradient(
+    285deg,
+    rgb(4 16 32 / 0.18) 0%,
+    rgb(4 16 32 / 0.7) 52%,
+    rgb(4 16 32 / 0.93) 100%
+  );
+}
+
+@utility bg-cover-scrim-photo {
+  background-image: linear-gradient(
+    285deg,
+    rgb(4 16 32 / 0.72) 0%,
+    rgb(4 16 32 / 0.86) 52%,
+    rgb(4 16 32 / 0.95) 100%
+  );
 }

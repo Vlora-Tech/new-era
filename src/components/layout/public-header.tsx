@@ -53,6 +53,7 @@ const NAV_LINKS = [
   { href: '/simulators', label: COPY.nav.simulators },
   { href: '/#how-it-works', label: COPY.nav.howItWorks },
   { href: '/#faq', label: COPY.nav.faq },
+  { href: '/contact', label: COPY.nav.contact },
 ] as const;
 
 export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
@@ -105,7 +106,7 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
 
         <nav
           aria-label={COPY.nav.mainNavigation}
-          className="border-line-200 bg-surface/70 hidden items-center gap-1 rounded-full border p-1.5 shadow-xs lg:flex"
+          className="border-line-200 bg-surface/70 hidden items-center gap-1 rounded-full border p-1.5 shadow-xs xl:flex"
         >
           {NAV_LINKS.map((link) => {
             const active = isActive(link.href);
@@ -115,11 +116,11 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'inline-flex items-center rounded-full px-4 py-2.5 text-[14.5px]',
+                  'inline-flex items-center rounded-full px-4 py-2.5 text-[15.5px]',
                   'transition-colors duration-150 ease-out',
                   active
                     ? 'bg-brand-100 text-brand-700 font-semibold'
-                    : 'text-ink-700 hover:bg-surface-muted hover:text-ink-900 font-medium',
+                    : 'text-ink-700 hover:text-brand-700 hover:bg-surface-muted font-medium',
                 )}
               >
                 {link.label}
@@ -128,9 +129,9 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
           })}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           {isSignedIn ? (
-            <Button asChild variant="gradient" shape="pill" size="md">
+            <Button asChild variant="ink" shape="pill" size="md">
               <Link href="/dashboard">{COPY.nav.dashboard}</Link>
             </Button>
           ) : (
@@ -138,7 +139,7 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
               <Button asChild variant="ghost" shape="pill" size="md">
                 <Link href="/login">{COPY.nav.login}</Link>
               </Button>
-              <Button asChild variant="gradient" shape="pill" size="md">
+              <Button asChild variant="ink" shape="pill" size="md">
                 <Link href="/register">{COPY.nav.start}</Link>
               </Button>
             </>
@@ -149,7 +150,7 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
           ref={toggleRef}
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
-          className="rounded-control text-ink-900 inline-flex size-11 items-center justify-center lg:hidden"
+          className="rounded-control text-ink-900 inline-flex size-11 items-center justify-center xl:hidden"
           aria-expanded={menuOpen}
           aria-controls="public-mobile-nav"
           aria-label={menuOpen ? COPY.nav.closeMenu : COPY.nav.openMenu}
@@ -170,7 +171,7 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
           // viewport by the difference and put the register button out of reach.
           // Solid white, not the bar's frosted ground: a reading list over
           // scrolled page content is exactly what a blur cannot keep legible.
-          className="border-line-200 bg-surface panel-in max-h-[calc(100dvh-5rem)] overflow-y-auto border-t lg:hidden lg:max-h-[calc(100dvh-6rem)]"
+          className="border-line-200 bg-surface panel-in max-h-[calc(100dvh-5rem)] overflow-y-auto border-t lg:max-h-[calc(100dvh-6rem)] xl:hidden"
         >
           <nav
             aria-label={COPY.nav.mainNavigation}

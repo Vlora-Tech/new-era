@@ -12,17 +12,24 @@ import './globals.css';
  * runtime. IBM Plex Sans Arabic carries body and UI text; Alexandria carries
  * headings and display numerals (`--font-display` in globals.css). See
  * docs/design-system.md.
+ *
+ * Both carry 300, and it is not optional: `text-lead` and `text-lead-lg` are
+ * weight 300 — the canvas's weight for the paragraph under a headline — and a
+ * missing 300 does not fall back gracefully. The browser synthesises it from
+ * 400 by thinning the outline, which on Arabic breaks the joins the way faux
+ * bold does. Alexandria also carries 800 for the display numerals the canvas
+ * sets above the section heads.
  */
 const plexArabic = IBM_Plex_Sans_Arabic({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-plex-arabic',
   display: 'swap',
 });
 
 const alexandria = Alexandria({
   subsets: ['arabic', 'latin'],
-  weight: ['500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-alexandria',
   display: 'swap',
 });

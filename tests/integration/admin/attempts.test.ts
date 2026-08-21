@@ -48,6 +48,8 @@ vi.mock('@/lib/auth/guards', async (importOriginal) => {
 
 import { prisma } from '@/lib/db';
 
+import { releaseFixtureQuestions } from '../question-cleanup';
+
 const ORIGIN = 'http://localhost:3000';
 
 /** Scopes every row this file creates, so parallel workers never collide. */
@@ -135,38 +137,74 @@ async function createSimulator() {
 
 /** A published bank question with two options, the second of them correct. */
 async function createQuestion(label: string) {
-  const question = await prisma.question.create({
-    data: {
-      stem: text(`نص السؤال الأصلي ${label}`) as unknown as Prisma.InputJsonValue,
-      track: 'BOTH',
-      domain: 'ARITHMETIC',
-      subskill: `مهارة-${RUN}`,
-      difficulty: 'MEDIUM',
-      workflow: 'PUBLISHED',
-      currentVersion: 1,
-      shuffleOptions: true,
-      authorOrLicensor: 'اختبار',
-      rightsDeclaration: 'ORIGINAL',
-      publishedAt: new Date(),
-      options: {
-        create: [
-          {
-            content: text(`خيار أول ${label}`) as unknown as Prisma.InputJsonValue,
-            position: 1,
-            isCorrect: false,
-          },
-          {
-            content: text(`خيار ثانٍ ${label}`) as unknown as Prisma.InputJsonValue,
-            position: 2,
-            isCorrect: true,
-          },
-        ],
+  // One transaction: a blueprint section draws from the whole bank, so a question
+  // committed as PUBLISHED before its snapshot exists can be drawn by another
+  // worker and then fail to be delivered.
+  return prisma.$transaction(async (tx) => {
+    const question = await tx.question.create({
+      data: {
+        stem: text(`نص السؤال الأصلي ${label}`) as unknown as Prisma.InputJsonValue,
+        track: 'BOTH',
+        domain: 'ARITHMETIC',
+        subskill: `مهارة-${RUN}`,
+        difficulty: 'MEDIUM',
+        workflow: 'PUBLISHED',
+        currentVersion: 1,
+        shuffleOptions: true,
+        authorOrLicensor: 'اختبار',
+        rightsDeclaration: 'ORIGINAL',
+        publishedAt: new Date(),
+        options: {
+          create: [
+            {
+              content: text(`خيار أول ${label}`) as unknown as Prisma.InputJsonValue,
+              position: 1,
+              isCorrect: false,
+            },
+            {
+              content: text(`خيار ثانٍ ${label}`) as unknown as Prisma.InputJsonValue,
+              position: 2,
+              isCorrect: true,
+            },
+          ],
+        },
       },
-    },
-    include: { options: { orderBy: { position: 'asc' } } },
+      include: { options: { orderBy: { position: 'asc' } } },
+    });
+
+    // `currentVersion: 1` above promises a frozen snapshot exists, so write one.
+    // It used to be skipped: this file builds its attempts by hand and never
+    // generates one. A blueprint section now draws from the whole bank, so a
+    // question published without its snapshot breaks generation in whichever
+    // suite happens to draw it — in another worker, mid-run.
+    await tx.questionVersion.create({
+      data: {
+        questionId: question.id,
+        version: 1,
+        snapshot: {
+          stem: text(`نص السؤال الأصلي ${label}`),
+          options: question.options.map((option) => ({
+            key: option.id,
+            content: option.content,
+            position: option.position,
+          })),
+          correctOptionKey: question.options[1]!.id,
+          explanation: null,
+          hint: null,
+          classification: {
+            domain: 'ARITHMETIC',
+            subskill: `مهارة-${RUN}`,
+            difficulty: 'MEDIUM',
+            track: 'BOTH',
+          },
+          stimulus: null,
+        } as unknown as Prisma.InputJsonValue,
+      },
+    });
+
+    createdQuestionIds.push(question.id);
+    return question;
   });
-  createdQuestionIds.push(question.id);
-  return question;
 }
 
 type AttemptFixtureOptions = {
@@ -379,8 +417,9 @@ afterAll(async () => {
   await prisma.examSimulator.deleteMany({ where: { productId: { in: createdProductIds } } });
   await prisma.product.deleteMany({ where: { id: { in: createdProductIds } } });
 
-  await prisma.questionOption.deleteMany({ where: { questionId: { in: createdQuestionIds } } });
-  await prisma.question.deleteMany({ where: { id: { in: createdQuestionIds } } });
+  // These questions are published, so another worker's blueprint draw may have
+  // taken one into an attempt that is not this file's to delete.
+  await releaseFixtureQuestions(createdQuestionIds);
 
   await prisma.auditLog.deleteMany({ where: { actorId: { in: createdUserIds } } });
   await prisma.user.deleteMany({ where: { id: { in: createdUserIds } } });

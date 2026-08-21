@@ -4,7 +4,12 @@ import { HttpError } from '@/lib/auth/guards';
 import { prisma } from '@/lib/db';
 import { createAttempt } from '@/services/exams/attempt-lifecycle.service';
 
-import { cleanupExamFixtures, createExamFixture, loadAttemptPaper } from './helpers';
+import {
+  cleanupExamFixtures,
+  countEligibleQuestions,
+  createExamFixture,
+  loadAttemptPaper,
+} from './helpers';
 
 /**
  * Attempt generation against a real database.
@@ -19,11 +24,13 @@ afterAll(async () => {
 });
 
 describe('createAttempt', () => {
-  it('builds a paper that matches the blueprint with no repeated question', async () => {
+  it('builds a paper of the declared size with no repeated question', async () => {
     const fixture = await createExamFixture({
       sections: 3,
       questionsPerSection: 6,
       bankPerDomain: 20,
+      // The draw is the point here, so this one really does read the bank.
+      selectionMode: 'BLUEPRINT',
     });
 
     const { attemptId, created } = await createAttempt({
@@ -46,14 +53,9 @@ describe('createAttempt', () => {
       expect(section.startedAt).toBeNull();
       expect(section.deadlineAt).toBeNull();
 
-      const byDomain = new Map<string, number>();
       for (const question of section.questions) {
-        byDomain.set(question.domain, (byDomain.get(question.domain) ?? 0) + 1);
         allQuestionIds.push(question.questionId);
       }
-      // Two domains at 50% each over six questions.
-      expect(byDomain.get('ARITHMETIC')).toBe(3);
-      expect(byDomain.get('ALGEBRA')).toBe(3);
 
       // Positions are dense and one-based, so "question 3 of 6" is meaningful.
       expect(section.questions.map((question) => question.position)).toEqual([1, 2, 3, 4, 5, 6]);
@@ -162,12 +164,20 @@ describe('createAttempt', () => {
     expect(count).toBe(1);
   });
 
-  it('aborts entirely when the bank cannot fill a rule', async () => {
+  it('aborts entirely when the bank cannot fill a section', async () => {
+    // A section draws from the whole bank, so a shortage has to out-ask the
+    // whole bank — including every other worker's fixtures. Counted, not
+    // guessed: sizing this against what the fixture itself creates would pass
+    // or fail depending on which files happened to run first.
+    const eligible = await countEligibleQuestions();
+
     const fixture = await createExamFixture({
       sections: 2,
-      questionsPerSection: 10,
-      // Five per domain against a demand of ten across the attempt.
+      // A wide margin: other workers publish questions while this runs, and the
+      // pool is read when the attempt is generated, not when this line executes.
+      questionsPerSection: eligible + 200,
       bankPerDomain: 5,
+      selectionMode: 'BLUEPRINT',
     });
 
     let thrown: unknown;
@@ -267,6 +277,11 @@ describe('createAttempt for a FIXED version', () => {
     questionIds: readonly string[];
   }) {
     await prisma.examBlueprintRule.deleteMany({
+      where: { examSectionId: input.sectionId },
+    });
+    // The fixture pins its own questions now, so clear those before pinning the
+    // list this test actually means to assert on.
+    await prisma.examSectionQuestion.deleteMany({
       where: { examSectionId: input.sectionId },
     });
     await prisma.examVersion.update({

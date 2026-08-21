@@ -282,6 +282,23 @@ model SiteSetting {
   @@map("site_settings")
 }
 
+/// One-way messages submitted from the public contact page.
+///
+/// Deliberately immutable in the application: this is a small inbox, not a
+/// support ticket system. There are no reply, assignment or workflow columns.
+model ContactMessage {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@index([email])
+  @@map("contact_messages")
+}
+
 model AuditLog {
   id         String   @id @default(uuid(7)) @db.Uuid
   actorId    String?  @db.Uuid

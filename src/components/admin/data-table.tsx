@@ -93,7 +93,7 @@ export function DataTable<Row>({
         // spans inside `headerHidden` cells: they are absolutely positioned, and
         // an unpositioned scroll ancestor does not clip absolute descendants —
         // they were escaping the region and dragging the page 113px wider.
-        'rounded-panel border-line-200 bg-surface shadow-card relative overflow-x-auto border',
+        'rounded-card border-line-200 bg-surface shadow-card relative overflow-x-auto border',
         'focus-visible:outline-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2',
         className,
       )}
@@ -102,13 +102,18 @@ export function DataTable<Row>({
         <caption className="sr-only">{caption}</caption>
 
         <thead>
-          <tr className="border-line-200 bg-surface-muted border-b">
+          {/*
+            `brand-50` rather than the grey `surface-muted`: the header band is
+            the table's own chrome, and tinting it toward the brand keeps it a
+            shade of the surface instead of a second, colder material.
+          */}
+          <tr className="border-line-200 bg-brand-50 border-b">
             {columns.map((column) => (
               <th
                 key={column.key}
                 scope="col"
                 className={cn(
-                  'text-ink-600 px-4 py-3 text-start text-[13px] font-semibold whitespace-nowrap',
+                  'text-ink-600 px-[18px] py-3.5 text-start text-[12.5px] font-semibold whitespace-nowrap',
                   column.align === 'end' && 'text-end',
                   column.className,
                 )}
@@ -132,7 +137,7 @@ export function DataTable<Row>({
               {columns.map((column) => {
                 const content = column.cell(row);
                 const cellClasses = cn(
-                  'text-ink-900 px-4 py-3 text-start align-middle',
+                  'text-ink-900 px-[18px] py-4 text-start align-middle leading-[1.6]',
                   column.align === 'end' && 'text-end',
                   column.className,
                 );

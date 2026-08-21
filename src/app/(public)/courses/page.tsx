@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { BookOpen } from 'lucide-react';
 
 import { ProductGrid, type CatalogProduct } from '@/components/marketing/product-grid';
 import { Container, PageHead } from '@/components/ui/surface';
 import { COPY } from '@/lib/copy';
 import { prisma } from '@/lib/db';
+import { mediaAssetUrl } from '@/services/media/media.service';
 
 export const metadata: Metadata = {
   title: COPY.nav.courses,
@@ -28,22 +28,61 @@ export default async function CoursesPage() {
         shortDescription: true,
         priceHalalas: true,
         /*
-         * The course behind the product, for the card's meta line. Both fields
-         * are nullable in the schema and a card simply carries one item fewer
-         * when they are unset.
-         *
-         * The module count is deliberately not read: `copy.ts` holds no label
-         * for it, and a bare numeral on a card is a figure making no claim.
+         * The cover, and only what draws it. `visibility` is selected because
+         * `mediaAssetUrl` needs it to decide between the public address and the
+         * authorising route — a product cover is public, but the helper is the
+         * one place that rule lives and it is not this page's to duplicate.
          */
-        course: { select: { category: true, level: true } },
+        coverAsset: {
+          select: { id: true, objectKey: true, visibility: true, width: true, height: true },
+        },
+        /*
+         * The course behind the product, for the card's taxonomy and size line.
+         *
+         * The counts are restricted to PUBLISHED content: the card states what a
+         * visitor would actually receive, and counting drafts would advertise
+         * lessons nobody can open. The duration is summed in the database rather
+         * than by loading every lesson row to add them here.
+         */
+        course: {
+          select: {
+            category: true,
+            level: true,
+            _count: { select: { modules: { where: { status: 'PUBLISHED' } } } },
+            modules: {
+              where: { status: 'PUBLISHED' },
+              select: {
+                _count: { select: { lessons: { where: { status: 'PUBLISHED' } } } },
+                lessons: { where: { status: 'PUBLISHED' }, select: { durationSec: true } },
+              },
+            },
+          },
+        },
       },
     });
 
-    products = rows.map(({ course, ...product }) => ({
-      ...product,
-      category: course?.category ?? null,
-      level: course?.level ?? null,
-    }));
+    products = rows.map(({ course, coverAsset, ...product }) => {
+      const lessons = course?.modules.flatMap((module) => module.lessons) ?? [];
+
+      return {
+        ...product,
+        category: course?.category ?? null,
+        level: course?.level ?? null,
+        cover: coverAsset
+          ? {
+              url: mediaAssetUrl(coverAsset),
+              width: coverAsset.width,
+              height: coverAsset.height,
+            }
+          : null,
+        moduleCount: course?._count.modules ?? 0,
+        lessonCount: lessons.length,
+        // A course whose lessons carry no duration has no total, which is a
+        // different claim from a course that is very short. `0` is dropped by
+        // the card rather than printed as "أقل من دقيقة".
+        durationSec: lessons.reduce((total, lesson) => total + (lesson.durationSec ?? 0), 0),
+      };
+    });
   } catch {
     failed = true;
   }
@@ -66,8 +105,6 @@ export default async function CoursesPage() {
           products={products}
           basePath="/courses"
           typeLabel={COPY.statusLabels.productType.COURSE}
-          typeVariant="brand"
-          icon={BookOpen}
           emptyTitle="لا توجد دورات منشورة بعد."
           emptyDescription="سيظهر هنا كل ما يُنشر من دورات."
           failed={failed}

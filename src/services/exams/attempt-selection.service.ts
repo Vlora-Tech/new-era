@@ -3,7 +3,9 @@ import 'server-only';
 import type { $Enums } from '@prisma/client';
 
 import type { PrismaTransaction } from '@/lib/db';
-import { allocateByLargestRemainder, type AllocationRule } from '@/lib/exam/largest-remainder';
+// `allocateByLargestRemainder` returns with the per-rule draw below. Its module
+// and its unit tests are untouched — nothing turning a share into a whole number
+// of questions is needed while a section simply takes its count off the bank.
 import { createRandom, deriveSeed, sampleWithoutReplacement } from '@/lib/exam/rng';
 
 /**
@@ -12,15 +14,32 @@ import { createRandom, deriveSeed, sampleWithoutReplacement } from '@/lib/exam/r
  * Two selection modes, and both are implemented here because a version may
  * declare either:
  *
- *  - **`BLUEPRINT`** states shares — "21% استيعاب المقروء" — and a section holds
- *    a whole number of questions. `allocateByLargestRemainder` converts one into
- *    the other exactly; this service then draws that many questions per rule
- *    from the eligible bank.
+ *  - **`BLUEPRINT`** draws a section's `questionCount` at random from the
+ *    eligible bank. It used to state shares — "21% استيعاب المقروء" — and draw
+ *    per rule; see the note below.
  *  - **`FIXED`** names the questions outright. `ExamSectionQuestion` pins them
  *    in the order an administrator chose, and the paper is that list. No
  *    allocation, no sampling, no seed — the only thing that can go wrong is a
  *    pinned question that has since been retired or withdrawn, which is refused
  *    rather than silently delivered short.
+ *
+ * ── Blueprint rules are no longer applied ───────────────────────────────────
+ *
+ * The question bank stopped asking authors for a skill, a difficulty or a track
+ * (see the head of `src/components/admin/question-form.tsx`), so every question
+ * written from now on carries the same placeholder classification. A rule saying
+ * "21% استيعاب المقروء، صعب" would have matched none of them: a teacher could
+ * fill the bank and watch the simulator ignore every question they wrote.
+ *
+ * So a blueprint section now means one thing — *take this many questions from
+ * the bank* — and the rule rows are not read. They are still stored, still
+ * editable through their API, and `SectionInput` still carries them, because the
+ * day classification comes back is the day they should start counting again.
+ * Restoring is uncommenting `matchesRule` and the per-rule loop below, and the
+ * rule editor in `exam-version-editor.tsx`.
+ *
+ * The simulator's own track no longer narrows the draw either, for the same
+ * reason: a track nobody chose is not a fact about a question.
  *
  * A `FIXED` version used to publish cleanly and then fail for every student:
  * `assertVersionPublishable` accepted it, and this file ran the blueprint
@@ -108,8 +127,13 @@ export class QuestionShortageError extends Error {
   readonly shortages: Array<{
     examSectionId: string;
     sectionPosition: number;
-    ruleId: string;
-    domain: $Enums.QuestionDomain;
+    /**
+     * The rule that went short, when rules are being applied. `null` is the
+     * ordinary case now: a section draws from the whole bank, so a shortage is
+     * a property of the section and the bank, not of any rule.
+     */
+    ruleId: string | null;
+    domain: $Enums.QuestionDomain | null;
     subskill: string | null;
     difficulty: $Enums.QuestionDifficulty | null;
     required: number;
@@ -153,6 +177,8 @@ export class FixedSelectionError extends Error {
   }
 }
 
+/* Restore with the per-rule draw in `generateSelection`.
+
 /**
  * Which question tracks satisfy a requested track.
  *
@@ -160,7 +186,7 @@ export class FixedSelectionError extends Error {
  * qualifies. `BOTH` as a *request* means the rule does not care, and matches
  * anything except `CUSTOM` — a custom-track item is only ever served to a rule
  * that asks for it by name.
- */
+ *
 function tracksMatching(requested: $Enums.QuestionTrack | null): $Enums.QuestionTrack[] | null {
   if (requested === null) return null;
   if (requested === 'BOTH') return ['SCIENTIFIC', 'THEORETICAL', 'BOTH'];
@@ -183,15 +209,21 @@ function matchesRule(
 
   return true;
 }
+*/
 
 /**
  * Load every question that could be drawn for this exam version.
  *
- * One query for the whole attempt rather than one per rule: forty round trips
- * inside the creation transaction would hold locks for no benefit, and the
- * per-rule filtering is trivial once the rows are in memory. The candidate set
- * is narrowed by domain so the query stays proportional to the blueprint rather
- * than to the whole bank.
+ * One query for the whole attempt rather than one per section: round trips
+ * inside the creation transaction hold locks for no benefit, and the drawing is
+ * trivial once the rows are in memory.
+ *
+ * A blueprint version now reads the whole eligible bank. It used to be narrowed
+ * to the domains its rules named, which was proportional to the blueprint; the
+ * draw no longer looks at domains, so there is nothing to narrow by. Six small
+ * columns per published question is a cheap read at the size this bank is built
+ * for, and the alternative — a random page out of PostgreSQL — cannot be made
+ * reproducible from a seed, which is what makes a paper explainable afterwards.
  *
  * Ordered by id so the pool a seed draws from is stable. Without that, two runs
  * with the same seed could select different questions purely because PostgreSQL
@@ -232,15 +264,8 @@ export async function loadCandidatePool(
     });
   }
 
-  const domains = new Set<$Enums.QuestionDomain>();
-  for (const section of sections) {
-    for (const rule of section.blueprintRules) domains.add(rule.domain);
-  }
-
-  if (domains.size === 0) return [];
-
   return client.question.findMany({
-    where: { domain: { in: [...domains] }, ...eligible },
+    where: eligible,
     orderBy: { id: 'asc' },
     select,
   });
@@ -319,11 +344,16 @@ export function generateSelection(input: {
   sections: SectionInput[];
   pool: CandidateQuestion[];
   seed: number;
+  /**
+   * The simulator's track. Not read while blueprint rules are unapplied — a
+   * track nobody was asked to choose cannot narrow a draw — and kept on the
+   * input because every caller passes it and the per-rule path wants it back.
+   */
   defaultTrack: $Enums.QuestionTrack | null;
   /** Defaulted so every existing blueprint caller reads unchanged. */
   selectionMode?: $Enums.SelectionMode;
 }): SectionSelection[] {
-  const { sections, pool, seed, defaultTrack } = input;
+  const { sections, pool, seed } = input;
 
   if (input.selectionMode === 'FIXED') return selectFixed(sections, pool);
 
@@ -334,56 +364,45 @@ export function generateSelection(input: {
   const orderedSections = [...sections].sort((a, b) => a.position - b.position);
 
   for (const section of orderedSections) {
-    const rules = [...section.blueprintRules].sort((a, b) => a.position - b.position);
+    const required = section.questionCount;
 
-    const allocationRules: AllocationRule[] = rules.map((rule) => ({
-      percentage: rule.percentage,
-      countOverride: rule.questionCount,
-      position: rule.position,
-    }));
-    const { counts } = allocateByLargestRemainder(allocationRules, section.questionCount);
+    // The exclusion set spans the attempt, so section 2 draws from what section
+    // 1 left. Sections are walked in order for that reason: it is what makes the
+    // paper a function of the seed rather than of iteration order.
+    const eligible = pool.filter((question) => !used.has(question.id));
+
+    if (eligible.length < required) {
+      shortages.push({
+        examSectionId: section.id,
+        sectionPosition: section.position,
+        ruleId: null,
+        domain: null,
+        subskill: null,
+        difficulty: null,
+        required,
+        available: eligible.length,
+      });
+      continue;
+    }
+
+    // A stream per section, derived the way it was when rules existed
+    // (`position * 1_000` was the rule-less base), so a version's papers do not
+    // all change identity the moment rules stopped being read.
+    const random = createRandom(deriveSeed(seed, section.position * 1_000));
+    const drawn = sampleWithoutReplacement(eligible, required, random);
 
     const questions: SelectedQuestion[] = [];
-
-    rules.forEach((rule, ruleIndex) => {
-      const required = counts[ruleIndex]!;
-      if (required === 0) return;
-
-      const eligible = pool.filter(
-        (question) => !used.has(question.id) && matchesRule(question, rule, defaultTrack),
-      );
-
-      if (eligible.length < required) {
-        shortages.push({
-          examSectionId: section.id,
-          sectionPosition: section.position,
-          ruleId: rule.id,
-          domain: rule.domain,
-          subskill: rule.subskill,
-          difficulty: rule.difficulty,
-          required,
-          available: eligible.length,
-        });
-        return;
-      }
-
-      // A stream per rule: the draw for section 3 rule 5 does not move when an
-      // unrelated rule's allocation changes.
-      const random = createRandom(deriveSeed(seed, section.position * 1_000 + rule.position));
-      const drawn = sampleWithoutReplacement(eligible, required, random);
-
-      for (const question of drawn) {
-        used.add(question.id);
-        questions.push({ ...question, ruleId: rule.id });
-      }
-    });
+    for (const question of drawn) {
+      used.add(question.id);
+      questions.push({ ...question, ruleId: null });
+    }
 
     selections.push({ examSectionId: section.id, position: section.position, questions });
   }
 
-  // Collected across every rule rather than thrown at the first miss, so an
-  // administrator sees the whole gap in one report instead of fixing it eight
-  // times.
+  // Collected across every section rather than thrown at the first miss, so an
+  // administrator sees the whole gap in one report instead of fixing it a
+  // section at a time.
   if (shortages.length > 0) throw new QuestionShortageError(shortages);
 
   return selections;

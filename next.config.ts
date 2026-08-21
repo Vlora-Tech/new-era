@@ -1,6 +1,14 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  /*
+   * Emit `.next/standalone`: the server plus only the `node_modules` actually
+   * reached, so the runtime image carries neither the build toolchain nor the
+   * full dependency tree. It is what lets the final stage start from a bare
+   * Node base with three `COPY` lines and no `npm install`.
+   */
+  output: 'standalone',
+
   // Development only (ignored by `next build`): lets a browser on the LAN open
   // the dev server via this machine's network IP. Without it, Next.js blocks
   // cross-origin requests to /_next/* dev resources, so pages render but never

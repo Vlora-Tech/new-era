@@ -31,6 +31,7 @@ export const RATE_LIMITS = {
   login: { limit: 10, windowSeconds: 900, store: 'durable' },
   loginPerEmail: { limit: 5, windowSeconds: 900, store: 'durable' },
   register: { limit: 5, windowSeconds: 3_600, store: 'durable' },
+  contactMessage: { limit: 5, windowSeconds: 3_600, store: 'durable' },
   createOrder: { limit: 10, windowSeconds: 3_600, store: 'durable' },
   reconcilePayment: { limit: 6, windowSeconds: 600, store: 'durable' },
   playbackSession: { limit: 30, windowSeconds: 600, store: 'durable' },
@@ -46,6 +47,14 @@ export const RATE_LIMITS = {
   // durable counter would cost more than the abuse it prevents.
   examAttemptAction: { limit: 60, windowSeconds: 600, store: 'memory' },
   examAttemptRead: { limit: 240, windowSeconds: 60, store: 'memory' },
+  /*
+   * The lesson quiz. Far cheaper than an exam attempt — a handful of answer
+   * rows, no snapshot copy — so both budgets are in memory. The create limit is
+   * generous because a student may legitimately retake a short quiz several
+   * times in a sitting; it exists to bound a retry loop, not to ration practice.
+   */
+  lessonQuizAttemptCreate: { limit: 30, windowSeconds: 600, store: 'memory' },
+  lessonQuizAnswer: { limit: 60, windowSeconds: 60, store: 'memory' },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

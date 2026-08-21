@@ -3,14 +3,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import * as Dialog from '@radix-ui/react-dialog';
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, Flag, Loader2, LogOut } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ClipboardList,
+  Flag,
+  Info,
+  Loader2,
+  LogOut,
+  Timer,
+} from 'lucide-react';
 
 import { RichTextView } from '@/components/exam/question-content';
 import { Button } from '@/components/ui/button';
+import { ProgressBar } from '@/components/ui/progress';
 import { EXAM } from '@/lib/constants';
 import { COPY } from '@/lib/copy';
 import { formatDuration, formatNumber } from '@/lib/format';
 import { fillTemplate } from '@/lib/exam/template';
+import { richTextToPlain, type RichText } from '@/lib/exam/content';
 import type { AttemptStateView } from '@/services/exams/attempt-snapshot.service';
 import { cn } from '@/lib/utils';
 
@@ -62,6 +75,50 @@ function toAnswerMap(state: AttemptStateView): Map<string, LocalAnswer> {
       },
     ]),
   );
+}
+
+/**
+ * How large to set a question stem.
+ *
+ * A stem is not a headline of predictable length: «صفحة : كتاب ⟵ الأقرب في
+ * العلاقة» is eight words, and a reading-comprehension stem can run to four
+ * lines. Setting both at one size means either the short one looks like body
+ * text or the long one arrives as a wall of display type — which is what the
+ * mock did at clamp(26px…36px), and it is unreadable well before the longest
+ * stem in the bank.
+ *
+ * So the size is chosen from the stem itself. Three steps, not a continuous
+ * scale: a smooth function of length would make two adjacent questions differ
+ * by a pixel for no reason a reader could name, and the jump between questions
+ * would read as a rendering fault rather than as emphasis.
+ *
+ * `richTextToPlain` is documented as "never for display" — this only measures
+ * it. The real document still renders through `RichTextView`, as before.
+ */
+const STEM_LONG_CHARS = 120;
+const STEM_MEDIUM_CHARS = 60;
+
+/**
+ * The navigator's legend.
+ *
+ * The three grounds the question grid uses, named. It is a constant rather than
+ * three hand-written rows so a swatch and the cell it describes cannot drift
+ * apart — which is the failure mode of a legend, and a silent one.
+ */
+const LEGEND = [
+  { key: 'answered', swatch: 'bg-brand-700', label: COPY.exam.navigatorAnswered },
+  { key: 'blank', swatch: 'bg-line-200', label: COPY.exam.navigatorUnanswered },
+  { key: 'flagged', swatch: 'bg-warning', label: COPY.exam.navigatorFlagged },
+] as const;
+
+function stemClass(stem: RichText): string {
+  const length = richTextToPlain(stem).length;
+  // Long: body-sized and airy. The stem is a paragraph to be read, not scanned.
+  if (length > STEM_LONG_CHARS) return 'text-lead font-semibold';
+  // Medium: one step up, still comfortably a sentence.
+  if (length > STEM_MEDIUM_CHARS) return 'text-h3 font-semibold';
+  // Short: the prominence the mock wanted, reachable only when it actually fits.
+  return 'text-h2';
 }
 
 export function ExamWorkspace({ initialState }: { initialState: AttemptStateView }) {
@@ -403,134 +460,237 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
 
   return (
     <div className="bg-canvas flex min-h-dvh flex-col" aria-label={COPY.exam.workspaceLabel}>
-      {/* Quiet status bar: state without decoration, so it never competes with
-          the question for attention. */}
-      <header className="border-line-200 bg-surface sticky top-0 z-10 border-b">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 flex-col">
-            <span className="text-ink-900 truncate text-sm font-semibold">{section.title}</span>
-            <span className="text-ink-600 text-xs">
-              {fillTemplate(COPY.exam.sectionOfTotal, {
-                current: formatNumber(section.position),
-                total: formatNumber(state.sections.length),
+      {/*
+        The command bar.
+        ────────────────
+        Dark, and deliberately: this is the one screen in the product with no
+        site header, no rail and no footer, because a running clock makes every
+        navigation control a trap (see the route's `layout.tsx`). The band is
+        what separates the chrome the student must not touch from the paper they
+        are working on — the same field `marketing/course-cover.tsx` draws, used
+        here as a bounded strip rather than as a cover. Owner-authorised from the
+        approved canvas «صفحة الاختبار»; recorded in docs/design-system.md
+        § Exam workspace.
+
+        Everything in it is state, and every piece of that state is one the
+        previous bar already carried: section, save outcome, remaining time, way
+        out. Nothing here is decoration except the drift.
+      */}
+      <header className="from-cover-900 via-cover-800 to-cover-700 sticky top-0 z-20 overflow-hidden bg-linear-150 via-55%">
+        <span
+          aria-hidden="true"
+          className="cover-drift-a pointer-events-none absolute -top-40 -left-16 size-[460px] rounded-full"
+        />
+
+        <div className="relative mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-x-[clamp(16px,2.4vw,32px)] gap-y-3 px-4 py-3.5 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3.5">
+            <span
+              aria-hidden="true"
+              className="rounded-panel flex size-11 shrink-0 items-center justify-center border border-white/20 bg-white/10 text-white"
+            >
+              <ClipboardList className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-display truncate text-[16px] font-semibold text-white">
+                {section.title}
+              </p>
+              <p className="mt-0.5 text-[12px] text-white/70">
+                {fillTemplate(COPY.exam.sectionOfTotal, {
+                  current: formatNumber(section.position),
+                  total: formatNumber(state.sections.length),
+                })}
+                {' · '}
+                {COPY.statusLabels.attemptMode[state.attempt.mode]}
+              </p>
+            </div>
+          </div>
+
+          {remainingSec === null ? null : (
+            <p
+              className={cn(
+                // The warning threshold changes ground, border and glyph, and
+                // never blinks: a flashing clock is pressure, not information.
+                // The numerals stay white in both states — they are the
+                // information, and tinting them would make the warning depend on
+                // reading a colour.
+                'flex items-center gap-2.5 rounded-full border px-4 py-2 transition-colors duration-150',
+                remainingSec <= warningThreshold
+                  ? 'border-cover-amber/60 bg-cover-amber/15'
+                  : 'border-white/20 bg-white/10',
+              )}
+              // Announced on a slow cadence: a per-second live region would make
+              // the timer unusable with a screen reader.
+              aria-live="off"
+            >
+              <Timer
+                className={cn(
+                  'size-5 shrink-0',
+                  remainingSec <= warningThreshold ? 'text-cover-amber' : 'text-brand-300',
+                )}
+                aria-hidden="true"
+              />
+              <span className="min-w-0">
+                <span className="block text-[10.5px] leading-tight text-white/70">
+                  {COPY.exam.timeRemaining}
+                </span>
+                <bdi className="font-display block text-[19px] leading-tight font-bold text-white tabular-nums">
+                  <span dir="ltr">{formatDuration(remainingSec)}</span>
+                </bdi>
+              </span>
+            </p>
+          )}
+
+          {/*
+            A COUNT of answered questions, never a score, and that is why the
+            line beside the bar reads «٧ من ٢٤» rather than a percentage. The bar
+            is `aria-hidden` by contract, so the text is the accessible value.
+          */}
+          {/*
+            The bar itself is dropped below `sm`, and the count is not. At 390px
+            the bar forces a third row on a bar that is already sticky over the
+            question — a quarter of the viewport spent on a picture of a number
+            that is printed beside it. The figure rides along with the timer
+            instead, so nothing is lost but the drawing.
+          */}
+          <div className="flex max-w-[360px] flex-1 basis-auto items-center gap-3.5 sm:min-w-[180px] sm:basis-[220px]">
+            <ProgressBar
+              value={questions.length > 0 ? (answered / questions.length) * 100 : 0}
+              tone="bg-gradient-meter"
+              track="bg-white/15"
+              className="hidden flex-1 sm:block"
+            />
+            <span className="shrink-0 text-[12px] whitespace-nowrap text-white/75">
+              <span className="sr-only">{COPY.exam.answeredMeterLabel}: </span>
+              {fillTemplate(COPY.exam.answeredOfTotal, {
+                answered: formatNumber(answered),
+                total: formatNumber(questions.length),
               })}
             </span>
           </div>
 
-          {/* Position, not progress: no percentage is computed on this screen,
-              so the indicator stays an honest count in a quiet chip. */}
-          <p className="bg-surface-muted text-ink-700 rounded-full px-3 py-1 text-xs font-medium tabular-nums">
-            {fillTemplate(COPY.exam.questionOfTotal, {
-              current: formatNumber(index + 1),
-              total: formatNumber(questions.length),
-            })}
-          </p>
-
           <div className="ms-auto flex items-center gap-3">
             <SaveIndicator status={saveStatus} />
-            {remainingSec === null ? null : (
-              <p
-                className={cn(
-                  // The warning threshold changes ground and border, never
-                  // blinks: a flashing clock is pressure, not information.
-                  'rounded-control flex items-center gap-2 border px-2.5 py-1 text-sm font-semibold tabular-nums transition-colors duration-150',
-                  remainingSec <= warningThreshold
-                    ? 'border-warning/30 bg-warning-soft text-warning'
-                    : 'text-ink-900 border-transparent',
-                )}
-                // Announced on a slow cadence: a per-second live region would
-                // make the timer unusable with a screen reader.
-                aria-live="off"
-              >
-                {/* ink-700, not ink-600: this label also sits on the warning
-                    ground once the threshold is crossed. */}
-                <span className="text-ink-700 text-xs font-normal">{COPY.exam.timeRemaining}</span>
-                <bdi>
-                  <span dir="ltr">{formatDuration(remainingSec)}</span>
-                </bdi>
-              </p>
-            )}
-            <Button variant="ghost" size="sm" onClick={() => setExitOpen(true)}>
+            {/*
+              Not `Button variant="ghost"`: every variant in the system is
+              audited against a light ground, and the ghost's `ink-700` on navy
+              is illegible. This is the one control on the bar, so it is written
+              here rather than becoming a second on-cover button variant.
+            */}
+            <button
+              type="button"
+              onClick={() => setExitOpen(true)}
+              className="focus-visible:outline-brand-300 flex items-center gap-2 rounded-full border border-white/25 px-5 py-2.5 text-[13.5px] font-medium whitespace-nowrap text-white/90 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
               <LogOut className="size-4" aria-hidden="true" />
               {COPY.exam.exitAction}
-            </Button>
+            </button>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row-reverse lg:gap-8">
-        {/* Navigator: the current section only. There is no control here that
-            could reach a locked or a future section. */}
-        <nav
-          aria-label={COPY.exam.navigatorLabel}
-          className="rounded-panel border-line-200 bg-surface h-fit border p-4 lg:w-72"
-        >
-          <p className="text-ink-600 mb-3 text-xs">{COPY.exam.navigatorHint}</p>
-          {/* Auto-fill rather than a fixed column count: the cell floor is the
-              44px touch target, so the grid reflows instead of shrinking it. */}
-          <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2">
-            {questions.map((question, questionIndex) => {
-              const local = answers.get(question.id);
-              const isCurrent = questionIndex === index;
-              return (
-                <li key={question.id}>
-                  <button
-                    type="button"
-                    onClick={() => setIndex(questionIndex)}
-                    aria-current={isCurrent ? 'true' : undefined}
-                    aria-label={fillTemplate(COPY.exam.goToQuestion, {
-                      number: formatNumber(questionIndex + 1),
-                    })}
-                    className={cn(
-                      'rounded-control relative flex h-11 w-full items-center justify-center border text-sm tabular-nums transition-colors duration-150',
-                      'focus-visible:outline-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2',
-                      // Answered carries a ground *and* a weight; current adds a
-                      // ring; flagged adds the corner mark. No state is colour alone.
-                      local?.selectedOptionKey
-                        ? 'border-brand-700 bg-brand-100 text-brand-700 font-semibold'
-                        : 'border-line-200 bg-surface text-ink-700 hover:border-brand-500/50 hover:bg-brand-50',
-                      isCurrent && 'outline-brand-500 outline-2 outline-offset-2',
+      <div className="mx-auto grid w-full max-w-[1320px] flex-1 grid-cols-1 items-start gap-[clamp(18px,2.2vw,30px)] px-4 py-[clamp(18px,2.4vw,32px)] sm:px-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+        {/*
+          The map, at the inline start, sticky beside the paper. On a phone it
+          moves below the question: a grid of 24 cells above the stem would push
+          the thing being asked off the first screen.
+        */}
+        <div className="order-2 flex flex-col gap-3.5 lg:sticky lg:top-[104px] lg:order-1">
+          <nav
+            aria-label={COPY.exam.navigatorLabel}
+            className="rounded-shell border-line-200 bg-surface shadow-card overflow-hidden border"
+          >
+            <div className="border-line-200 from-brand-50 to-surface flex items-center justify-between gap-2.5 border-b bg-linear-150 px-4 py-4">
+              <h2 className="text-h4 text-ink-900">{COPY.exam.navigatorTitle}</h2>
+              <span className="text-ink-600 shrink-0 text-[11.5px]">{COPY.exam.navigatorHint}</span>
+            </div>
+
+            {/*
+              Auto-fill rather than the canvas's fixed five columns: the cell
+              floor is the 44px touch target and the grid reflows instead of
+              shrinking below it. The canvas draws 40px cells, which is under it.
+            */}
+            <ol className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2 px-4 py-4">
+              {questions.map((question, questionIndex) => {
+                const local = answers.get(question.id);
+                const isCurrent = questionIndex === index;
+                return (
+                  <li key={question.id}>
+                    <button
+                      type="button"
+                      onClick={() => setIndex(questionIndex)}
+                      aria-current={isCurrent ? 'true' : undefined}
+                      aria-label={fillTemplate(COPY.exam.goToQuestion, {
+                        number: formatNumber(questionIndex + 1),
+                      })}
+                      className={cn(
+                        'rounded-control font-display relative flex h-11 w-full items-center justify-center border text-[13.5px] tabular-nums transition-colors duration-150',
+                        'focus-visible:outline-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2',
+                        // Answered carries a ground *and* a weight; current adds
+                        // a ring; flagged adds the corner mark. No state here is
+                        // carried by colour alone.
+                        local?.selectedOptionKey
+                          ? 'border-brand-200 bg-brand-100 text-brand-700 font-semibold'
+                          : 'border-line-200 bg-canvas text-ink-700 hover:border-brand-500/50 hover:bg-brand-50',
+                        isCurrent && 'outline-brand-500 outline-2 outline-offset-2',
+                      )}
+                    >
+                      {formatNumber(questionIndex + 1)}
+                      {local?.flagged ? (
+                        <Flag
+                          className="text-warning absolute end-1 top-1 size-3 fill-current"
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {/*
+              The legend earns its swatches: the grid above encodes three states
+              as grounds, and this is where those grounds are named. The count
+              beside each one is what keeps the meaning off colour alone.
+            */}
+            <dl className="border-line-200 bg-canvas flex flex-col gap-3 border-t px-4 py-4 text-[13px]">
+              {LEGEND.map((row) => (
+                <div key={row.key} className="flex items-center justify-between gap-2.5">
+                  <dt className="text-ink-700 flex items-center gap-2">
+                    <span aria-hidden="true" className={cn('size-3 rounded-[4px]', row.swatch)} />
+                    {row.label}
+                  </dt>
+                  <dd className="font-display text-ink-900 font-semibold tabular-nums">
+                    {formatNumber(
+                      row.key === 'answered'
+                        ? answered
+                        : row.key === 'blank'
+                          ? unanswered
+                          : flaggedCount,
                     )}
-                  >
-                    {formatNumber(questionIndex + 1)}
-                    {local?.flagged ? (
-                      <Flag
-                        className="text-warning absolute end-1 top-1 size-3 fill-current"
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </nav>
 
-          <dl className="border-line-200 text-ink-700 mt-4 flex flex-col gap-1.5 border-t pt-3 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <dt>{COPY.exam.navigatorAnswered}</dt>
-              <dd className="text-ink-900 font-semibold tabular-nums">{formatNumber(answered)}</dd>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <dt>{COPY.exam.navigatorUnanswered}</dt>
-              <dd className="text-ink-900 font-semibold tabular-nums">
-                {formatNumber(unanswered)}
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <dt>{COPY.exam.navigatorFlagged}</dt>
-              <dd className="text-ink-900 font-semibold tabular-nums">
-                {formatNumber(flaggedCount)}
-              </dd>
-            </div>
-          </dl>
-        </nav>
+          {/*
+            The consequence, stated beside the control rather than only inside
+            the dialog the control opens — the same sentence the confirmation
+            shows, on purpose. A warning a student first meets in a modal is a
+            warning they read while already committed.
+          */}
+          <p className="rounded-card border-line-200 bg-brand-50/70 text-ink-700 flex items-start gap-2.5 border border-dashed p-4 text-[12.5px] leading-[1.75]">
+            <Info className="text-brand-700 mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            {isLastSection ? COPY.exam.submitWarning : COPY.exam.advanceWarning}
+          </p>
+        </div>
 
-        <main className="flex min-w-0 flex-1 flex-col gap-6">
+        <main className="order-1 flex min-w-0 flex-col gap-[clamp(14px,1.8vw,22px)] lg:order-2">
           {/* The stimulus is a flat panel and the question is an elevated one:
               the reader can tell reference material from the thing being asked
               without reading either. */}
           {current.content.stimulus ? (
-            <section className="rounded-panel border-line-200 bg-surface border p-5 sm:p-6">
+            <section className="rounded-shell border-line-200 bg-surface border p-5 sm:p-6">
               <h2 className="text-ink-600 border-line-200 mb-3 border-b pb-2 text-xs font-semibold">
                 {current.content.stimulus.title ?? COPY.exam.passageLabel}
               </h2>
@@ -538,101 +698,175 @@ export function ExamWorkspace({ initialState }: { initialState: AttemptStateView
             </section>
           ) : null}
 
-          <section className="rounded-panel border-line-200 bg-surface shadow-card flex flex-col gap-5 border p-5 sm:p-6">
-            {/* The lead step rather than the display h3: a stem runs to several
-                lines, and 1.85 line-height is what makes those lines readable. */}
-            <RichTextView
-              document={current.content.stem}
-              paragraphClassName="text-lead font-semibold"
-            />
-
-            {current.hint ? (
-              <div className="rounded-control border-brand-700/20 bg-brand-50 border p-4">
-                <p className="text-brand-700 mb-1 text-xs font-semibold">{COPY.exam.hintLabel}</p>
-                <RichTextView document={current.hint} paragraphClassName="text-sm" />
+          <section className="rounded-plate border-line-200 bg-surface shadow-card-lg overflow-hidden border">
+            <div className="border-line-200 flex flex-wrap items-center justify-between gap-3.5 border-b px-[clamp(18px,2.4vw,34px)] py-4">
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="bg-brand-700 rounded-control font-display flex size-[34px] shrink-0 items-center justify-center text-[14px] font-bold text-white tabular-nums"
+                >
+                  {formatNumber(index + 1)}
+                </span>
+                {/* Position, not progress: the figure is stated in words beside
+                    the chip, so the numeral is not the only way to find it. */}
+                <p className="text-ink-700 text-[13px]">
+                  {fillTemplate(COPY.exam.questionOfTotal, {
+                    current: formatNumber(index + 1),
+                    total: formatNumber(questions.length),
+                  })}
+                  {' · '}
+                  {section.title}
+                </p>
               </div>
-            ) : null}
 
-            <fieldset className="flex flex-col gap-2">
-              <legend className="sr-only">{COPY.exam.optionsLabel}</legend>
-              {current.content.options.map((option) => {
-                const checked = currentAnswer?.selectedOptionKey === option.key;
-                return (
-                  <label
-                    key={option.key}
-                    className={cn(
-                      // rest → hover → selected, one 150ms colour step apart, on a
-                      // 52px target. Selection is border + ground + weight.
-                      'rounded-control flex min-h-13 cursor-pointer items-start gap-3 border p-3.5 transition-colors duration-150',
-                      'has-[:focus-visible]:outline-brand-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2',
-                      checked
-                        ? 'border-brand-700 bg-brand-100 font-semibold'
-                        : 'border-line-200 bg-surface hover:border-brand-500/50 hover:bg-brand-50',
-                    )}
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${current.id}`}
-                      value={option.key}
-                      checked={checked}
-                      onChange={() => selectOption(current.id, option.key)}
-                      className="accent-brand-700 mt-1 size-4 shrink-0"
-                    />
-                    <RichTextView document={option.content} className="gap-1" />
-                  </label>
-                );
-              })}
-            </fieldset>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Button
-                variant={currentAnswer?.flagged ? 'secondary' : 'outline'}
-                size="sm"
+              {/*
+                The flag moved up here from under the options, which is where the
+                canvas puts it and where it belongs: it marks the question, and
+                putting it after the answers implied it was a step that followed
+                answering. The label still names the ACTION rather than the state
+                — «إزالة العلامة», not «معلّم» — because a toggle whose label
+                becomes a statement leaves nobody sure what pressing it does.
+                `aria-pressed` carries the state, the ochre ground repeats it.
+              */}
+              <button
+                type="button"
                 onClick={() => toggleFlag(current.id)}
                 aria-pressed={currentAnswer?.flagged ?? false}
+                className={cn(
+                  'focus-visible:outline-brand-500 flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2',
+                  currentAnswer?.flagged
+                    ? 'border-warning/40 bg-warning-soft text-warning'
+                    : 'border-line-200 bg-surface text-ink-700 hover:border-brand-500/40 hover:bg-brand-50 hover:text-brand-700',
+                )}
               >
                 <Flag
                   className={cn('size-4', currentAnswer?.flagged && 'fill-current')}
                   aria-hidden="true"
                 />
                 {currentAnswer?.flagged ? COPY.exam.unflagAction : COPY.exam.flagAction}
-              </Button>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-6 px-[clamp(18px,2.4vw,34px)] py-[clamp(24px,3vw,40px)]">
+              {/* Held to a readable measure as well as a size: a 36px line
+                  running the full width of a 1320px column is two problems. */}
+              <RichTextView
+                document={current.content.stem}
+                className="measure-ar-lg"
+                paragraphClassName={stemClass(current.content.stem)}
+              />
+
+              {current.hint ? (
+                <div className="rounded-card border-brand-700/20 bg-brand-50 measure-ar-lg border p-4">
+                  <p className="text-brand-700 mb-1 text-xs font-semibold">{COPY.exam.hintLabel}</p>
+                  <RichTextView document={current.hint} paragraphClassName="text-sm" />
+                </div>
+              ) : null}
+
+              <fieldset className="measure-ar-lg flex flex-col gap-2.5">
+                <legend className="sr-only">{COPY.exam.optionsLabel}</legend>
+                {current.content.options.map((option, optionIndex) => {
+                  const checked = currentAnswer?.selectedOptionKey === option.key;
+                  return (
+                    <label
+                      key={option.key}
+                      /*
+                       * `relative` is load-bearing: the input below is `sr-only`,
+                       * which is absolutely positioned, and an absolutely
+                       * positioned box inside an unpositioned ancestor escapes to
+                       * the nearest one that is — widening the page.
+                       */
+                      className={cn(
+                        'rounded-card relative flex min-h-14 cursor-pointer items-center gap-3.5 border px-5 py-4 transition-[color,background-color,border-color,box-shadow] duration-150',
+                        'has-[:focus-visible]:outline-brand-500 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2',
+                        checked
+                          ? 'border-brand-700 bg-brand-50 shadow-xs'
+                          : 'border-line-200 bg-surface hover:border-brand-500/50 hover:bg-brand-50/60',
+                      )}
+                    >
+                      {/*
+                        The radio is HIDDEN, not removed. The canvas draws each
+                        option as a plain `div` with a click handler, which is
+                        unreachable by keyboard and silent to a screen reader —
+                        on the one screen in the product where a missed input
+                        costs a mark. This keeps a real radio group: arrow keys
+                        still move between options, `name` still groups them, and
+                        the lettered chip is that radio's rendering.
+                      */}
+                      <input
+                        type="radio"
+                        name={`question-${current.id}`}
+                        value={option.key}
+                        checked={checked}
+                        onChange={() => selectOption(current.id, option.key)}
+                        className="sr-only"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          'rounded-control font-display flex size-[34px] shrink-0 items-center justify-center border text-[13.5px] font-semibold transition-colors duration-150',
+                          checked
+                            ? 'border-brand-700 bg-brand-700 text-white'
+                            : 'border-line-200 bg-canvas text-ink-700',
+                        )}
+                      >
+                        {COPY.exam.optionLetters[optionIndex] ?? COPY.exam.optionKeyFallback}
+                      </span>
+                      <RichTextView
+                        document={option.content}
+                        className="min-w-0 flex-1 gap-1"
+                        paragraphClassName={cn(
+                          'text-[16px]',
+                          checked && 'text-brand-900 font-semibold',
+                        )}
+                      />
+                    </label>
+                  );
+                })}
+              </fieldset>
             </div>
           </section>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Forward is left in RTL, so back points right. */}
-            <Button
-              variant="outline"
-              onClick={() => setIndex((value) => Math.max(0, value - 1))}
-              disabled={index === 0}
-            >
-              <ArrowRight className="size-4" aria-hidden="true" />
-              {COPY.exam.previousQuestion}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIndex((value) => Math.min(questions.length - 1, value + 1))}
-              disabled={index >= questions.length - 1}
-            >
-              {COPY.exam.nextQuestion}
-              <ArrowLeft className="size-4" aria-hidden="true" />
-            </Button>
-
-            <Button className="ms-auto" onClick={() => setAdvanceOpen(true)}>
-              {isLastSection ? COPY.exam.submitAction : COPY.exam.advanceAction}
-            </Button>
-          </div>
 
           {saveStatus === 'error' ? (
             <p
               role="alert"
-              className="rounded-control border-error/30 bg-error-soft text-error flex items-start gap-2 border p-3 text-sm font-medium"
+              className="rounded-card border-error/30 bg-error-soft text-error flex items-start gap-2 border p-4 text-sm font-medium"
             >
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               {COPY.exam.saveFailedBody}
             </p>
           ) : null}
+
+          <div className="flex flex-wrap items-center justify-between gap-3.5">
+            <div className="flex flex-wrap gap-2.5">
+              {/* Forward is left in RTL, so back points right. */}
+              <Button
+                variant="outline"
+                shape="pill"
+                size="lg"
+                onClick={() => setIndex((value) => Math.max(0, value - 1))}
+                disabled={index === 0}
+              >
+                <ArrowRight className="size-4" aria-hidden="true" />
+                {COPY.exam.previousQuestion}
+              </Button>
+              <Button
+                variant="outline"
+                shape="pill"
+                size="lg"
+                onClick={() => setIndex((value) => Math.min(questions.length - 1, value + 1))}
+                disabled={index >= questions.length - 1}
+              >
+                {COPY.exam.nextQuestion}
+                <ArrowLeft className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
+
+            <Button variant="gradient" shape="pill" size="lg" onClick={() => setAdvanceOpen(true)}>
+              {isLastSection ? COPY.exam.submitAction : COPY.exam.advanceAction}
+              <ArrowLeft className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
         </main>
       </div>
 
@@ -708,12 +942,22 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       className={cn(
         // A chip, so the three outcomes read as one control changing state
         // rather than three different pieces of text appearing in the bar.
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors duration-150',
+        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors duration-150',
+        /*
+         * These are the on-cover values, because the bar this sits in is navy.
+         * The system's soft grounds are audited against white and would land
+         * here as three pale stickers on a dark strip.
+         *
+         * The failure is the exception, and deliberately: it is SOLID `error`
+         * with white text at 5.86:1, not a tinted glass like its neighbours,
+         * because an unsaved answer does not count and this is the loudest the
+         * screen can be without an interrupting announcement.
+         */
         status === 'error'
-          ? 'bg-error-soft text-error'
+          ? 'bg-error border-error text-white'
           : status === 'saved'
-            ? 'bg-success-soft text-success'
-            : 'bg-surface-muted text-ink-700',
+            ? 'border-cover-mint/40 bg-cover-mint/15 text-cover-mint'
+            : 'border-white/20 bg-white/10 text-white/85',
       )}
     >
       {content}

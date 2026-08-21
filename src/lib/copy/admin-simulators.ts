@@ -126,7 +126,7 @@ export const ADMIN_SIMULATORS_COPY = {
       },
       selectionMode: {
         label: 'طريقة اختيار الأسئلة',
-        hint: 'القائمة الثابتة تعني أسئلة بعينها لكل طالب. القواعد تعني توليد مجموعة مختلفة لكل محاولة وفق نِسَب المهارات.',
+        hint: 'القائمة الثابتة تعني أسئلة بعينها لكل طالب. السحب من البنك يعني اختيار عدد أسئلة كل قسم عشوائيًا من الأسئلة المنشورة عند بدء كل محاولة.',
       },
       totalQuestions: {
         label: 'إجمالي عدد الأسئلة',
@@ -311,6 +311,20 @@ export const ADMIN_SIMULATORS_COPY = {
     title: 'قواعد اختيار الأسئلة',
     description:
       'تصف القواعد ما الذي يجب أن يحتويه القسم: أي مهارة، وأي مستوى صعوبة، وبأي نسبة. تُطبَّق عند بدء كل محاولة على الأسئلة المنشورة وقتها.',
+
+    /**
+     * What a section does now that the rules are stored and unapplied.
+     *
+     * Stated on the section itself, not only in the coverage panel: the editor
+     * used to show a rule table here, and an empty space where a table was would
+     * read as "nothing decides this section" — which is the one thing it is not.
+     */
+    bankDraw: {
+      title: 'اختيار الأسئلة',
+      description:
+        'يسحب هذا القسم {count} من الأسئلة المنشورة في البنك عند بدء كل محاولة. تختلف الأسئلة بين محاولة وأخرى، ولا يتكرّر السؤال الواحد داخل المحاولة.',
+      questionCountUnit: 'سؤالًا',
+    },
     createAction: 'قاعدة جديدة',
     createTitle: 'إضافة قاعدة',
     editTitle: 'تعديل القاعدة',
@@ -363,17 +377,21 @@ export const ADMIN_SIMULATORS_COPY = {
      */
     coverage: {
       title: 'التحقق من التغطية',
-      description: 'يقارن ما تطلبه القواعد بما هو منشور فعلًا في البنك الآن.',
+      description: 'يقارن ما يحتاجه هذا الإصدار بما هو منشور فعلًا في البنك الآن.',
       runAction: 'تحقّق من التغطية',
       running: 'جارٍ التحقق…',
       requiredLabel: 'المطلوب',
       availableLabel: 'المتاح',
+      /** The bank read as a whole, now that a section draws from all of it. */
+      bankSizeLabel: 'المنشور في البنك',
       shortfallLabel: 'النقص',
+      /** One row per section: what it will draw when a student starts. */
+      sectionDrawLabel: 'يسحب',
       okTitle: 'التغطية كافية',
       okBody: 'يوجد في البنك ما يكفي من الأسئلة المنشورة لتوليد كل قسم في هذا الإصدار.',
       shortageTitle: 'التغطية غير كافية',
       shortageBody:
-        'لا توجد أسئلة منشورة كافية لبعض القواعد. المحاولة التي تعتمد عليها ستفشل عند التوليد، فانشر أسئلة إضافية أو خفّف القواعد.',
+        'عدد الأسئلة المنشورة في البنك أقل ممّا يحتاجه هذا الإصدار. المحاولة ستفشل عند التوليد، فانشر أسئلة إضافية أو أنقص عدد أسئلة الأقسام.',
       /**
        * A `FIXED` version has no rules to satisfy — its questions are named one
        * by one. Saying so is better than showing an empty "كافية" panel, which
@@ -423,10 +441,16 @@ export const ADMIN_SIMULATORS_COPY = {
     RETIRED: 'مسحوب من الخدمة',
   },
 
-  /** `SelectionMode`. */
+  /**
+   * `SelectionMode`.
+   *
+   * `BLUEPRINT` used to read «قواعد اختيار». It draws a section's question count
+   * from the whole published bank now — the rules are stored and unapplied — so
+   * the label says what happens rather than what the column is called.
+   */
   selectionModeLabels: {
     FIXED: 'قائمة أسئلة ثابتة',
-    BLUEPRINT: 'قواعد اختيار',
+    BLUEPRINT: 'سحب من البنك',
   },
 
   /**

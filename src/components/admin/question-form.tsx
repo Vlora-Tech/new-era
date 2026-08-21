@@ -25,6 +25,7 @@ import { COPY } from '@/lib/copy';
 import { cn } from '@/lib/utils';
 import {
   createQuestionSchema,
+  HIDDEN_CLASSIFICATION_DEFAULTS,
   type CreateQuestionFormValues,
   type CreateQuestionInput,
 } from '@/validators/admin-question';
@@ -45,16 +46,40 @@ import {
  *     none — that the schema and a partial unique index in PostgreSQL both
  *     refuse. A control that cannot express an invalid state is better than a
  *     message explaining one.
- *  2. **`domain` and `rightsDeclaration` open empty.** Every other field has a
- *     defensible default; these two do not. A pre-selected skill silently
- *     misfiles the item in the simulator's blueprint, and a pre-selected rights
- *     declaration would have the platform assert originality on an author's
- *     behalf — which is precisely the assertion
- *     `docs/content-and-legal-checklist.md` requires a person to make.
+ *  2. **`rightsDeclaration` opens empty.** Every other field has a defensible
+ *     default; this one does not. A pre-selected rights declaration would have
+ *     the platform assert originality on an author's behalf — which is precisely
+ *     the assertion `docs/content-and-legal-checklist.md` requires a person to
+ *     make.
  *  3. **Nothing here can publish.** The schema has no `workflow` field, so the
  *     form cannot carry one. Review and publication live in
  *     `QuestionWorkflowPanel` below, against a different endpoint, with their own
  *     audit rows.
+ *
+ * ── The classification section is hidden ────────────────────────────────────
+ *
+ * Skill, sub-skill, track, difficulty, estimated time and tags were taken off
+ * this form at the client's request: a teacher writing a question should be
+ * asked for a question, not for a taxonomy. The section is commented out rather
+ * than deleted — it is a product decision that may be reversed, and the markup
+ * it needs back is the markup that was working.
+ *
+ * What still happens to those columns:
+ *
+ *  - An **existing** question keeps its own values. They stay in the form's
+ *    `defaultValues`, and react-hook-form submits its value tree, not only the
+ *    fields that rendered — so editing a seeded, classified question does not
+ *    quietly flatten it.
+ *  - A **new** question is written with `HIDDEN_CLASSIFICATION_DEFAULTS`
+ *    (`src/validators/admin-question.ts`), because the columns are `NOT NULL`.
+ *    Those are placeholders, and the screens that would have displayed them —
+ *    the bank's list columns and filters, the student's result breakdown, the
+ *    administration attempt record — are commented out in step with this one.
+ *
+ * To restore: uncomment the `classification` section below and its `DOMAINS` /
+ * `DIFFICULTIES` / `TRACKS` lists, then the matching blocks in
+ * `question-list.tsx`, `exam-results.tsx`, `attempt-detail.tsx` and
+ * `exam-version-editor.tsx`. No migration is involved, in either direction.
  */
 
 type Domain = CreateQuestionInput['domain'];
@@ -102,7 +127,8 @@ async function send(url: string, method: string, body?: unknown): Promise<ApiEnv
   return (await response.json()) as ApiEnvelope;
 }
 
-/** Tags are typed as one line. Both commas are accepted; Arabic keyboards send `،`. */
+/* Restore with the classification section.
+/** Tags are typed as one line. Both commas are accepted; Arabic keyboards send `،`. *
 function splitTags(value: string): string[] {
   const seen = new Set<string>();
   for (const raw of value.split(/[,،]/)) {
@@ -111,6 +137,7 @@ function splitTags(value: string): string[] {
   }
   return [...seen];
 }
+*/
 
 /**
  * The label on a select's "nothing chosen" row.
@@ -122,9 +149,11 @@ function splitTags(value: string): string[] {
  */
 const UNCHOSEN = COPY.adminCommon.form.unchosen;
 
+/* Restore with the classification section.
 const DOMAINS = Object.keys(COPY.adminQuestions.domainLabels) as Domain[];
 const DIFFICULTIES = Object.keys(COPY.adminQuestions.difficultyLabels) as Difficulty[];
 const TRACKS = Object.keys(COPY.adminQuestions.trackLabels) as Track[];
+*/
 const RIGHTS = Object.keys(COPY.adminQuestions.rightsLabels) as Rights[];
 
 /**
@@ -168,12 +197,13 @@ const EMPTY_INITIAL: QuestionFormInitial = {
     { content: '', isCorrect: true },
     { content: '', isCorrect: false },
   ],
-  // Cast for the same reason the registration form casts its consent box: the
-  // schema's type says a skill has been chosen, and "not yet chosen" is a state
-  // the form has to be able to hold on the way to being rejected.
-  domain: '' as unknown as Domain,
-  difficulty: 'MEDIUM',
-  track: 'BOTH',
+  // No longer "not yet chosen": nothing on this form asks, so a new question is
+  // written with the placeholders the `NOT NULL` columns need. Restoring the
+  // classification section means restoring `'' as unknown as Domain` here, so
+  // that an unanswered required select is rejected rather than silently filed.
+  domain: HIDDEN_CLASSIFICATION_DEFAULTS.domain,
+  difficulty: HIDDEN_CLASSIFICATION_DEFAULTS.difficulty,
+  track: HIDDEN_CLASSIFICATION_DEFAULTS.track,
   subskill: null,
   explanation: null,
   hint: null,
@@ -422,10 +452,59 @@ export function QuestionForm({
           <FieldHint>{COPY.adminQuestions.fields.shuffleOptions.hint}</FieldHint>
         </Field>
 
+        {/*
+          The companion material moved here when the classification section was
+          hidden. It never belonged with the taxonomy anyway: a passage, a table
+          or a figure is part of what the student reads, and a reading-
+          comprehension item without one is not a classified question — it is an
+          unfinished one.
+        */}
+        <Field>
+          <Label htmlFor="stimulusId">
+            {COPY.adminQuestions.fields.stimulus.label}
+            <OptionalMark />
+          </Label>
+          <Select
+            id="stimulusId"
+            aria-describedby="stimulus-hint"
+            aria-invalid={Boolean(errors.stimulusId)}
+            {...register('stimulusId', {
+              setValueAs: (value: unknown) => (value === '' ? null : (value as string)),
+            })}
+          >
+            <option value="">{UNCHOSEN}</option>
+            {stimuli.map((stimulus) => (
+              <option key={stimulus.id} value={stimulus.id}>
+                {COPY.adminQuestions.stimulusTypeLabels[stimulus.type]}
+                {stimulus.title ? ` — ${stimulus.title}` : ''}
+              </option>
+            ))}
+          </Select>
+          <FieldHint id="stimulus-hint">{COPY.adminQuestions.fields.stimulus.hint}</FieldHint>
+          <FieldError message={errors.stimulusId?.message} />
+        </Field>
+
         <Notice tone="neutral" role="note">
           {COPY.adminQuestions.notices.correctAnswerHidden}
         </Notice>
       </Section>
+
+      {/*
+        The classification section, hidden at the client's request: skill,
+        difficulty, track, sub-skill, estimated time and tags. A teacher adding
+        content should be asked for the question, not for the taxonomy around it,
+        and nothing the student is shown depends on any of these six.
+
+        Uncommenting this block restores the section exactly as it worked. Two
+        notes for whoever does:
+
+          - The companion-material picker used to close this section. It moved
+            into the content section above — it is part of what the student
+            reads, not a classification — and should stay there.
+          - `EMPTY_INITIAL.domain` above becomes `'' as unknown as Domain` again,
+            so an unanswered required select is refused rather than filed under
+            the placeholder; `splitTags`, `DOMAINS`, `DIFFICULTIES` and `TRACKS`
+            come back with it.
 
       <Section title={COPY.adminQuestions.sections.classification}>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -554,32 +633,8 @@ export function QuestionForm({
             <FieldError message={errors.tags?.message ?? errors.tags?.root?.message} />
           </Field>
         </div>
-
-        <Field>
-          <Label htmlFor="stimulusId">
-            {COPY.adminQuestions.fields.stimulus.label}
-            <OptionalMark />
-          </Label>
-          <Select
-            id="stimulusId"
-            aria-describedby="stimulus-hint"
-            aria-invalid={Boolean(errors.stimulusId)}
-            {...register('stimulusId', {
-              setValueAs: (value: unknown) => (value === '' ? null : (value as string)),
-            })}
-          >
-            <option value="">{UNCHOSEN}</option>
-            {stimuli.map((stimulus) => (
-              <option key={stimulus.id} value={stimulus.id}>
-                {COPY.adminQuestions.stimulusTypeLabels[stimulus.type]}
-                {stimulus.title ? ` — ${stimulus.title}` : ''}
-              </option>
-            ))}
-          </Select>
-          <FieldHint id="stimulus-hint">{COPY.adminQuestions.fields.stimulus.hint}</FieldHint>
-          <FieldError message={errors.stimulusId?.message} />
-        </Field>
       </Section>
+      */}
 
       <Section title={COPY.adminQuestions.sections.guidance}>
         <Field>

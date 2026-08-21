@@ -43,7 +43,7 @@ export function CoursePlayerMockup() {
                   )}
                 >
                   {state === 'done' ? (
-                    <IconTick className="text-accent-green size-3.5 shrink-0" />
+                    <IconTick className="text-success-fill size-3.5 shrink-0" />
                   ) : null}
                   {state === 'playing' ? (
                     <IconPlay className="text-brand-700 size-3.5 shrink-0" />
@@ -77,10 +77,12 @@ export function CoursePlayerMockup() {
             <span className="text-ink-600 text-[12px] whitespace-nowrap">
               {MOCK.resumePosition}
             </span>
-            <span className="text-brand-700 text-[12px] font-semibold tabular-nums">34%</span>
+            <span className="text-brand-700 text-[12px] font-semibold tabular-nums">
+              {MOCK.lessonProgressValue}
+            </span>
           </div>
           <div className="bg-surface-muted mt-1.5 h-[6px] overflow-hidden rounded-full">
-            <div className="bg-gradient-brand-deep h-full w-[34%] rounded-full" />
+            <div className="bg-gradient-meter h-full w-[34%] rounded-full" />
           </div>
 
           <div className="mt-3.5 flex flex-wrap items-center gap-2">

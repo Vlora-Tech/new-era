@@ -55,6 +55,54 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(LOCALE).format(value);
 }
 
+/**
+ * A counted noun, in Arabic, which has six forms rather than two.
+ *
+ * English gets away with `${n} lesson(s)`. Arabic does not: «١ دروس» and
+ * «٢ دروس» are both wrong, and the correct forms are «درس واحد» and «درسان»,
+ * with the numeral disappearing entirely. Three to ten take the plural
+ * («٣ دروس»), eleven to ninety-nine take the singular in the accusative
+ * («١١ درسًا»), and a hundred takes the plain singular again.
+ *
+ * The category is chosen by `Intl.PluralRules`, which already encodes exactly
+ * this table for `ar`, rather than by a hand-written ladder that would be one
+ * more place for the rule to be got wrong. `{count}` in a form is replaced with
+ * the Arabic-Indic numeral; the `one` and `two` forms deliberately have no
+ * placeholder, because the word carries the number.
+ *
+ * The catalogue CARD does not use this — it prints a plural next to a numeral
+ * and says so in `copy.ts`. That was a fair trade for a line of chrome in a
+ * grid; it is not a fair trade for a course page's own summary line.
+ */
+export type ArabicCount = {
+  one: string;
+  two: string;
+  /** 3–10, e.g. `{count} دروس`. */
+  few: string;
+  /** 11–99, e.g. `{count} درسًا`. */
+  many: string;
+  /** 0, 100+, and anything the table above does not name. */
+  other: string;
+};
+
+const ARABIC_PLURAL_RULES = new Intl.PluralRules(LOCALE);
+
+export function formatCount(value: number, forms: ArabicCount): string {
+  const count = Math.trunc(Math.abs(value));
+
+  const form =
+    {
+      one: forms.one,
+      two: forms.two,
+      few: forms.few,
+      many: forms.many,
+      zero: forms.other,
+      other: forms.other,
+    }[ARABIC_PLURAL_RULES.select(count)] ?? forms.other;
+
+  return form.replace('{count}', formatNumber(count));
+}
+
 /** Format a ratio as an Arabic percentage, e.g. `٧٥٪`. */
 export function formatPercent(value: number, fractionDigits = 0): string {
   return new Intl.NumberFormat(LOCALE, {
@@ -83,6 +131,22 @@ export function formatDateTime(value: Date | string): string {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+}
+
+/**
+ * Format the clock alone, in Riyadh time, e.g. `١:٢٨ م`.
+ *
+ * For a list whose rows are all from the same day — the overview's activity
+ * strip — where repeating the date on every row prints one word six times.
+ * Anywhere the rows can span days, `formatDateTime` is the honest choice.
+ */
+export function formatTime(value: Date | string): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  return new Intl.DateTimeFormat(GREGORIAN_LOCALE, {
+    timeZone: RIYADH_TIME_ZONE,
     hour: 'numeric',
     minute: '2-digit',
   }).format(date);

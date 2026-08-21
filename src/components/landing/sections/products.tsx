@@ -1,152 +1,205 @@
 import Link from 'next/link';
 
-import { Button } from '@/components/ui/button';
+import { CourseCover, type CoverImage } from '@/components/marketing/course-cover';
 import { COPY } from '@/lib/copy';
+import { prisma } from '@/lib/db';
+import { formatNumber } from '@/lib/format';
+import { mediaAssetUrl } from '@/services/media/media.service';
 
-import {
-  IconDevices,
-  IconForward,
-  IconHistory,
-  IconPermanent,
-  IconProducts,
-  IconUnlocked,
-} from '../icons';
-import { CheckList, GlyphTile, revealDelay, SectionIntro, SectionShell } from '../parts';
+import { IconForward, IconLearn } from '../icons';
+import { PlateCard, SectionIntro, SectionShell } from '../parts';
 
 /**
- * The two products, and the one-purchase promise.
+ * §products — the course band, from the catalogue.
  *
- * No prices are shown. That is deliberate and not an oversight: prices live on
- * the catalogue pages, where they come from the database, and a figure typed
- * into a marketing card is the kind that goes stale silently. The two cards
- * link straight there.
+ * ── Why this queries the database ──────────────────────────────────────────
  *
- * The section says «شراء مرة واحدة» three times over — badge, note, and its own
- * card — because it is the product's single most misunderstood property. There
- * is no subscription anywhere in the platform, and no countdown, discount or
- * scarcity device on this page to imply one is expiring.
+ * The approved canvas draws six invented course cards, and they were built that
+ * way first. They are gone: this band now lists what is actually published, so
+ * the homepage and `/courses` can never disagree about what exists, and a card
+ * here always leads to a real product page rather than to a catalogue that may
+ * not contain it.
+ *
+ * That makes `/` a dynamic route again — the second recorded exception to the
+ * "never change a Prisma query" rule in docs/design-system.md, owner-directed,
+ * 2026-08-21. The query is deliberately the same shape as the one on
+ * `(public)/courses/page.tsx`: same filter, same ordering, same counting rules,
+ * so the two screens cannot drift.
+ *
+ * ── Three outcomes, kept distinct ─────────────────────────────────────────
+ *
+ * Products to show, an empty catalogue, and a failure to load. The last two
+ * both render NOTHING — the band removes itself. That is deliberate, and it is
+ * the one place this page differs from `/courses`, which shows an empty state
+ * and an error state: a marketing page that announces «لا توجد دورات» is worse
+ * than one that simply does not raise the subject, and a database outage must
+ * not put an error panel in the middle of the homepage. Everything else on the
+ * page still renders, because nothing else on it touches the database.
+ *
+ * ── Covers ────────────────────────────────────────────────────────────────
+ *
+ * `CourseCover` takes the product's cover when an administrator has attached
+ * one, and draws the composed brand field when they have not — the same
+ * fallback the catalogue pages use, so an unillustrated course is a deliberate,
+ * uniform field rather than a hole in the grid.
  */
 const PRODUCTS = COPY.landing.products;
 
-const ONCE_ICONS = [IconUnlocked, IconHistory, IconDevices] as const;
+/** Six is the canvas's grid: two full rows of three at `lg`. */
+const MAX_CARDS = 6;
 
-function ProductCard({
-  title,
-  badge,
-  body,
-  note,
-  cta,
-  href,
-  includes,
-  delay,
-}: {
+type LandingCourse = {
+  slug: string;
   title: string;
-  badge?: string;
-  body: string;
-  note: string;
-  cta: string;
-  href: string;
-  includes: readonly string[];
-  delay: number;
-}) {
-  return (
-    <article
-      className="rounded-plate border-line-200 bg-surface shadow-card reveal flex flex-col border p-7 text-start"
-      style={revealDelay(delay)}
-    >
-      <div className="flex flex-wrap items-center gap-2.5">
-        <h3 className="font-display text-ink-900 text-[21px] font-semibold">{title}</h3>
-        {badge ? (
-          <span className="bg-accent-teal-soft text-accent-teal rounded-full px-2.5 py-1 text-[12px] font-semibold">
-            {badge}
-          </span>
-        ) : null}
-      </div>
+  shortDescription: string;
+  level: string | null;
+  cover: CoverImage | null;
+  moduleCount: number;
+  lessonCount: number;
+};
 
-      {/*
-       * One product's description runs to two lines and the other's to one. The
-       * floor keeps the badge, the note and — most visibly — the two call-to-
-       * action buttons on the same line across the row, which is what makes the
-       * pair read as a choice rather than as two unrelated cards.
-       */}
-      <p className="text-ink-700 mt-3 text-[15px] leading-relaxed lg:min-h-[3.5rem]">{body}</p>
+async function loadCourses(): Promise<LandingCourse[]> {
+  try {
+    const rows = await prisma.product.findMany({
+      where: { type: 'COURSE', status: 'PUBLISHED' },
+      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+      take: MAX_CARDS,
+      select: {
+        slug: true,
+        title: true,
+        shortDescription: true,
+        /*
+         * `visibility` is selected because `mediaAssetUrl` needs it to choose
+         * between the public address and the authorising route. A product cover
+         * is public, but that rule lives in the helper and is not this
+         * component's to duplicate.
+         */
+        coverAsset: {
+          select: { id: true, objectKey: true, visibility: true, width: true, height: true },
+        },
+        /*
+         * Counts are restricted to PUBLISHED content, for the same reason they
+         * are on `/courses`: the card states what a visitor would actually
+         * receive, and counting drafts advertises lessons nobody can open.
+         */
+        course: {
+          select: {
+            category: true,
+            level: true,
+            _count: { select: { modules: { where: { status: 'PUBLISHED' } } } },
+            modules: {
+              where: { status: 'PUBLISHED' },
+              select: { _count: { select: { lessons: { where: { status: 'PUBLISHED' } } } } },
+            },
+          },
+        },
+      },
+    });
 
-      <span className="bg-brand-100 text-brand-700 mt-6 inline-flex w-fit items-center rounded-full px-3.5 py-1.5 text-[13px] font-semibold">
-        {PRODUCTS.purchaseBadge}
-      </span>
-      <p className="text-ink-600 mt-2 text-[13px]">{note}</p>
-
-      <Button asChild variant="gradient" shape="pill" size="lg" className="mt-6 w-full">
-        <Link href={href}>
-          {cta}
-          <IconForward className="size-4" aria-hidden="true" />
-        </Link>
-      </Button>
-
-      <div className="border-line-200 mt-7 border-t pt-6">
-        <p className="text-ink-900 text-[13px] font-bold">{PRODUCTS.includesTitle}</p>
-        <CheckList items={includes} className="mt-4" />
-      </div>
-    </article>
-  );
+    return rows.map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      shortDescription: row.shortDescription,
+      // The chip carries one word. `level` is the more useful of the two when
+      // both are set, and `category` stands in when it is not. Both are free
+      // text, so they print exactly as an administrator entered them.
+      level: row.course?.level ?? row.course?.category ?? null,
+      cover: row.coverAsset
+        ? {
+            url: mediaAssetUrl(row.coverAsset),
+            width: row.coverAsset.width,
+            height: row.coverAsset.height,
+          }
+        : null,
+      moduleCount: row.course?._count.modules ?? 0,
+      lessonCount:
+        row.course?.modules.reduce((total, module) => total + module._count.lessons, 0) ?? 0,
+    }));
+  } catch {
+    // An outage takes the band away, not the page. See the note above.
+    return [];
+  }
 }
 
-export function Products() {
+export async function Products() {
+  const courses = await loadCourses();
+  if (courses.length === 0) return null;
+
   return (
     <SectionShell id="products">
       <SectionIntro
-        icon={IconProducts}
+        icon={IconLearn}
         eyebrow={PRODUCTS.eyebrow}
         title={PRODUCTS.title}
         lead={PRODUCTS.lead}
       />
 
-      <div className="mt-14 grid gap-5 lg:grid-cols-3">
-        <ProductCard
-          title={PRODUCTS.courses.title}
-          body={PRODUCTS.courses.body}
-          note={PRODUCTS.courses.note}
-          cta={PRODUCTS.courses.cta}
-          href="/courses"
-          includes={PRODUCTS.courses.includes}
-          delay={0}
-        />
-        <ProductCard
-          title={PRODUCTS.simulators.title}
-          badge={PRODUCTS.simulators.badge}
-          body={PRODUCTS.simulators.body}
-          note={PRODUCTS.simulators.note}
-          cta={PRODUCTS.simulators.cta}
-          href="/simulators"
-          includes={PRODUCTS.simulators.includes}
-          delay={90}
-        />
+      <ul className="mt-13 grid items-stretch gap-5.5 text-start sm:grid-cols-2 lg:grid-cols-3">
+        {courses.map((course, index) => {
+          /*
+           * Every meta chip is dropped when its value is zero. «٠ دروس» on a
+           * card is a reason not to click; an unfinished course carries one
+           * chip fewer instead. Same rule as `ProductGrid`.
+           */
+          const meta = [
+            course.moduleCount ? `${formatNumber(course.moduleCount)} ${COPY.catalog.units}` : null,
+            course.lessonCount
+              ? `${formatNumber(course.lessonCount)} ${COPY.catalog.lessons}`
+              : null,
+          ].filter((value): value is string => Boolean(value));
 
-        <article
-          className="rounded-plate border-line-200 reveal from-brand-50 flex flex-col border bg-linear-to-b to-white p-7 text-start"
-          style={revealDelay(180)}
-        >
-          <GlyphTile icon={IconPermanent} size="xl" />
-          <h3 className="font-display text-ink-900 mt-6 text-[21px] font-semibold">
-            {PRODUCTS.once.title}
-          </h3>
-          <p className="text-ink-700 mt-3 text-[15px] leading-relaxed">{PRODUCTS.once.body}</p>
+          return (
+            <li key={course.slug} className="flex">
+              <PlateCard className="reveal flex flex-1 flex-col p-6 sm:p-7.5">
+                <div className="border-line-200 relative aspect-[16/10] w-full overflow-hidden rounded-[18px] border">
+                  <CourseCover
+                    cover={course.cover}
+                    // Empty: the card's own heading names the product, and a
+                    // cover that repeats the title makes a screen reader read
+                    // it twice for one card.
+                    alt=""
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 380px"
+                    className="absolute inset-0"
+                  />
+                  {course.level ? (
+                    <span className="border-line-200 text-brand-800 bg-surface/95 pointer-events-none absolute end-3 top-3 rounded-full border px-3.5 py-1.5 text-[12px] font-semibold whitespace-nowrap">
+                      {course.level}
+                    </span>
+                  ) : null}
+                </div>
 
-          <ul className="mt-7 flex flex-col gap-4">
-            {PRODUCTS.once.rows.map((row, index) => {
-              const Icon = ONCE_ICONS[index];
-              return (
-                <li key={row} className="text-ink-700 flex items-center gap-3 text-[14.5px]">
-                  <span className="bg-surface border-line-200 text-brand-700 flex size-9 shrink-0 items-center justify-center rounded-[11px] border shadow-xs">
-                    <Icon className="size-4.5" aria-hidden="true" />
-                  </span>
-                  {row}
-                </li>
-              );
-            })}
-          </ul>
-        </article>
-      </div>
+                <h3 className="text-ink-900 text-h3 mt-5 leading-[1.45]">{course.title}</h3>
+                <p className="text-ink-600 mt-3 text-[14.5px] leading-[1.85] font-light">
+                  {course.shortDescription}
+                </p>
+
+                {meta.length > 0 ? (
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {meta.map((value) => (
+                      <span
+                        key={value}
+                        className="border-line-200/70 bg-canvas text-ink-700 rounded-full border px-3.5 py-[7px] text-[12.5px] whitespace-nowrap"
+                      >
+                        {value}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                <Link
+                  href={`/courses/${course.slug}`}
+                  className="text-brand-700 hover:text-brand-900 focus-visible:outline-brand-700 mt-auto flex items-center gap-2 pt-6 text-[14.5px] font-semibold transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  {PRODUCTS.cta}
+                  {/* Several identical «تفاصيل الدورة» links need distinguishing. */}
+                  <span className="sr-only">{` — ${course.title}`}</span>
+                  <IconForward className="size-4.5" aria-hidden="true" />
+                </Link>
+              </PlateCard>
+            </li>
+          );
+        })}
+      </ul>
     </SectionShell>
   );
 }

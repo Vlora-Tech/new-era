@@ -44,11 +44,12 @@ const HELP_LINKS = [
 ] as const;
 
 /**
- * The design's third column is «حقوق المحتوى», which has no page behind it —
- * the content-rights statement lives in a section of the landing page, not a
- * route. The refund policy takes the slot instead: it is a real page, it is the
- * one policy a buyer looks for, and shipping a link to nowhere to preserve a
- * label would be the wrong trade.
+ * The canvas's third column is «حقوق المحتوى», which has no page behind it. It
+ * used to point at a band on the landing page; the 2026 canvas does not draw
+ * that band, so there is now nowhere at all for the label to go. The refund
+ * policy takes the slot instead: it is a real page, it is the one policy a
+ * buyer looks for, and shipping a link to nowhere to preserve a label would be
+ * the wrong trade.
  */
 const POLICY_LINKS = [
   { href: '/privacy', label: COPY.nav.privacy },
@@ -65,15 +66,16 @@ const POLICY_LINKS = [
 const LINK_CLASS = [
   'text-ink-700 hover:text-brand-700 text-sm transition-colors duration-150 ease-out',
   'rounded-control hover:underline underline-offset-4 decoration-1',
-  'focus-visible:outline-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2',
+  'focus-visible:outline-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2',
 ].join(' ');
 
 /**
  * Arabic has no case, so the label register that Latin footers get from small
- * caps has to come from size and weight instead: one step below body, bold,
- * ink-900. Every column uses it, which is what makes them read as one system.
+ * caps has to come from the face instead: the canvas sets these in the display
+ * family at 16px/600, a step ABOVE the links they head rather than below them.
+ * Every column uses it, which is what makes them read as one system.
  */
-const COLUMN_HEADING_CLASS = 'text-ink-900 mb-1 text-[13px] font-bold';
+const COLUMN_HEADING_CLASS = 'font-display text-ink-900 mb-1 text-[16px] font-semibold';
 
 function LinkColumn({
   heading,
@@ -133,7 +135,7 @@ export function PublicFooter() {
                   key={social.href}
                   href={social.href}
                   aria-label={social.label}
-                  className="border-line-200 text-ink-700 hover:border-brand-500/40 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-brand-500 flex size-10 items-center justify-center rounded-full border transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="border-line-200 text-ink-700 hover:border-brand-500/40 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-brand-700 flex size-10 items-center justify-center rounded-full border transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   <social.icon className="size-4.5" aria-hidden="true" />
                 </Link>
@@ -146,22 +148,44 @@ export function PublicFooter() {
           <LinkColumn heading={FOOTER.policiesGroup} links={POLICY_LINKS} />
         </div>
 
-        <div className="border-line-200 mt-12 flex flex-col gap-4 border-t pt-8">
-          <p className="rounded-panel border-line-200 bg-brand-50 text-ink-700 flex items-start gap-2.5 border px-4 py-3 text-sm leading-relaxed">
-            <IconInfo className="text-brand-700 mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <div className="mt-11 flex flex-col gap-4">
+          <p className="rounded-panel border-line-200 text-ink-700 from-brand-50 flex items-start gap-2.5 border bg-linear-to-l to-white px-5 py-4 text-sm leading-relaxed">
+            <IconInfo className="text-ink-500 mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <span>{FOOTER.disclaimerStrip}</span>
           </p>
 
           <p className="text-ink-700 measure-ar-lg text-sm leading-relaxed">
             {INDEPENDENCE_DISCLAIMER}
           </p>
+        </div>
 
-          <div className="text-ink-600 flex flex-wrap items-center justify-between gap-2 text-sm">
-            <p>
-              © <bdi dir="ltr">{year}</bdi> {BRAND.name}. {COPY.legal.rightsReserved}
-            </p>
-            <p>{FOOTER.madeIn}</p>
-          </div>
+        {/*
+         * The wordmark, set enormous and nearly the colour of the page.
+         *
+         * It is the canvas's closing device: the brand name as a watermark
+         * rather than a mark, at `clamp(40px, 9vw, 132px)` in `surface-muted`.
+         * `aria-hidden` and `select-none` because it is texture — the real
+         * lockup is at the top of this footer and the name is already in the
+         * copyright line below, so announcing it a third time is noise.
+         *
+         * `overflow-hidden` on the wrapper is load-bearing: at 132px the string
+         * is wider than the container on anything under about 1500px, and
+         * `whitespace-nowrap` would otherwise scroll the whole page sideways.
+         */}
+        <div className="mt-10 overflow-hidden">
+          <p
+            aria-hidden="true"
+            className="font-display text-surface-muted text-end text-[clamp(40px,9vw,132px)] leading-none font-bold tracking-[-0.04em] whitespace-nowrap select-none"
+          >
+            {BRAND.name}
+          </p>
+        </div>
+
+        <div className="border-line-200 text-ink-600 mt-4 flex flex-wrap items-center justify-between gap-2 border-t pt-5 text-sm">
+          <p>
+            © <bdi dir="ltr">{year}</bdi> {BRAND.name}. {COPY.legal.rightsReserved}
+          </p>
+          <p>{FOOTER.madeIn}</p>
         </div>
       </Container>
     </footer>

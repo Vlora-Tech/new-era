@@ -82,7 +82,7 @@ export function ProductFilters({ query }: { query: ProductListQuery }) {
     <form
       method="get"
       action="/admin/products"
-      className="rounded-panel border-line-200 bg-surface flex flex-wrap items-end gap-3 border p-4"
+      className="rounded-card border-line-200 bg-surface shadow-card flex flex-wrap items-end gap-3 border p-4"
     >
       <div className="flex min-w-56 flex-1 flex-col gap-1.5">
         <Label htmlFor="product-search">{COPY.adminCommon.search.label}</Label>

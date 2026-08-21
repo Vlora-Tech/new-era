@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Lock, PlayCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Headset } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { Badge, Card, Container, ErrorState, RuledHead, Subhead } from '@/components/ui/surface';
+import { Breadcrumbs } from '@/components/marketing/breadcrumbs';
+import { CourseCurriculum } from '@/components/marketing/course-curriculum';
+import { CourseMasthead } from '@/components/marketing/course-masthead';
+import { Container, ErrorState } from '@/components/ui/surface';
 import { getCurrentUser } from '@/lib/auth/guards';
+import { ROUTES } from '@/lib/constants';
 import { COPY } from '@/lib/copy';
-import { formatDurationWords, formatHalalas, formatNumber } from '@/lib/format';
-import { cn } from '@/lib/utils';
 import { getCourseDetail } from '@/services/catalog/product-detail';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +37,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
+/**
+ * A course's public page.
+ *
+ * Three objects, in the order somebody deciding actually reads them: the cover
+ * plate (what this is, how big it is, and the one control their state calls
+ * for), the curriculum (what is inside it), and a rail of standing facts.
+ *
+ * The page it replaces was a ruled document — correct for the legal pages it
+ * shared its head with, and wrong here, because a catalogue page is the object
+ * being chosen rather than a record of it. Re-derived 2026-08-21 from the
+ * approved canvas «تفاصيل الدورة — بناء العهد الجديد»; the deviations from that
+ * artboard are recorded in docs/design-system.md § Catalogue detail, and every
+ * one of them is either a claim the database cannot support or a contrast floor.
+ *
+ * What did NOT change, deliberately: the purchase state is still decided on the
+ * server and still chooses between three panels rather than dressing one, the
+ * curriculum still locks a lesson nobody has bought, and the route is still
+ * `force-dynamic` because both of those read the viewer.
+ */
 export default async function CourseDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -54,184 +74,88 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   if (!course) notFound();
 
-  // Only facts the database actually holds. A missing duration is left out
-  // rather than shown as zero.
-  const facts: { label: string; value: string }[] = [
-    { label: 'عدد الوحدات', value: formatNumber(course.modules.length) },
-    { label: 'عدد الدروس', value: formatNumber(course.lessonCount) },
-  ];
-  if (course.totalDurationSec !== null) {
-    facts.push({ label: 'المدة الإجمالية', value: formatDurationWords(course.totalDurationSec) });
-  }
+  /*
+   * The rail repeats nothing the plate already says. `courseIncludes` is part of
+   * the buy panel, so it only earns a card of its own once the plate has stopped
+   * showing that panel — otherwise the same three lines appear twice on one
+   * screen, a few hundred pixels apart.
+   */
+  const showIncluded = course.purchase.kind !== 'available';
 
   return (
-    <Container className="py-10 lg:py-16">
-      <div className="grid gap-y-14 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-x-16">
-        {/* Narrative and curriculum lead; the purchase panel is secondary. */}
-        <div>
-          <RuledHead>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Taxonomy, not status: square labels rather than status pills. */}
-              <Badge variant="outline" shape="square">
-                {COPY.statusLabels.productType.COURSE}
-              </Badge>
-              {course.category ? (
-                <Badge variant="outline" shape="square">
-                  {course.category}
-                </Badge>
-              ) : null}
-              {course.level ? (
-                <Badge variant="outline" shape="square">
-                  {course.level}
-                </Badge>
-              ) : null}
-            </div>
+    <Container className="py-8 lg:py-10">
+      <Breadcrumbs
+        className="enter"
+        items={[
+          { label: COPY.nav.home, href: ROUTES.home },
+          { label: COPY.nav.courses, href: ROUTES.courses },
+          { label: course.title },
+        ]}
+      />
 
-            <h1 className="text-ink-900 mt-5 text-[30px] leading-[1.28] font-semibold lg:text-[38px] lg:leading-[1.22]">
-              {course.title}
-            </h1>
+      <div className="enter mt-4" style={{ '--reveal-delay': '60ms' } as React.CSSProperties}>
+        <CourseMasthead course={course} />
+      </div>
 
-            <p className="text-ink-700 measure-ar-lg mt-5 text-[17px] leading-[1.85] lg:text-[18px]">
-              {course.shortDescription}
-            </p>
-
-            <dl className="border-line-200 mt-8 flex flex-wrap gap-x-10 gap-y-3 border-t pt-5 text-sm">
-              {facts.map((fact) => (
-                <div key={fact.label} className="flex items-baseline gap-2">
-                  <dt className="text-ink-600">{fact.label}</dt>
-                  <dd className="text-ink-900 font-medium">{fact.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </RuledHead>
+      <div className="mt-8 grid gap-6 lg:mt-11 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-8">
+        <div className="flex min-w-0 flex-col gap-6">
+          <div className="reveal">
+            <CourseCurriculum course={course} />
+          </div>
 
           {course.longDescription ? (
-            <section className="mt-14">
-              <Subhead title="عن الدورة" />
-              <p className="text-ink-700 measure-ar-lg mt-5 text-[16px] leading-[1.9]">
+            <section className="reveal rounded-plate border-line-200 from-brand-50/70 to-surface border bg-linear-150 to-45% p-[clamp(20px,2.6vw,34px)]">
+              <h2 className="text-h3 text-ink-900">{COPY.catalog.detail.aboutTitle}</h2>
+              <p className="text-ink-700 measure-ar-lg mt-4 text-[15.5px] leading-[1.9] whitespace-pre-line">
                 {course.longDescription}
               </p>
             </section>
           ) : null}
-
-          <section className="mt-14">
-            <Subhead title="محتوى الدورة" />
-
-            {course.modules.length === 0 ? (
-              <p className="text-ink-700 mt-5">لم تُضَف وحدات بعد.</p>
-            ) : (
-              <ol className="mt-8 flex flex-col gap-10">
-                {course.modules.map((module, moduleIndex) => (
-                  <li key={module.id}>
-                    <p className="text-ink-600 text-[12px] font-medium">
-                      الوحدة {formatNumber(moduleIndex + 1)}
-                    </p>
-                    <h3 className="text-ink-900 mt-1.5 text-[18px] leading-[1.5] font-semibold">
-                      {module.title}
-                    </h3>
-
-                    {/*
-                     * Hairlines, not a boxed panel: the curriculum is a record,
-                     * and a record is ruled rather than framed.
-                     */}
-                    <ul className="border-line-200 divide-line-200 mt-4 divide-y border-y">
-                      {module.lessons.map((lesson) => {
-                        const openToAll = lesson.isPreview || course.hasAccess;
-                        return (
-                          <li
-                            key={lesson.id}
-                            /*
-                             * `relative` anchors the playable row's full-row hit
-                             * area below. A locked row stays inert: it is not a
-                             * link, so it is not a tab stop either.
-                             */
-                            className={cn(
-                              'relative flex items-center justify-between gap-4 py-3.5',
-                              openToAll && 'group',
-                            )}
-                          >
-                            <span className="flex min-w-0 items-center gap-3">
-                              {openToAll ? (
-                                <PlayCircle
-                                  className="text-brand-500 size-4 shrink-0"
-                                  aria-hidden="true"
-                                />
-                              ) : (
-                                <>
-                                  <Lock
-                                    className="text-ink-600 size-4 shrink-0"
-                                    aria-hidden="true"
-                                  />
-                                  {/* The padlock is a shape, but it is not a word. */}
-                                  <span className="sr-only">يُفتح بعد الشراء:</span>
-                                </>
-                              )}
-                              {/*
-                               * A lesson the viewer may watch — a preview, or any
-                               * lesson once the course is owned — opens the
-                               * player. Without this the row drew a play icon and
-                               * a معاينة badge and then did nothing at all, which
-                               * is the whole reason a preview looked broken.
-                               * `after:inset-0` makes the entire row the target
-                               * rather than the title's own text box.
-                               */}
-                              {openToAll ? (
-                                <Link
-                                  href={`/learn/${course.slug}/${lesson.id}`}
-                                  className="text-ink-900 group-hover:text-brand-700 rounded-control text-[15px] transition-colors duration-150 after:absolute after:inset-0"
-                                >
-                                  {lesson.title}
-                                </Link>
-                              ) : (
-                                <span className="text-ink-900 text-[15px]">{lesson.title}</span>
-                              )}
-                              {lesson.isPreview ? <Badge variant="brand">معاينة</Badge> : null}
-                            </span>
-
-                            {lesson.durationSec !== null ? (
-                              <span className="text-ink-600 shrink-0 text-[13px]">
-                                {formatDurationWords(lesson.durationSec)}
-                              </span>
-                            ) : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
         </div>
 
-        {/* Compact purchase summary, sticky on desktop only. */}
-        <aside className="lg:sticky lg:top-24 lg:self-start">
-          {/* The one hero-weight shadow on the page: the panel being acted on. */}
-          <Card className="shadow-card-lg p-6">
-            {/* The price is a stat numeral: display face, 700, tabular. */}
-            <p className="text-ink-900 font-display text-[30px] leading-none font-bold tabular-nums">
-              {formatHalalas(course.priceHalalas)}
-            </p>
-            <p className="text-ink-700 mt-3 text-sm leading-[1.8]">
-              شراء لمرة واحدة. لا اشتراك ولا تجديد تلقائي.
-            </p>
+        {/*
+         * The rail is sticky from `lg` only, and clears the 96px bar above it.
+         * It carries standing facts, never a second control: the one decision on
+         * this page is on the plate, and a rail that offered another would make
+         * two of them.
+         */}
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-28">
+          {showIncluded ? (
+            <div className="rounded-shell border-line-200 bg-surface shadow-card border p-5">
+              <h2 className="text-h4 text-ink-900">{COPY.catalog.detail.includedTitle}</h2>
+              <ul className="mt-4 flex flex-col gap-3">
+                {COPY.catalog.panel.courseIncludes.map((line) => (
+                  <li key={line} className="text-ink-700 flex items-start gap-2.5 text-[13.5px]">
+                    <CheckCircle2
+                      className="text-brand-700 mt-0.5 size-4 shrink-0"
+                      aria-hidden="true"
+                    />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
-            {course.hasAccess ? (
-              <Button asChild size="lg" className="mt-6 w-full">
-                <Link href="/dashboard/courses">ابدأ الدورة</Link>
-              </Button>
-            ) : (
-              <Button asChild size="lg" className="mt-6 w-full">
-                <Link href={`/checkout/start?product=${course.slug}`}>اشترِ الدورة</Link>
-              </Button>
-            )}
-
-            <ul className="text-ink-700 border-line-200 divide-line-200 mt-6 divide-y border-t text-sm">
-              <li className="py-2.5">وصول دائم بعد الشراء.</li>
-              <li className="py-2.5">أسئلة قصيرة بعد الدروس التي تتضمنها.</li>
-              <li className="py-2.5">يحفظ موضع المشاهدة تلقائيًا.</li>
-            </ul>
-          </Card>
+          <div className="rounded-shell border-line-200 bg-surface border p-5">
+            <h2 className="text-h4 text-ink-900 flex items-center gap-2">
+              <Headset className="text-brand-700 size-5 shrink-0" aria-hidden="true" />
+              {COPY.contact.eyebrow}
+            </h2>
+            <p className="text-ink-700 mt-3 text-[13px] leading-[1.85]">
+              {COPY.contact.description}
+            </p>
+            <Link
+              href={ROUTES.contact}
+              className="border-line-200 text-ink-900 hover:border-brand-500/40 hover:bg-brand-50 hover:text-brand-700 group mt-4 flex items-center justify-center gap-2 rounded-full border px-5 py-3 text-[14px] font-semibold transition-colors duration-150"
+            >
+              {COPY.nav.contact}
+              <ArrowLeft
+                className="size-4 shrink-0 transition-transform duration-200 ease-out group-hover:-translate-x-1"
+                aria-hidden="true"
+              />
+            </Link>
+          </div>
         </aside>
       </div>
     </Container>

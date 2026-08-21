@@ -24,6 +24,8 @@ export type LearningView = {
     isPreview: boolean;
     durationSec: number | null;
     completed: boolean;
+    /** Lets the page skip loading a quiz for a lesson that has none. */
+    hasQuiz: boolean;
   };
   curriculum: Array<{
     moduleId: string;
@@ -34,6 +36,16 @@ export type LearningView = {
       isPreview: boolean;
       completed: boolean;
       isCurrent: boolean;
+      /**
+       * Whether a short quiz hangs off this lesson.
+       *
+       * Read from the presence of the `LessonQuiz` row alone, not from whether
+       * its questions are still publishable. The marker tells a student where
+       * the checks are before they get there; deciding whether one is actually
+       * servable means reading the bank's workflow for every question in the
+       * course, which is a far heavier query for a hint in a sidebar.
+       */
+      hasQuiz: boolean;
     }>;
   }>;
   previousLessonId: string | null;
@@ -69,6 +81,8 @@ export async function getLearningView(
                   isPreview: true,
                   durationSec: true,
                   videoAssetId: true,
+                  // Presence only. Nothing here reads the quiz's contents.
+                  quiz: { select: { id: true } },
                 },
               },
             },
@@ -110,6 +124,7 @@ export async function getLearningView(
       isPreview: current.isPreview,
       durationSec: current.durationSec,
       completed: completedIds.has(current.id),
+      hasQuiz: current.quiz !== null,
     },
     curriculum: modules.map((module) => ({
       moduleId: module.id,
@@ -120,6 +135,7 @@ export async function getLearningView(
         isPreview: lesson.isPreview,
         completed: completedIds.has(lesson.id),
         isCurrent: lesson.id === lessonId,
+        hasQuiz: lesson.quiz !== null,
       })),
     })),
     previousLessonId: currentIndex > 0 ? (flatLessons[currentIndex - 1]?.id ?? null) : null,

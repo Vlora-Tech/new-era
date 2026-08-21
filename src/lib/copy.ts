@@ -1,6 +1,7 @@
 import { ADMIN_ATTEMPTS_COPY } from './copy/admin-attempts';
 import { ADMIN_AUDIT_COPY } from './copy/admin-audit';
 import { ADMIN_COMMON_COPY } from './copy/admin-common';
+import { ADMIN_CONTACT_COPY } from './copy/admin-contact';
 import { ADMIN_COURSES_COPY } from './copy/admin-courses';
 import { ADMIN_ENTITLEMENTS_COPY } from './copy/admin-entitlements';
 import { ADMIN_MEDIA_COPY } from './copy/admin-media';
@@ -61,6 +62,125 @@ export const INDEPENDENCE_DISCLAIMER =
   'منصة بناء العهد الجديد منصة تدريبية مستقلة، وليست تابعة لهيئة تقويم التعليم والتدريب أو للمركز الوطني للقياس، ولا تمثل نتائجها نتيجة رسمية أو ضمانًا لدرجة الاختبار.';
 
 export const COPY = {
+  /**
+   * The catalogue card's size line.
+   *
+   * Counting words only, with no numeral of their own: the card supplies the
+   * figure through `formatNumber`, and the two are joined at the call site. They
+   * are the plural forms, because the card drops the item entirely at zero and
+   * one is rare enough on a published course not to earn a second string.
+   */
+  catalog: {
+    units: 'وحدات',
+    lessons: 'دروس',
+
+    /**
+     * The product page itself — the masthead, the curriculum and the rail.
+     *
+     * These strings were previously written inline in
+     * `(public)/courses/[slug]/page.tsx`, which is the drift the copy bank
+     * exists to prevent. Every label here is either a heading or the name of a
+     * figure the page reads out of the database. There is deliberately no
+     * "what you will learn" list and no support turnaround: the first has no
+     * column behind it, and the second would be a service promise nobody has
+     * made. See `contact.responseNote`, which is what the product does say.
+     */
+    detail: {
+      breadcrumb: 'مسار التصفح',
+      curriculumTitle: 'محتوى الدورة',
+      aboutTitle: 'عن الدورة',
+      noModules: 'لم تُضَف وحدات بعد.',
+      previewBadge: 'معاينة',
+      /* The padlock is a shape, not a word — this is the word, for a screen reader. */
+      lockedPrefix: 'يُفتح بعد الشراء:',
+      moduleOrdinal: 'الوحدة {index}',
+      /* The plate's three figures. Labels only: the numerals arrive formatted. */
+      statUnits: 'الوحدات',
+      statLessons: 'الدروس',
+      statDuration: 'المدة الإجمالية',
+      /* The rail's standing card, over the three lines of `panel.courseIncludes`. */
+      includedTitle: 'ما يشمله اشتراكك في الدورة',
+
+      /*
+       * Counted nouns, in all six Arabic forms, for `formatCount`.
+       *
+       * The catalogue card next door prints «٢ دروس» and its comment explains
+       * why it is allowed to: it is a line of chrome in a grid, and a dual/plural
+       * table was not worth it there. On this page the same phrase is the
+       * course's own summary line, directly under its title, and «١ وحدات» in
+       * that position is simply a mistake in Arabic. `one` and `two` carry no
+       * `{count}` on purpose — «وحدة واحدة» and «وحدتان» already contain the
+       * number, and printing a numeral beside them is the error twice.
+       */
+      counts: {
+        units: {
+          one: 'وحدة واحدة',
+          two: 'وحدتان',
+          few: '{count} وحدات',
+          many: '{count} وحدة',
+          other: '{count} وحدة',
+        },
+        lessons: {
+          one: 'درس واحد',
+          two: 'درسان',
+          few: '{count} دروس',
+          many: '{count} درسًا',
+          other: '{count} درس',
+        },
+      },
+    },
+
+    /**
+     * The product page's side panel.
+     *
+     * Three panels rather than one panel with a swapped button, because the
+     * three readers want different things and only one of them is buying. A
+     * price and «شراء لمرة واحدة» in front of somebody who has already paid is
+     * not merely redundant — it reads as a second charge, which is the single
+     * most expensive misreading this page can produce. Someone mid-payment is
+     * given their own order back instead of a control that would open a second
+     * one.
+     *
+     * `{...}` placeholders are substituted at the call site with values that are
+     * already formatted — Arabic-Indic digits, Riyadh dates.
+     */
+    panel: {
+      // ── Buying: shown only to a reader who could actually buy ──
+      oneTimePurchase: 'شراء لمرة واحدة. لا اشتراك ولا تجديد تلقائي.',
+      buyCourse: 'اشترِ الدورة',
+      buySimulator: 'احصل على المحاكي',
+      courseIncludes: [
+        'وصول دائم بعد الشراء.',
+        'أسئلة قصيرة بعد الدروس التي تتضمنها.',
+        'يحفظ موضع المشاهدة تلقائيًا.',
+      ],
+      simulatorNote:
+        'النتائج مؤشرات أداء تدريبية تساعدك على تحديد ما يحتاج إلى تقوية، ولا تمثل درجة رسمية.',
+
+      // ── Owned: the purchase is done and the page becomes a way in ──
+      ownedCourseTitle: 'هذه الدورة في حسابك',
+      ownedSimulatorTitle: 'هذا المحاكي في حسابك',
+      ownedBody: 'وصولك دائم، وتستأنف من حيث توقفت في أي وقت.',
+      accessSince: 'مفعّل لديك منذ {date}',
+      startCourse: 'ابدأ الدرس الأول',
+      continueCourse: 'أكمل من حيث توقفت',
+      reviewCourse: 'راجع الدروس',
+      startSimulator: 'ابدأ المحاكاة',
+      progressLabel: 'إنجازك في الدورة',
+      progressCount: 'أكملت {completed} من {total}',
+      /* A course an administrator has not filled yet. Saying so beats a
+         disabled button with no explanation. */
+      ownedButEmpty: 'لم تُنشر دروس هذه الدورة بعد. ستظهر هنا فور نشرها.',
+
+      // ── Mid-payment: an order exists and is unpaid ──
+      pendingTitle: 'لديك طلب بانتظار الدفع',
+      pendingBody:
+        'أنشأت طلبًا لهذا المنتج ولم يكتمل دفعه بعد. أكمل الطلب نفسه بدلًا من إنشاء طلب جديد.',
+      pendingAction: 'أكمل الدفع',
+      pendingOrderDate: 'تاريخ الطلب',
+    },
+  },
+
   common: {
     error: 'حدث خطأ، حاول مرة أخرى.',
     unexpectedError: 'حدث خطأ غير متوقع. تم تسجيل المشكلة وسنعمل على معالجتها.',
@@ -122,6 +242,49 @@ export const COPY = {
      */
     faq: 'الأسئلة الشائعة',
     start: 'ابدأ الآن',
+  },
+
+  contact: {
+    eyebrow: 'نحن هنا للمساعدة',
+    title: 'كيف يمكننا مساعدتك؟',
+    description:
+      'أرسل استفسارك عن الحساب أو الطلبات أو محتوى المنصة، وسيصل مباشرة إلى فريق نيو إيرا.',
+    responseNote: 'نراجع الرسائل الواردة عبر المنصة. لا ترسل كلمات مرور أو بيانات دفع.',
+    directTitle: 'تفضّل التواصل المباشر؟',
+    directDescription: 'يمكنك استخدام بيانات التواصل المتاحة، أو إرسال النموذج وسيصلنا فورًا.',
+    unavailable: 'لم تُضبط بعد.',
+    form: {
+      title: 'أرسل رسالتك',
+      description: 'اكتب التفاصيل التي تساعدنا على فهم استفسارك بوضوح.',
+      name: {
+        label: 'الاسم',
+        placeholder: 'اكتب اسمك',
+        required: 'اكتب اسمًا من حرفين على الأقل.',
+        tooLong: 'يجب ألا يتجاوز الاسم ١٠٠ حرف.',
+      },
+      email: {
+        label: 'البريد الإلكتروني',
+        placeholder: 'name@example.com',
+        invalid: 'اكتب بريدًا إلكترونيًا صحيحًا.',
+      },
+      subject: {
+        label: 'الموضوع',
+        placeholder: 'مثال: استفسار عن دورة',
+        tooLong: 'يجب ألا يتجاوز الموضوع ١٦٠ حرفًا.',
+      },
+      message: {
+        label: 'الرسالة',
+        placeholder: 'اكتب استفسارك بالتفصيل…',
+        tooShort: 'اكتب رسالة من ١٠ أحرف على الأقل.',
+        tooLong: 'يجب ألا تتجاوز الرسالة ٥٠٠٠ حرف.',
+      },
+      submit: 'إرسال الرسالة',
+      submitting: 'جارٍ الإرسال…',
+      successTitle: 'وصلت رسالتك',
+      successBody: 'شكرًا لتواصلك. أصبحت رسالتك الآن لدى فريق نيو إيرا.',
+      sendAnother: 'إرسال رسالة أخرى',
+      failed: 'تعذّر إرسال الرسالة. لم يُحفظ شيء، حاول مرة أخرى.',
+    },
   },
 
   /**
@@ -386,6 +549,7 @@ export const COPY = {
     orders: 'الطلبات والمدفوعات',
     entitlements: 'الصلاحيات والوصول',
     attempts: 'المحاولات والنتائج',
+    contactMessages: 'رسائل التواصل',
     settings: 'الإعدادات',
     auditLog: 'سجل النشاط',
     signedInAs: 'مسجّل الدخول باسم',
@@ -403,6 +567,17 @@ export const COPY = {
     openMenu: 'فتح قائمة لوحة التحكم',
     closeMenu: 'إغلاق قائمة لوحة التحكم',
     currentSection: 'القسم الحالي',
+
+    /*
+     * The rail's three groups. The order they impose — build the catalogue,
+     * operate it, govern it — was already the order of the eleven items; naming
+     * it turns a long undifferentiated list into three short ones.
+     */
+    railGroups: {
+      catalog: 'الكتالوج',
+      operations: 'التشغيل',
+      governance: 'الحكم',
+    },
     logoutFailed: 'تعذّر تسجيل الخروج، حاول مرة أخرى.',
 
     notBuiltTitle: 'لم تُبنَ هذه الشاشة بعد',
@@ -485,6 +660,7 @@ export const COPY = {
    * this list reads the same way the sidebar does.
    */
   adminCommon: ADMIN_COMMON_COPY,
+  adminContact: ADMIN_CONTACT_COPY,
   adminProducts: ADMIN_PRODUCTS_COPY,
   adminCourses: ADMIN_COURSES_COPY,
   adminQuestions: ADMIN_QUESTIONS_COPY,
@@ -603,6 +779,141 @@ export const COPY = {
   },
 
   /**
+   * The lesson page — the watching surface itself.
+   *
+   * Kept apart from `COPY.lessonQuiz`, which owns the check that follows the
+   * video. Everything here labels the frame around the lesson: the way back to
+   * the course, how far through the course the student is, and the curriculum
+   * rail beside the player.
+   *
+   * `{...}` placeholders are substituted at the call site.
+   */
+  learn: {
+    /* The eyebrow over the course title in the lesson header. It names what the
+       title beneath it *is*, because the bar carries no other context. */
+    courseEyebrow: 'الدورة',
+    backToCourse: 'العودة إلى صفحة الدورة',
+
+    /* Progress across the whole course, counted in lessons finished. Stated in
+       words as well as drawn as a meter, so the bar is never the only carrier. */
+    progressLabel: 'إنجازك {done} من {total}',
+
+    /* The curriculum rail. */
+    curriculumTitle: 'محتوى الدورة',
+    moduleOrdinal: 'الوحدة {index} — {title}',
+
+    /* Lesson row states in the rail. Each is a word, never a colour alone. */
+    lessonCurrent: 'قيد المشاهدة',
+    lessonCompleted: 'مكتمل',
+    lessonPreview: 'معاينة مجانية',
+
+    navigationLabel: 'التنقل بين الدروس',
+
+    /* The video slot's two honest empty states. */
+    lockedTitle: 'هذا الدرس متاح بعد شراء الدورة.',
+    lockedAction: 'عرض الدورة',
+    noVideo: 'لم يُربط مقطع بهذا الدرس بعد.',
+  },
+
+  /**
+   * The short check that can follow a lesson.
+   *
+   * Kept apart from `COPY.exam` on purpose. A lesson quiz has no clock, no
+   * sections, no irreversible advance and no independence statement to carry: it
+   * is a handful of questions a student may sit again. Borrowing the simulator's
+   * wording would import promises this surface does not make — above all the
+   * finality that makes the exam's warnings necessary.
+   *
+   * The product's own name for the object is «الاختبار القصير», the same words
+   * the administration screens use in `COPY.adminCourses.quiz`. One thing, one
+   * name, on both sides of the wall.
+   *
+   * `{...}` placeholders are substituted at the call site; the Arabic stays here
+   * so each sentence is written once, whole.
+   */
+  lessonQuiz: {
+    title: 'اختبار قصير',
+    description: 'أسئلة قصيرة على هذا الدرس، نتيجتها تدريبية لك وحدك.',
+
+    // ── Before the first attempt ──
+    questionCountLabel: 'عدد الأسئلة',
+    attemptsLabel: 'المحاولات المتاحة',
+    attemptsUnlimited: 'غير محدودة',
+    attemptsRemaining: 'المتبقي لك: {count}',
+    feedbackImmediate: 'تظهر الإجابة الصحيحة بعد كل سؤال.',
+    feedbackAfterSubmission: 'تظهر الإجابات الصحيحة بعد التسليم.',
+    startAction: 'ابدأ الاختبار القصير',
+    starting: 'جارٍ التجهيز…',
+    startFailed: 'تعذّر بدء الاختبار القصير، حاول مرة أخرى.',
+    retakeAction: 'أعد المحاولة',
+
+    // ── Answering ──
+    questionOfTotal: 'السؤال {current} من {total}',
+    /* Deliberately not `questionOfTotal`. «السؤال ٢ من ٣» over a list of all
+       three questions would name a position the student is not standing at;
+       this counts what they have done. */
+    answeredOfTotal: 'أجبت عن {current} من {total}',
+    optionsLabel: 'الخيارات',
+    passageLabel: 'النص',
+    saving: 'يحفظ…',
+    saved: 'تم الحفظ',
+    /* Two lengths, because the state appears twice: a chip beside the counter
+       and, when it is a failure, a sentence that says what it costs. */
+    saveFailedLabel: 'تعذّر الحفظ',
+    saveFailedBody: 'لم تصل الإجابة إلى الخادم. تحقّق من الاتصال ثم أعد المحاولة.',
+    /* Said before the fact, because in immediate mode the first tap settles the
+       question and there is no way back to it. */
+    immediateLockNotice: 'في هذا الاختبار القصير تُحتسب الإجابة فور اختيارها ولا يمكن تغييرها.',
+
+    // ── Submitting ──
+    submitAction: 'سلّم الإجابات',
+    submitting: 'جارٍ التسليم…',
+    submitFailed: 'تعذّر التسليم، حاول مرة أخرى.',
+    submitTitle: 'تسليم الاختبار القصير',
+    submitWarning: 'بعد التسليم تظهر الإجابات الصحيحة، ولا يمكن تعديل إجابات هذه المحاولة.',
+    confirmSubmit: 'نعم، سلّم',
+    cancelSubmit: 'العودة إلى الأسئلة',
+    unansweredNotice: 'أسئلة بلا إجابة: {count}',
+    allAnswered: 'أجبت عن كل الأسئلة.',
+
+    // ── The result ──
+    resultTitle: 'نتيجة المحاولة',
+    scoreLabel: 'النتيجة',
+    correctCount: 'إجابات صحيحة',
+    incorrectCount: 'إجابات خاطئة',
+    unansweredCount: 'أسئلة بلا إجابة',
+    outOfTotal: 'من {total}',
+    yourAnswer: 'إجابتك',
+    correctAnswer: 'الإجابة الصحيحة',
+    noAnswer: 'لم تُجب',
+    correctMark: 'إجابة صحيحة',
+    incorrectMark: 'إجابة خاطئة',
+    explanationLabel: 'الشرح',
+    bestScoreLabel: 'أفضل نتيجة لك',
+    attemptsUsedLabel: 'المحاولات المستخدمة',
+    attemptsExhausted: 'استنفدت محاولاتك في هذا الاختبار القصير. تظل مراجعة آخر محاولة متاحة لك.',
+    /* The counterpart of the simulator's «notAnOfficialScore»: a percentage on a
+       screen is read as a grade unless the screen says otherwise. */
+    notAGrade: 'هذه النتيجة تخص هذا الدرس وحده، ولا تُحتسب في أي تقييم ولا تظهر لأحد غيرك.',
+
+    /* The curriculum marker. A noun phrase, because it labels a lesson row
+       rather than addressing the reader. */
+    curriculumMarker: 'يتضمن اختبارًا قصيرًا',
+
+    errors: {
+      notFound: 'لا يوجد اختبار قصير لهذا الدرس.',
+      noAccess: 'هذا الاختبار القصير متاح بعد شراء الدورة.',
+      attemptNotFound: 'هذه المحاولة غير موجودة أو لم تعد متاحة.',
+      attemptFinished: 'سُلِّمت هذه المحاولة، ولا يمكن تعديل إجاباتها.',
+      answerLocked: 'ظهرت إجابة هذا السؤال بالفعل، ولا يمكن تغييرها.',
+      attemptsExhausted: 'استنفدت محاولاتك في هذا الاختبار القصير.',
+      invalidOption: 'الخيار المحدد لا ينتمي إلى هذا السؤال.',
+      questionNotInAttempt: 'هذا السؤال ليس ضمن هذه المحاولة.',
+      noQuestions: 'لا توجد أسئلة متاحة في هذا الاختبار القصير حاليًا.',
+    },
+  },
+
+  /**
    * The exam simulator: instructions, the timed workspace, and the review.
    *
    * Every irreversible action is described in words before it happens, because
@@ -650,12 +961,45 @@ export const COPY = {
     flagAction: 'علّم للمراجعة',
     flagged: 'معلّم للمراجعة',
     unflagAction: 'إزالة العلامة',
+    /*
+     * Two names for the navigator, and they are not redundant.
+     *
+     * `navigatorLabel` is the landmark's accessible name, and it says which
+     * questions these are — a screen-reader user meets it out of context, with
+     * no grid in front of them. `navigatorTitle` is the visible heading, beside
+     * which `navigatorHint` already says «داخل هذا القسم فقط»; printing the long
+     * form there wrapped to two lines and collided with that chip.
+     */
     navigatorLabel: 'أسئلة القسم الحالي',
-    navigatorHint: 'التنقل متاح داخل هذا القسم فقط.',
+    navigatorTitle: 'خريطة الأسئلة',
+    navigatorHint: 'داخل هذا القسم فقط',
     navigatorAnswered: 'مُجاب',
     navigatorUnanswered: 'بلا إجابة',
     navigatorFlagged: 'معلّم',
     goToQuestion: 'الانتقال إلى السؤال {number}',
+
+    /*
+     * The header's answered meter.
+     *
+     * A COUNT, not a score, and that distinction is the whole reason the wording
+     * is «{answered} من {total}» rather than a percentage. The bar beside it is
+     * `aria-hidden` like every bar in the product, so this line is the accessible
+     * value and has to stand on its own.
+     */
+    answeredMeterLabel: 'الأسئلة المُجابة',
+    answeredOfTotal: '{answered} من {total}',
+
+    /*
+     * Option labels, by POSITION.
+     *
+     * `option.key` is the bank's own identifier and is not for reading; a
+     * student says «اخترت ب», so the paper is lettered the way a Saudi exam
+     * paper is lettered. The list is long enough for any question the bank can
+     * hold, and `optionKeyFallback` covers a question that somehow exceeds it
+     * rather than rendering an empty chip.
+     */
+    optionLetters: ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'],
+    optionKeyFallback: '•',
     previousQuestion: 'السؤال السابق',
     nextQuestion: 'السؤال التالي',
 

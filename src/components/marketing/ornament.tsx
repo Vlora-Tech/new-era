@@ -9,19 +9,15 @@ import { cn } from '@/lib/utils';
  * becomes a mood. Everything below is inline SVG, server-rendered, first-party
  * markup, so no image host, no `data:` URI and no CSP directive is involved.
  *
- * THE PLACEMENT RULE. `KhatimField` has exactly four sanctioned placements, all
+ * THE PLACEMENT RULE. `KhatimField` has exactly three sanctioned placements, all
  * the same figure: a course of tile 80 in `text-brand-500`, on a light ground,
  * terminated by a drawn rule and never by a fade.
  *
- *   1. The homepage masthead, running from the logo toward the fore-edge at
- *      opacity 0.14.
- *   2. The full-bleed frieze that closes the hero, at 0.18.
- *   3. The identical frieze that closes the last chapter, at 0.18.
- *   4. The frieze that closes the student overview's greeting band, at 0.18 —
- *      the same figure as 2 and 3, one row tall, full width, terminated by the
- *      panel's own bottom border and sitting below the text rather than behind
- *      it. It earns its place because the student area is otherwise entirely
- *      unbranded chrome and this is the one screen a student returns to.
+ *   1. The frieze that closes the student overview's greeting band, at 0.18 —
+ *      one row tall, full width, terminated by the panel's own bottom border and
+ *      sitting below the text rather than behind it. It earns its place because
+ *      the student area is otherwise entirely unbranded chrome and this is the
+ *      one screen a student returns to.
  *
  *      A half-width field beside the greeting was tried here first and removed:
  *      the lattice ended on a bare vertical line mid-panel and read as a
@@ -29,16 +25,21 @@ import { cn } from '@/lib/utils';
  *      never by a fade" clause above exists to prevent. The clause covers every
  *      edge of the field, not only its trailing one.
  *
- *   5. The auth pages' brand panels (one field per page, ids
+ *   2. and 3. The auth pages' brand panels (one field per page, ids
  *      neb-khatim-login / neb-khatim-register, at 0.18) — the identity's
  *      signature on the doorstep, below the tagline and clipped by the panel's
  *      own border, never behind the form.
  *
- * Two and three are bookends, and the second earns its place only because it
- * repeats the first exactly. A further placement, a different tile, another
- * opacity on the same page, or a field behind body text is decoration, and is
- * what this note exists to prevent. The inventory is mirrored in
- * docs/design-system.md.
+ * THE HOMEPAGE IS NOT ON THIS LIST, and stopped being on 2026-08-21. The
+ * previous inventory reserved three placements there — a masthead field and two
+ * bookending friezes — for a page that no longer exists. The approved 2026
+ * canvas draws no khatim at all: its ambient layer is the aurora field, and
+ * adding a lattice on top of that would be two atmospheres competing on one
+ * page. Restoring a homepage placement means changing the canvas, not this file.
+ *
+ * A further placement, a different tile, another opacity on the same page, or a
+ * field behind body text is decoration, and is what this note exists to prevent.
+ * The inventory is mirrored in docs/design-system.md.
  *
  * Still forbidden: directly behind body text; inside a card, a header or a
  * footer; ticks on a second element, which turns a registration mark into a
