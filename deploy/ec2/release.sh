@@ -54,10 +54,14 @@ if grep -q '^MIGRATE_DATABASE_URL=' "$ENV_FILE"; then
 else
   echo "release: MIGRATE_DATABASE_URL not set; falling back to DATABASE_URL." >&2
   echo "         The runtime role should not own the schema — see infra/sql/02-create-roles.sql." >&2
-  node --env-file="$ENV_FILE" -e 'process.exit(process.env.DATABASE_URL?0:1)' \
-    || { echo "release: no DATABASE_URL either" >&2; exit 1; }
-  set -a; . "$ENV_FILE"; set +a
-  npx prisma migrate deploy
+  # Extracted, never sourced. A connection string carries `?a=b&c=d`, and `&` is
+  # a shell control operator: `. "$ENV_FILE"` would try to background half the
+  # line. systemd's EnvironmentFile and node's --env-file both parse this file
+  # without a shell and are unaffected, which is exactly why the breakage would
+  # only ever show up here.
+  url="$(grep '^DATABASE_URL=' "$ENV_FILE" | cut -d= -f2-)"
+  [ -n "$url" ] || { echo "release: no DATABASE_URL either" >&2; exit 1; }
+  DATABASE_URL="$url" npx prisma migrate deploy
 fi
 
 log "Building"
