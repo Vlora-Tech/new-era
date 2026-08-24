@@ -74,10 +74,23 @@ rm -rf "$STANDALONE/.next/static" "$STANDALONE/public"
 cp -r "$APP_DIR/.next/static" "$STANDALONE/.next/static"
 cp -r "$APP_DIR/public" "$STANDALONE/public"
 
-log "Fixing ownership"
-# The service runs as `newera` and the tree is read-only to it; the build wrote
-# as whoever invoked this script.
-chown -R newera:newera "$APP_DIR"
+# Deliberately NO chown of the tree to `newera`.
+#
+# The service only ever reads these files — ProtectSystem=strict mounts the
+# filesystem read-only for it, and with STORAGE_PROVIDER=s3 the application
+# writes nothing locally. Ordinary read permission is therefore enough, and
+# handing ownership to the service account instead locks the operator out of
+# `git pull` in the very same directory.
+#
+# What matters is that `newera` can traverse and read, which is checked rather
+# than assumed: a build run under a restrictive umask would otherwise fail at
+# runtime as a 404 on every asset.
+log "Checking the service account can read the build"
+chmod -R a+rX "$APP_DIR/.next/standalone" "$APP_DIR/public"
+if ! runuser -u newera -- test -r "$STANDALONE/server.js"; then
+  echo "release: the newera user cannot read $STANDALONE/server.js" >&2
+  exit 1
+fi
 
 log "Restarting the service"
 systemctl restart new-era
