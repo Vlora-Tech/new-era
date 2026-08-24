@@ -85,6 +85,13 @@ cp -r "$APP_DIR/public" "$STANDALONE/public"
 # What matters is that `newera` can traverse and read, which is checked rather
 # than assumed: a build run under a restrictive umask would otherwise fail at
 # runtime as a 404 on every asset.
+# The one directory the service writes to: Next's image-optimiser cache. The
+# unit names it in ReadWritePaths; it still has to exist and be owned by the
+# service account. Without it every /_next/image request re-encodes with sharp
+# and logs an unhandled rejection.
+log "Creating the image cache directory"
+install -d -o newera -g newera -m 755 "$STANDALONE/.next/cache"
+
 log "Checking the service account can read the build"
 chmod -R a+rX "$APP_DIR/.next/standalone" "$APP_DIR/public"
 if ! runuser -u newera -- test -r "$STANDALONE/server.js"; then

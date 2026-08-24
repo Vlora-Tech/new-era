@@ -70,10 +70,23 @@ RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 CapabilityBoundingSet=
 AmbientCapabilities=
 
-# ProtectSystem=strict makes the whole filesystem read-only. Nothing is listed
-# writable on purpose: with STORAGE_PROVIDER=s3 the application writes no files
-# at all. If you ever switch back to local disk storage, this is the line that
-# will fail first — and it failing is the correct outcome, since
+# ProtectSystem=strict makes the whole filesystem read-only, so anything the
+# process legitimately writes has to be named here.
+#
+# Exactly one thing qualifies. STORAGE_PROVIDER=s3 means no uploaded media
+# touches disk, but Next's image optimiser keeps its own on-disk cache under
+# the dist directory, and it is not optional: without it every request for
+# /_next/image re-encodes the source with sharp, which on two cores is both
+# slow and a standing CPU cost. Denied the directory it logs an unhandled
+# rejection per request and serves the image anyway, so the symptom is a slow
+# site and a noisy log rather than an obvious failure.
+#
+# The leading `-` tolerates the path not existing yet, so a service enabled
+# before the first release still starts. release.sh creates it.
+ReadWritePaths=-/opt/new-era/.next/standalone/.next/cache
+
+# If you ever switch back to local disk storage, ProtectSystem is what will
+# fail first — and it failing is the correct outcome, since
 # STORAGE_PROVIDER=local is refused in production anyway.
 
 [Install]

@@ -17,6 +17,22 @@ const booleanish = z
   .enum(['true', 'false', '1', '0'])
   .transform((value) => value === 'true' || value === '1');
 
+/**
+ * Treat an empty value as absent.
+ *
+ * `.optional()` accepts `undefined`, not `''` — but a variable that is present
+ * and empty is exactly what both of this project's configuration mechanisms
+ * produce for a blank line. `.env.example` ships `S3_PUBLIC_BASE_URL=` to
+ * document the name, dotenv reads that as an empty string, and systemd's
+ * EnvironmentFile does the same. Without this the schema rejects a deployment
+ * for declining to set an optional value.
+ *
+ * Applied only where the inner type would reject an empty string. `z.string()`
+ * accepts one already, and every consumer of those reads it as falsy.
+ */
+const blankAsAbsent = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((value) => (value === '' ? undefined : value), schema);
+
 const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -28,7 +44,7 @@ const schema = z
     SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
     SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(604_800),
 
-    ADMIN_EMAIL: z.email().optional(),
+    ADMIN_EMAIL: blankAsAbsent(z.email().optional()),
     ADMIN_PASSWORD: z.string().min(8).optional(),
     ADMIN_NAME: z.string().optional(),
 
@@ -77,7 +93,7 @@ const schema = z
     /* A CDN origin in front of the bucket, e.g. `https://cdn.example.com`. When
        absent, public objects stream through the application's own route instead,
        so S3 is usable before CloudFront exists. */
-    S3_PUBLIC_BASE_URL: z.url().optional(),
+    S3_PUBLIC_BASE_URL: blankAsAbsent(z.url().optional()),
 
     INTERNAL_JOBS_SECRET: z.string().min(32).optional(),
     ENABLE_EMBEDDED_SCHEDULER: booleanish.default(false),
