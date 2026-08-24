@@ -26,6 +26,18 @@
 
 CREATE ROLE newera_migrate LOGIN PASSWORD :migrate_password;
 
+-- `ALTER DEFAULT PRIVILEGES FOR ROLE x` at the end of this file requires the
+-- current user to be a MEMBER of x. On RDS the master user is `rds_superuser`,
+-- not a true superuser, so it does not get that for free the way a local
+-- superuser does — and the statement fails with "permission denied to change
+-- default privileges" after the roles have already been created, leaving a
+-- half-applied script.
+--
+-- Granting membership here rather than there keeps the failure from happening
+-- at all. It is harmless on a local cluster, where the superuser already
+-- qualifies.
+GRANT newera_migrate TO CURRENT_USER;
+
 GRANT CONNECT ON DATABASE newera TO newera_migrate;
 GRANT ALL ON SCHEMA public TO newera_migrate;
 ALTER SCHEMA public OWNER TO newera_migrate;

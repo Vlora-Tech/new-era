@@ -1,0 +1,80 @@
+# بناء العهد الجديد — the application, supervised by the init system already
+# running on the box.
+#
+# Install:
+#   sudo cp /opt/new-era/deploy/ec2/new-era.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now new-era
+#
+# Watch:  journalctl -u new-era -f
+#
+# Runs the standalone server emitted by `output: 'standalone'`. That server
+# resolves assets relative to its own directory, which is why WorkingDirectory
+# points inside .next/standalone and why release.sh copies .next/static and
+# public/ next to it after every build.
+
+[Unit]
+Description=بناء العهد الجديد
+Documentation=https://github.com/Vlora-Tech/new-era
+After=network-online.target
+Wants=network-online.target
+
+# A process that dies instantly and forever is misconfigured, not unlucky.
+# Give up after five failures in two minutes so a crash-loop stops burning CPU
+# and leaves a clean `systemctl status` explaining why.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=newera
+Group=newera
+WorkingDirectory=/opt/new-era/.next/standalone
+ExecStart=/usr/bin/node server.js
+
+# NOTE: systemd's EnvironmentFile is NOT dotenv. It does no variable expansion,
+# `export` prefixes are a syntax error, and quotes are consumed rather than kept.
+# Plain KEY=value lines, one per line, no trailing comments.
+EnvironmentFile=/etc/new-era/app.env
+
+Restart=always
+RestartSec=2
+
+# ── Resource ceiling ──────────────────────────────────────────────────────
+# 2 GB total. Capping the service means a runaway heap is killed and restarted
+# here, rather than the kernel's OOM killer choosing a victim elsewhere — and
+# left to itself it often picks sshd, turning a memory leak into a box you
+# cannot log in to.
+MemoryMax=900M
+MemoryHigh=750M
+
+# ── Hardening ─────────────────────────────────────────────────────────────
+# Cheap here because the process genuinely needs nothing: it listens on a high
+# port, reads its own directory, and talks to Postgres and S3 over the network.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# No capability is required to bind a port above 1024, so hand over none. Put
+# Caddy or nginx in front for 80/443 rather than granting CAP_NET_BIND_SERVICE.
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+# ProtectSystem=strict makes the whole filesystem read-only. Nothing is listed
+# writable on purpose: with STORAGE_PROVIDER=s3 the application writes no files
+# at all. If you ever switch back to local disk storage, this is the line that
+# will fail first — and it failing is the correct outcome, since
+# STORAGE_PROVIDER=local is refused in production anyway.
+
+[Install]
+WantedBy=multi-user.target

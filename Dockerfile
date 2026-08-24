@@ -133,3 +133,29 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["node", "server.js"]
+
+
+# ── tools ─────────────────────────────────────────────────────────────────
+# One-off operator commands that need the full dependency tree and the repo's
+# scripts: `admin:bootstrap` above all, which is the only supported way to
+# create the first administrator in production.
+#
+# Separate from `migrate` on purpose. The migrate image is the release step and
+# should carry the minimum that runs a migration; this one carries scripts and
+# is run by hand, interactively, and never as part of a deploy.
+#
+# Build it with `--target tools`, then:
+#   docker run --rm -it -e DATABASE_URL=... <image> npx tsx scripts/bootstrap-admin.ts
+FROM base AS tools
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/scripts ./scripts
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/tsconfig.json ./tsconfig.json
+
+USER node
+CMD ["npx", "tsx", "scripts/bootstrap-admin.ts"]

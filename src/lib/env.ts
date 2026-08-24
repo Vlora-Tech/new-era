@@ -33,6 +33,21 @@ const schema = z
     ADMIN_NAME: z.string().optional(),
 
     PAYMENT_PROVIDER: z.enum(['mock', 'moyasar']).default('mock'),
+    /*
+     * Lets a production-mode box boot with no payment provider configured.
+     *
+     * It does NOT make the mock able to take a payment. The other two gates are
+     * untouched: `getPaymentProvider()` still refuses to return the mock adapter
+     * in production, and the development completion route still answers 404. And
+     * `isCommerceEnabled()` still reports false, so order creation answers with
+     * the Arabic "commerce unavailable" message instead of reaching any of it.
+     *
+     * The effect is exactly one thing: a staging deployment runs the catalogue,
+     * the courses and the exam engine without a Moyasar account, with purchasing
+     * cleanly closed rather than half-working. Access is granted by hand from the
+     * admin entitlements screen. Remove this the moment real keys exist.
+     */
+    ALLOW_MOCK_PAYMENTS_IN_PRODUCTION: booleanish.default(false),
     MOYASAR_API_BASE_URL: z.url().default('https://api.moyasar.com'),
     MOYASAR_MODE: z.enum(['test', 'live']).default('test'),
     NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY: z.string().optional(),
@@ -73,12 +88,27 @@ const schema = z
     // The development payment mock must be unreachable in production. This is
     // the first of three independent gates; the provider factory and the mock
     // route itself each refuse as well.
+    //
+    // The escape hatch below only lifts *this* gate, and only when a deployment
+    // asks for it by name. The other two stand, so the mock still cannot take a
+    // payment — see ALLOW_MOCK_PAYMENTS_IN_PRODUCTION above.
     if (isProduction && env.PAYMENT_PROVIDER === 'mock') {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['PAYMENT_PROVIDER'],
-        message: 'The mock payment provider cannot be used in production.',
-      });
+      if (!env.ALLOW_MOCK_PAYMENTS_IN_PRODUCTION) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['PAYMENT_PROVIDER'],
+          message: 'The mock payment provider cannot be used in production.',
+        });
+      } else {
+        // Once per process, because the parse result is cached. A deployment
+        // running without a payment provider should say so in its own logs
+        // rather than being discovered by a student who cannot buy anything.
+        console.warn(
+          '[env] Running in production with no payment provider. Purchasing is disabled; ' +
+            'entitlements must be granted from the admin screens. ' +
+            'Unset ALLOW_MOCK_PAYMENTS_IN_PRODUCTION once Moyasar credentials exist.',
+        );
+      }
     }
 
     if (env.PAYMENT_PROVIDER === 'moyasar') {
