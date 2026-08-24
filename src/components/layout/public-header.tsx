@@ -35,7 +35,13 @@ import { cn } from '@/lib/utils';
  *
  * NOTE: the bar's height is load-bearing elsewhere — the drawer's `max-h` below
  * and every landing section's `scroll-mt` both subtract it. Changing
- * `h-20 lg:h-24` means changing those too.
+ * `h-36 lg:h-44` means changing those too.
+ *
+ * It grew from `h-20 lg:h-24` on 2026-08-25 because the new lockup is taller
+ * than wide (1610 × 2000) where the old one was wider than tall. At the 128px
+ * width the wordmark needs, the mark is 159px tall and simply did not fit an
+ * 80px bar. The owner chose a taller bar over a smaller mark, knowing it costs
+ * fold space — the trade the commissioned horizontal lockup removes.
  *
  * Navigation state is carried by three signals and never by colour alone: the
  * ground changes, the weight goes up, and `aria-current` is set. The rail's
@@ -101,7 +107,7 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
 
   return (
     <header className="border-line-200/70 bg-surface/85 sticky top-0 z-40 border-b backdrop-blur-xl">
-      <div className="mx-auto flex h-20 w-full max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6 lg:h-24 lg:px-8">
+      <div className="mx-auto flex h-36 w-full max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-6 lg:h-44 lg:px-8">
         <BrandBarLink />
 
         <nav
@@ -166,12 +172,12 @@ export function PublicHeader({ isSignedIn }: { isSignedIn: boolean }) {
       {menuOpen ? (
         <div
           id="public-mobile-nav"
-          // 5rem/6rem, matching `h-20 lg:h-24` above. It was still subtracting
+          // 9rem/11rem, matching `h-36 lg:h-44` above. It was still subtracting
           // the old 4rem bar, which let the panel run past the bottom of the
           // viewport by the difference and put the register button out of reach.
           // Solid white, not the bar's frosted ground: a reading list over
           // scrolled page content is exactly what a blur cannot keep legible.
-          className="border-line-200 bg-surface panel-in max-h-[calc(100dvh-5rem)] overflow-y-auto border-t lg:max-h-[calc(100dvh-6rem)] xl:hidden"
+          className="border-line-200 bg-surface panel-in max-h-[calc(100dvh-9rem)] overflow-y-auto border-t lg:max-h-[calc(100dvh-11rem)] xl:hidden"
         >
           <nav
             aria-label={COPY.nav.mainNavigation}

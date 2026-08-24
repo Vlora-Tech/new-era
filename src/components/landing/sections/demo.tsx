@@ -38,7 +38,7 @@ export function Demo() {
   return (
     <section
       id="demo"
-      className="relative scroll-mt-20 pt-20 sm:pt-24 lg:scroll-mt-24 lg:pt-[130px]"
+      className="relative scroll-mt-36 pt-20 sm:pt-24 lg:scroll-mt-44 lg:pt-[130px]"
     >
       <MarketingContainer>
         <SectionIntro title={DEMO.title} lead={DEMO.lead} />

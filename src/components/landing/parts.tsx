@@ -98,7 +98,7 @@ export function MarketingContainer({
 
 /* ── Section wrapper ───────────────────────────────────────────────────────
  *
- * `scroll-mt-20 lg:scroll-mt-24` matches the header's `h-20 lg:h-24` exactly.
+ * `scroll-mt-36 lg:scroll-mt-44` matches the header's `h-36 lg:h-44` exactly.
  * The two are load-bearing on each other: an anchored section that forgets it
  * lands underneath the sticky bar.
  *
@@ -129,7 +129,7 @@ export function SectionShell({
     <section
       id={id}
       className={cn(
-        'relative scroll-mt-20 lg:scroll-mt-24',
+        'relative scroll-mt-36 lg:scroll-mt-44',
         pad === 'flow' ? 'pt-20 sm:pt-24 lg:pt-[130px]' : 'py-[70px] sm:py-20 lg:py-[110px]',
         tone === 'band' &&
           'border-line-200/70 via-canvas-blue to-brand-50 overflow-hidden border-y bg-linear-to-b from-white from-0% via-55% to-100%',

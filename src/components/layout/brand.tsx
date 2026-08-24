@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
  *    220px the guidelines require for legibility, on white, with clear space.
  *    It is for places with room, and it is used in all of them: the footer, and
  *    the sign-in and registration pages.
- *  - `BrandBarLogo` renders the same artwork at 112px (88px on a phone) for the
+ *  - `BrandBarLogo` renders the same artwork at 128px (96px on a phone) for the
  *    public bar, which is sized to the mark rather than the mark to the bar.
  *    That is under the 220px floor and is an owner-directed deviation; the
  *    waiver, and the way out of it, are recorded in docs/brand-assets-needed.md.
@@ -45,7 +45,12 @@ const LOGO_MIN_WIDTH_PX = 220;
  * type. The earlier objection to that was sound but assumed a 64px bar, where
  * the lockup renders about 56px tall and both wordmarks collapse into a smudge.
  * The answer is to size the bar to the mark instead of shrinking the mark to the
- * bar: at 112px wide the Arabic wordmark lands near 13px, which reads.
+ * bar. The width moved from 112px to 128px with the 2026-08-25 artwork, and
+ * the reason is measured rather than guessed: the Arabic wordmark is 140px tall
+ * in both files, but that is 12.4% of the old file's height and only 7.0% of
+ * the new one's, because the new lockup gives far more of its canvas to the
+ * tile. Rendering it at the old 112px would have shrunk the wordmark from about
+ * 11px to under 10px. 128px holds the previous legibility.
  *
  * This is still below the guidelines' 220px floor, and it is a deliberate,
  * owner-directed deviation recorded in docs/brand-assets-needed.md. The
@@ -55,11 +60,34 @@ const LOGO_MIN_WIDTH_PX = 220;
  * Nothing is cropped, recoloured or stretched, and the artwork's own white
  * ground sits on the bar's white surface, so no blend mode is involved.
  */
-const BAR_LOGO_WIDTH_PX = 112;
-const BAR_LOGO_WIDTH_PX_SM = 88;
+const BAR_LOGO_WIDTH_PX = 128;
+const BAR_LOGO_WIDTH_PX_SM = 96;
 
-/** height ÷ width of the supplied artwork (1397 × 1126). */
-const LOGO_ASPECT_RATIO = 1126 / 1397;
+/**
+ * height ÷ width of the supplied artwork (1610 × 2000).
+ *
+ * The 2026-08-25 artwork is TALLER than wide, where the file it replaced was
+ * wider than tall (1397 × 1126, ratio 0.806). Anything that assumed the old
+ * proportion has to move with it — deriving one dimension from the other is
+ * how a lockup gets stretched, which is why next/image is given both.
+ */
+const LOGO_ASPECT_RATIO = 2000 / 1610;
+
+/**
+ * The primary lockup: dark tile, blue calligraphy, white accents.
+ *
+ * Three colourways were supplied. This one is the owner's choice
+ * (2026-08-25). The other two stay in public/brand/ unused rather than
+ * deleted, named for their ink and their tile so the next person does not have
+ * to open them to find out which is which:
+ *
+ *   new-era-lockup-white-on-dark.png  — dark tile, white calligraphy
+ *   new-era-lockup-blue-on-light.png  — light tile, blue calligraphy
+ *
+ * All three carry the wordmarks. None of them is a symbol-only mark, so the
+ * favicon is still unresolved — see docs/brand-assets-needed.md item 2.
+ */
+const LOGO_SRC = '/brand/new-era-lockup-blue-on-dark.png';
 
 /** The guidelines' clear space: 12% of the logo's own width, on every side. */
 const CLEAR_SPACE_RATIO = 0.12;
@@ -103,7 +131,7 @@ export function BrandLogo({
 
   return (
     <Image
-      src="/brand/new-era-logo.png"
+      src={LOGO_SRC}
       alt={`${BRAND.name} — ${BRAND.fullName}`}
       width={renderedWidth}
       height={height}
@@ -212,7 +240,7 @@ export function BrandBarLogo({ className }: { className?: string }) {
 
   return (
     <Image
-      src="/brand/new-era-logo.png"
+      src={LOGO_SRC}
       alt={`${BRAND.name} — ${BRAND.fullName}`}
       width={BAR_LOGO_WIDTH_PX}
       height={Math.round(BAR_LOGO_WIDTH_PX * LOGO_ASPECT_RATIO)}

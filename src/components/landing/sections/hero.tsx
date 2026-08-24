@@ -73,7 +73,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative scroll-mt-20 overflow-x-clip pt-16 lg:scroll-mt-24 lg:pt-24"
+      className="relative scroll-mt-36 overflow-x-clip pt-16 lg:scroll-mt-44 lg:pt-24"
     >
       <AuroraField />
 

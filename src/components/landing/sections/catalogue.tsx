@@ -43,7 +43,7 @@ function ShellCard({
       id={id}
       className={cn(
         'border-line-200 rounded-shell reveal border p-6 shadow-xs sm:p-8 lg:p-11',
-        id && 'scroll-mt-24 lg:scroll-mt-28',
+        id && 'scroll-mt-40 lg:scroll-mt-48',
         className,
       )}
     >

@@ -1,7 +1,37 @@
 # Brand assets still required
 
-The supplied logo is a single raster file: `New-Era-Building-Blue-Logo.png`, a
-stacked lockup with Arabic and Latin wordmarks on a white background.
+> **New artwork supplied 2026-08-25.** Three colourways, each a stacked lockup
+> at 1610 × 2000, each carrying both wordmarks:
+>
+> | File | Tile | Calligraphy |
+> | ---- | ---- | ----------- |
+> | `new-era-lockup-blue-on-dark.png` **(in use)** | dark | blue |
+> | `new-era-lockup-white-on-dark.png` | dark | white |
+> | `new-era-lockup-blue-on-light.png` | light | blue |
+>
+> The owner chose blue-on-dark. `LOGO_SRC` in `src/components/layout/brand.tsx`
+> is the single constant that switches it.
+>
+> **None of the three is a symbol-only mark**, so item 2 below is still open and
+> the favicon is still a generated placeholder. The wordmarks are present in
+> every file; a compact mark must be commissioned rather than trimmed out of
+> one of these.
+>
+> **The proportions inverted.** The new lockup is taller than wide (ratio 1.242)
+> where the old was wider than tall (0.806). The public bar grew from
+> `h-20 lg:h-24` to `h-36 lg:h-44` to hold it, because at the 128px width the
+> wordmark needs, the mark is 159px tall. The width itself is measured, not
+> guessed: the Arabic wordmark is 140px in both files, but that is 12.4% of the
+> old canvas and 7.0% of the new one, so 112px would have shrunk it below the
+> previous legibility. The owner accepted the taller bar and its cost in fold
+> space, over a smaller mark. Item 1 still removes the trade entirely.
+>
+> The drawer's `max-h` and every landing section's `scroll-mt` subtract the bar
+> height and moved with it.
+
+The previously supplied logo was a single raster file, a stacked lockup with
+Arabic and Latin wordmarks on a white background. It remains in
+`public/brand/new-era-logo.png`, referenced by nothing.
 
 The brand guidelines state that it must not be cropped, recoloured, stretched,
 rotated, masked, or have the upper symbol extracted from it, and that it should
