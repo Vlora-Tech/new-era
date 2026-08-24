@@ -4,7 +4,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
 import { AUTH } from '@/lib/constants';
-import { env } from '@/lib/env';
+import { env, isSecureOrigin } from '@/lib/env';
 
 /**
  * Signed session token.
@@ -74,7 +74,7 @@ export async function setSessionCookie(token: string): Promise<void> {
   const store = await cookies();
   store.set(AUTH.COOKIE_NAME, token, {
     httpOnly: true,
-    secure: env().NODE_ENV === 'production',
+    secure: isSecureOrigin(),
     sameSite: 'lax',
     path: '/',
     maxAge: env().SESSION_TTL_SECONDS,
@@ -85,7 +85,7 @@ export async function clearSessionCookie(): Promise<void> {
   const store = await cookies();
   store.set(AUTH.COOKIE_NAME, '', {
     httpOnly: true,
-    secure: env().NODE_ENV === 'production',
+    secure: isSecureOrigin(),
     sameSite: 'lax',
     path: '/',
     maxAge: 0,

@@ -238,6 +238,27 @@ export function isCommerceEnabled(): boolean {
   return Boolean(config.MOYASAR_SECRET_KEY && config.NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY);
 }
 
+/**
+ * Whether the site is actually served over TLS.
+ *
+ * Deliberately distinct from `NODE_ENV === 'production'`, which is the question
+ * "are the production gates in force" and not the question "is there a
+ * certificate". A staging deployment is production by that first measure — it
+ * must be, or the payment and storage gates would stop applying — while being
+ * reached over plain HTTP, because no public certificate exists for a bare IP
+ * address.
+ *
+ * Conflating the two breaks things quietly rather than loudly: a `Secure`
+ * cookie set over http is discarded by the browser, so a sign-in succeeds and
+ * the next request arrives with no session at all.
+ *
+ * `proxy.ts` derives the same answer independently from `process.env`, because
+ * it deliberately imports no shared application module.
+ */
+export function isSecureOrigin(): boolean {
+  return env().NEXT_PUBLIC_APP_URL.startsWith('https://');
+}
+
 /** Whether protected video playback can be signed with the current configuration. */
 export function isVideoEnabled(): boolean {
   const config = env();
