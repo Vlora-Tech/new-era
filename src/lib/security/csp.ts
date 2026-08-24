@@ -23,8 +23,18 @@ const BUNNY_CDN = 'https://*.b-cdn.net';
 export function buildContentSecurityPolicy(options: {
   nonce: string;
   isDevelopment: boolean;
+  /**
+   * Whether this deployment is actually reached over HTTPS, taken from the
+   * scheme of NEXT_PUBLIC_APP_URL rather than from NODE_ENV.
+   *
+   * The two are not the same thing. A staging box runs with NODE_ENV=production
+   * — it must, or the payment and storage gates would not apply — while still
+   * being served over plain HTTP because no certificate is possible for a bare
+   * IP address.
+   */
+  isSecureOrigin: boolean;
 }): string {
-  const { nonce, isDevelopment } = options;
+  const { nonce, isDevelopment, isSecureOrigin } = options;
 
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
@@ -74,12 +84,26 @@ export function buildContentSecurityPolicy(options: {
     .map(([directive, values]) => `${directive} ${values.join(' ')}`)
     .join('; ');
 
-  // Only meaningful over HTTPS, and it would break local http development.
-  return isDevelopment ? policy : `${policy}; upgrade-insecure-requests`;
+  /*
+   * Only meaningful over HTTPS, and actively destructive without it: the
+   * browser rewrites every http:// subresource to https://, and if nothing is
+   * listening on 443 each one fails with a connection timeout. The page still
+   * renders its HTML, so the result looks like a broken build rather than a
+   * policy doing exactly what it was told.
+   *
+   * Keyed off the real scheme, not NODE_ENV. Point NEXT_PUBLIC_APP_URL at an
+   * https origin and this turns itself on.
+   */
+  return isSecureOrigin && !isDevelopment ? `${policy}; upgrade-insecure-requests` : policy;
 }
 
-/** Headers that carry no per-request value. */
-export function staticSecurityHeaders(isProduction: boolean): Array<[string, string]> {
+/**
+ * Headers that carry no per-request value.
+ *
+ * `isSecureOrigin` is whether the site is genuinely served over TLS, not
+ * whether NODE_ENV is production — see buildContentSecurityPolicy.
+ */
+export function staticSecurityHeaders(isSecureOrigin: boolean): Array<[string, string]> {
   const headers: Array<[string, string]> = [
     // Stop the browser guessing a content type and executing something it
     // should have downloaded.
@@ -94,9 +118,10 @@ export function staticSecurityHeaders(isProduction: boolean): Array<[string, str
     ['X-Frame-Options', 'DENY'],
   ];
 
-  if (isProduction) {
-    // Two years, subdomains included. Only sent over HTTPS, so it cannot strand
-    // a local http development server.
+  if (isSecureOrigin) {
+    // Two years, subdomains included. Sent only where TLS actually exists:
+    // announcing a policy the server cannot honour is how a host gets pinned to
+    // a scheme it does not serve.
     headers.push(['Strict-Transport-Security', 'max-age=63072000; includeSubDomains']);
   }
 

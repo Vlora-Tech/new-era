@@ -33,20 +33,34 @@ function secretKey(): Uint8Array | null {
   return new TextEncoder().encode(secret);
 }
 
-function applySecurityHeaders(response: NextResponse, csp: string, isProduction: boolean): void {
+function applySecurityHeaders(response: NextResponse, csp: string, isSecureOrigin: boolean): void {
   response.headers.set('Content-Security-Policy', csp);
-  for (const [name, value] of staticSecurityHeaders(isProduction)) {
+  for (const [name, value] of staticSecurityHeaders(isSecureOrigin)) {
     response.headers.set(name, value);
   }
 }
 
 export async function proxy(request: NextRequest) {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const isProduction = process.env.NODE_ENV === 'production';
+
+  /*
+   * Whether the site is genuinely served over TLS — the scheme of the origin
+   * the browser actually uses, which is not the same question as NODE_ENV.
+   *
+   * A staging deployment runs with NODE_ENV=production (it must, or the payment
+   * and storage gates would not apply) while being served over plain HTTP,
+   * because no public certificate exists for a bare IP address. Sending
+   * `upgrade-insecure-requests` there rewrites every subresource to https://,
+   * where nothing is listening, and the page renders as unstyled HTML.
+   *
+   * Read straight from the environment, like the session secret above: this
+   * file deliberately avoids importing shared application modules.
+   */
+  const isSecureOrigin = (process.env.NEXT_PUBLIC_APP_URL ?? '').startsWith('https://');
 
   // A fresh nonce per request; a reused one would defeat the point of having it.
   const nonce = crypto.randomUUID().replace(/-/g, '');
-  const csp = buildContentSecurityPolicy({ nonce, isDevelopment });
+  const csp = buildContentSecurityPolicy({ nonce, isDevelopment, isSecureOrigin });
 
   const { pathname } = request.nextUrl;
 
@@ -70,13 +84,13 @@ export async function proxy(request: NextRequest) {
       // internal target by construction. The login page validates it again.
       loginUrl.searchParams.set('next', pathname);
       const redirect = NextResponse.redirect(loginUrl);
-      applySecurityHeaders(redirect, csp, isProduction);
+      applySecurityHeaders(redirect, csp, isSecureOrigin);
       return redirect;
     }
 
     if (role !== 'ADMIN' && (pathname === '/admin' || pathname.startsWith('/admin/'))) {
       const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
-      applySecurityHeaders(redirect, csp, isProduction);
+      applySecurityHeaders(redirect, csp, isSecureOrigin);
       return redirect;
     }
   }
@@ -87,7 +101,7 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set('x-nonce', nonce);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  applySecurityHeaders(response, csp, isProduction);
+  applySecurityHeaders(response, csp, isSecureOrigin);
   return response;
 }
 
