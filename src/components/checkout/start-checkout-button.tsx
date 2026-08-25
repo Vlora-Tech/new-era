@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { COPY } from '@/lib/copy';
+import { uuidV4 } from '@/lib/utils';
 
 type OrderResponse = {
   ok: boolean;
@@ -32,7 +33,7 @@ export function StartCheckoutButton({ productId, label }: { productId: string; l
 
   async function start() {
     setPending(true);
-    checkoutRequestKey.current ??= crypto.randomUUID();
+    checkoutRequestKey.current ??= uuidV4();
 
     try {
       const response = await fetch('/api/orders', {
