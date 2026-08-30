@@ -1,0 +1,45 @@
+# TLS termination and reverse proxy for بناء العهد الجديد.
+#
+#   sudo cp /opt/new-era/deploy/ec2/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Caddy obtains and renews the certificate itself over ACME. It needs port 80
+# reachable for the HTTP-01 challenge and the A record already resolving — it
+# asks the moment it loads this file, and repeated failures against a name that
+# does not resolve earn a Let's Encrypt rate limit measured in hours.
+#
+# Replace both host names when deploying elsewhere. There is deliberately no
+# `:80` catch-all: matching only these names means the bare IP stops answering,
+# which is correct, since NEXT_PUBLIC_APP_URL names the origin and the
+# same-origin check would refuse writes arriving any other way.
+
+{
+	# Expiry warnings if renewal ever breaks. Must be an address someone reads.
+	email admin@new-era-building.com
+}
+
+new-era-building.com {
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:3000 {
+		# The app builds absolute URLs and compares Origin against
+		# NEXT_PUBLIC_APP_URL. Behind a proxy it must be told the scheme and host
+		# the browser actually used, or every authenticated write is rejected.
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# NO Strict-Transport-Security here, deliberately. The application emits it
+	# from src/lib/security/csp.ts, gated on isSecureOrigin(), so setting it here
+	# too would send the header twice and split one decision across two files.
+}
+
+www.new-era-building.com {
+	redir https://new-era-building.com{uri} permanent
+}
